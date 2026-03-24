@@ -7,7 +7,6 @@ infra/**/.terraform/
 infra/**/*.tfplan
 infra/**/*.tfstate
 infra/**/*.tfstate.backup
-infra/**/.terraform.lock.hcl
 *.tfplan
 
 # Node.js

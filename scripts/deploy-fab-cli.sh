@@ -24,7 +24,7 @@ FABRIC_WORKSPACE="${FABRIC_WORKSPACE:?Set FABRIC_WORKSPACE to the target workspa
 FABRIC_CAPACITY="${FABRIC_CAPACITY:-}"                      # optional; only needed when creating a new workspace
 TENANT_ID="${TENANT_ID:?Set TENANT_ID for SPN auth}"
 CLIENT_ID="${CLIENT_ID:?Set CLIENT_ID for SPN auth}"
-CLIENT_SECRET="${CLIENT_SECRET:?Set CLIENT_SECRET for SPN auth}"
+CLIENT_SECRET="${CLIENT_SECRET:-}"                          # optional fallback (deprecated — prefer OIDC or interactive login)
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
@@ -47,14 +47,32 @@ require_cmd az
 require_cmd jq
 
 # ---------------------------------------------------------------------------
-# Step 1 — Authenticate with Service Principal
+# Step 1 — Authenticate (OIDC → CLIENT_SECRET fallback → interactive)
 # ---------------------------------------------------------------------------
-log "Authenticating with Service Principal (Tenant: ${TENANT_ID})"
-az login --service-principal \
-  --tenant  "$TENANT_ID" \
-  --username "$CLIENT_ID" \
-  --password "$CLIENT_SECRET" \
-  --output none
+if az account show --output none 2>/dev/null; then
+  log "Already authenticated with Azure CLI"
+elif [ -n "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" ]; then
+  # CI/CD: Use OIDC federated credentials (GitHub Actions, Azure DevOps, etc.)
+  log "Authenticating via OIDC federated token (CI/CD)"
+  az login --service-principal \
+    --tenant  "$TENANT_ID" \
+    --username "$CLIENT_ID" \
+    --federated-token "$(curl -sS -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+      "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=api://AzureADTokenExchange" | jq -r '.value')" \
+    --output none
+elif [ -n "${CLIENT_SECRET}" ]; then
+  # Deprecated fallback — prefer OIDC or interactive login
+  log "WARNING: CLIENT_SECRET auth is deprecated — migrate to OIDC federated credentials"
+  az login --service-principal \
+    --tenant  "$TENANT_ID" \
+    --username "$CLIENT_ID" \
+    --password "$CLIENT_SECRET" \
+    --output none
+else
+  # Local development: interactive login
+  log "No CI/CD token or CLIENT_SECRET found — falling back to interactive login"
+  az login --use-device-code --output none
+fi
 
 fab auth login --tenant-id "$TENANT_ID" --output none
 

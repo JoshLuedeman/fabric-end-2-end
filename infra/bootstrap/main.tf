@@ -14,12 +14,12 @@ terraform {
   required_providers {
     azuread = {
       source  = "hashicorp/azuread"
-      version = ">= 3.0"
+      version = "~> 3.0"
     }
 
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = ">= 4.0"
+      version = "~> 4.0"
     }
   }
 }
@@ -45,6 +45,16 @@ variable "subscription_id" {
   type        = string
 }
 
+variable "resource_group_name" {
+  description = "Name of the resource group for application resources (least-privilege scope for Contributor role)."
+  type        = string
+}
+
+variable "state_resource_group_name" {
+  description = "Name of the resource group containing the Terraform state storage account."
+  type        = string
+}
+
 # ---------------------------------------------------------------------------
 # Data Sources
 # ---------------------------------------------------------------------------
@@ -63,18 +73,29 @@ resource "azuread_service_principal" "terraform" {
   owners    = [data.azuread_client_config.current.object_id]
 }
 
+# 90-day rotation policy — rotate this credential before expiry
 resource "azuread_application_password" "terraform" {
   application_id = azuread_application.terraform.id
   display_name   = "terraform-automation"
-  end_date       = "2026-12-31T00:00:00Z"
+  end_date       = timeadd(timestamp(), "2160h") # 90 days
+
+  lifecycle {
+    ignore_changes = [end_date]
+  }
 }
 
 # ---------------------------------------------------------------------------
-# Role Assignment — Contributor on the subscription
-# (Adjust scope as needed for least-privilege)
+# Role Assignments — Contributor scoped to specific resource groups
+# (least-privilege: only the app RG and the Terraform state RG)
 # ---------------------------------------------------------------------------
-resource "azurerm_role_assignment" "contributor" {
-  scope                = "/subscriptions/${var.subscription_id}"
+resource "azurerm_role_assignment" "contributor_app_rg" {
+  scope                = "/subscriptions/${var.subscription_id}/resourceGroups/${var.resource_group_name}"
+  role_definition_name = "Contributor"
+  principal_id         = azuread_service_principal.terraform.object_id
+}
+
+resource "azurerm_role_assignment" "contributor_state_rg" {
+  scope                = "/subscriptions/${var.subscription_id}/resourceGroups/${var.state_resource_group_name}"
   role_definition_name = "Contributor"
   principal_id         = azuread_service_principal.terraform.object_id
 }

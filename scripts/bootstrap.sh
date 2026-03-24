@@ -25,6 +25,10 @@ echo "Subscription: ${SUBSCRIPTION_ID}"
 echo "Tenant: ${TENANT_ID}"
 echo ""
 
+# Resource group for least-privilege role scoping
+read -rp "Enter the application resource group name: " RESOURCE_GROUP_NAME
+[ -z "${RESOURCE_GROUP_NAME}" ] && { echo "Error: Resource group name is required."; exit 1; }
+
 # Create Azure AD App Registration
 APP_NAME="fabric-e2e-demo-automation"
 echo "Creating App Registration: ${APP_NAME}..."
@@ -63,12 +67,12 @@ for ENV in dev prod; do
   }" 2>/dev/null || echo "    (credential may already exist)"
 done
 
-# Assign Contributor role on subscription for Terraform
+# Assign Contributor role scoped to the application resource group (least-privilege)
 echo ""
-echo "Assigning Contributor role..."
+echo "Assigning Contributor role on resource group '${RESOURCE_GROUP_NAME}'..."
 az role assignment create --assignee "${APP_ID}" \
   --role Contributor \
-  --scope "/subscriptions/${SUBSCRIPTION_ID}" 2>/dev/null || echo "  (role may already exist)"
+  --scope "/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RESOURCE_GROUP_NAME}" 2>/dev/null || echo "  (role may already exist)"
 
 # Configure GitHub secrets
 if command -v gh >/dev/null 2>&1; then

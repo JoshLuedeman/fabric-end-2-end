@@ -1,4 +1,4 @@
-faker>=28.0.0
-pandas>=2.2.0
-pyarrow>=17.0.0
-numpy>=1.26.0
+faker==33.0.0
+pandas==2.2.3
+pyarrow==18.1.0
+numpy==2.1.3

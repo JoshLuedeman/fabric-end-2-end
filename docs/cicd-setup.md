@@ -38,6 +38,9 @@ These are **sensitive values** that must be stored as repository secrets (**Sett
 | `AZURE_CLIENT_ID` | Azure AD App Registration client/application ID | Created by `scripts/bootstrap.sh` or manually via **Azure Portal → App Registrations** |
 | `AZURE_TENANT_ID` | Azure AD tenant ID | **Azure Portal → Azure Active Directory → Overview** |
 | `AZURE_SUBSCRIPTION_ID` | Azure subscription ID for resource provisioning | **Azure Portal → Subscriptions** |
+| `TF_STATE_STORAGE_ACCOUNT` | Terraform state backend storage account name | Name of the Azure Storage Account you created for TF state (e.g., `sttfstateXXXX`) |
+| `TF_STATE_CONTAINER` | Terraform state backend container name | Name of the blob container in the storage account (e.g., `tfstate`) |
+| `TF_STATE_RESOURCE_GROUP` | Terraform state backend resource group | Resource group containing the TF state storage account |
 | `EVENTHUB_CONNECTION_STRING` | Connection string for the Event Hub namespace used by the streaming generator | **Azure Portal → Event Hubs namespace → Shared access policies → RootManageSharedAccessKey** (created by Terraform after infra deploy) |
 
 > **Note:** `GITHUB_TOKEN` is automatically provided by GitHub Actions — no manual configuration needed. The `deploy-streaming` workflow uses it to push Docker images to GHCR and to authenticate the container instance with the registry.
