@@ -1,0 +1,63 @@
+{
+  "name": "Contoso Feature Flags",
+  "description": "Feature toggles to control capability rollout across environments. Flags allow gradual enablement of new features without redeployment.",
+  "version": "1.0",
+  "flags": [
+    {
+      "name": "ENABLE_ML_SCORING",
+      "description": "Enable real-time ML model scoring in data pipelines (churn prediction, demand forecast). When disabled, pipelines skip the ML enrichment step.",
+      "type": "boolean",
+      "values": {
+        "dev": true,
+        "prod": false
+      },
+      "target_workspaces": ["data-science", "data-engineering"],
+      "owner": "Data Science Team",
+      "rollout_plan": "Enable in prod after model validation achieves >85% accuracy on holdout set. Target: Q4 2025.",
+      "dependencies": ["ML model registered in MLflow", "Scoring endpoint provisioned"],
+      "impact_if_disabled": "Pipelines produce output without ML-enriched columns (e.g., churn_probability, demand_forecast)."
+    },
+    {
+      "name": "ENABLE_REALTIME_DASHBOARD",
+      "description": "Enable DirectQuery-based real-time monitoring dashboard with auto-refresh. When disabled, dashboard uses scheduled import mode.",
+      "type": "boolean",
+      "values": {
+        "dev": true,
+        "prod": true
+      },
+      "target_workspaces": ["real-time", "analytics"],
+      "owner": "Platform Engineering",
+      "rollout_plan": "Already enabled in both environments. Monitor capacity impact.",
+      "dependencies": ["Eventhouse provisioned", "KQL database active"],
+      "impact_if_disabled": "Real-time monitoring report falls back to 15-minute scheduled refresh."
+    },
+    {
+      "name": "ENABLE_DATA_QUALITY_ALERTS",
+      "description": "Enable automated data quality checks that fire alerts via Data Activator when anomalies are detected (null rates, volume drops, schema drift).",
+      "type": "boolean",
+      "values": {
+        "dev": false,
+        "prod": true
+      },
+      "target_workspaces": ["data-engineering", "governance"],
+      "owner": "Data Governance Team",
+      "rollout_plan": "Disabled in dev to avoid alert noise during development. Enabled in prod for production monitoring.",
+      "dependencies": ["Data Activator reflex configured", "Alert recipients defined"],
+      "impact_if_disabled": "Data quality issues are only caught during manual review or downstream report inspection."
+    },
+    {
+      "name": "ENABLE_COST_ALLOCATION",
+      "description": "Enable per-department capacity usage tracking and cost allocation tagging. Adds metadata to all Fabric operations for chargeback reporting.",
+      "type": "boolean",
+      "values": {
+        "dev": false,
+        "prod": true
+      },
+      "target_workspaces": ["governance"],
+      "owner": "Finance & Platform Engineering",
+      "rollout_plan": "Not needed in dev (shared capacity). Required in prod for departmental chargeback at $0.36/CU-hour.",
+      "dependencies": ["Cost center tags defined", "Capacity metrics pipeline active"],
+      "impact_if_disabled": "Capacity costs are tracked at tenant level only; no per-department breakdown."
+    }
+  ]
+}

@@ -1,0 +1,295 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "_comment": [
+    "Digital Twin Model — Retail Store",
+    "Contoso Global Retail & Supply Chain",
+    "",
+    "Defines the entity types, relationships, properties, and telemetry",
+    "bindings for a digital twin of a Contoso retail store.  Use this",
+    "model in the Fabric Digital Twin Builder (Preview) to create live",
+    "simulations backed by Eventhouse telemetry.",
+    "",
+    "Entity hierarchy:  Store → Department → Aisle → Shelf",
+    "                   Store → CheckoutLane",
+    "                   Store → BackRoom",
+    "                   Store → HVACUnit",
+    "                   Store → RefrigerationUnit"
+  ],
+
+  "modelId": "contoso:RetailStore:1",
+  "modelVersion": "1.0.0",
+  "displayName": "Contoso Retail Store Twin",
+  "description": "Digital twin model for a Contoso retail store — physical layout, equipment, and IoT telemetry bindings.",
+
+  "entityTypes": [
+    {
+      "id": "Store",
+      "displayName": "Store",
+      "description": "Top-level entity representing a physical retail store.",
+      "properties": [
+        { "name": "StoreId",           "type": "string",   "description": "Store identifier (S-0001 to S-0500)" },
+        { "name": "StoreName",         "type": "string",   "description": "Store display name" },
+        { "name": "StoreType",         "type": "string",   "description": "Flagship, Standard, Express, Outlet, Online",  "enum": ["Flagship", "Standard", "Express", "Outlet", "Online"] },
+        { "name": "OperationalStatus", "type": "string",   "description": "Current operational state",                    "enum": ["open", "closed", "maintenance", "emergency"], "default": "open" },
+        { "name": "Capacity",          "type": "integer",  "description": "Maximum occupancy (persons)",                  "unit": "persons" },
+        { "name": "CurrentLoad",       "type": "integer",  "description": "Current occupancy (persons)",                  "unit": "persons" },
+        { "name": "Latitude",          "type": "double",   "description": "Store latitude for geo-visualization" },
+        { "name": "Longitude",         "type": "double",   "description": "Store longitude for geo-visualization" },
+        { "name": "SquareFootage",     "type": "integer",  "description": "Total floor area",                             "unit": "sqft" },
+        { "name": "LastMaintenanceDate", "type": "datetime", "description": "Date of last scheduled maintenance" },
+        { "name": "OpenedDate",        "type": "datetime", "description": "Store opening date" }
+      ],
+      "telemetryBindings": [
+        {
+          "name": "FootTraffic",
+          "source": "contoso_kqldb.RealtimeIoT",
+          "filter": "SensorType == 'FootTraffic' and StoreId == '{StoreId}'",
+          "valueColumn": "ReadingValue",
+          "timestampColumn": "ReadingTimestamp",
+          "refreshInterval": "30s"
+        }
+      ]
+    },
+
+    {
+      "id": "Department",
+      "displayName": "Department",
+      "description": "A department within a store (e.g., Grocery, Electronics, Apparel).",
+      "properties": [
+        { "name": "DepartmentId",      "type": "string",   "description": "Department identifier" },
+        { "name": "DepartmentName",    "type": "string",   "description": "Department display name" },
+        { "name": "OperationalStatus", "type": "string",   "description": "Current state", "enum": ["active", "closed", "restocking"], "default": "active" },
+        { "name": "Capacity",          "type": "integer",  "description": "Maximum product SKUs the department can hold" },
+        { "name": "CurrentLoad",       "type": "integer",  "description": "Current active SKUs" },
+        { "name": "FloorArea",         "type": "integer",  "description": "Department floor area", "unit": "sqft" }
+      ],
+      "telemetryBindings": []
+    },
+
+    {
+      "id": "Aisle",
+      "displayName": "Aisle",
+      "description": "A physical aisle within a department.",
+      "properties": [
+        { "name": "AisleId",           "type": "string",   "description": "Aisle identifier (e.g., A-01)" },
+        { "name": "AisleName",         "type": "string",   "description": "Aisle label or category" },
+        { "name": "OperationalStatus", "type": "string",   "description": "Current state", "enum": ["open", "blocked", "cleaning"], "default": "open" },
+        { "name": "Capacity",          "type": "integer",  "description": "Number of shelf positions" },
+        { "name": "CurrentLoad",       "type": "integer",  "description": "Occupied shelf positions" }
+      ],
+      "telemetryBindings": []
+    },
+
+    {
+      "id": "Shelf",
+      "displayName": "Shelf",
+      "description": "A shelf unit within an aisle, holding specific products.",
+      "properties": [
+        { "name": "ShelfId",           "type": "string",   "description": "Shelf identifier" },
+        { "name": "OperationalStatus", "type": "string",   "description": "Current state", "enum": ["stocked", "empty", "restocking"], "default": "stocked" },
+        { "name": "Capacity",          "type": "integer",  "description": "Maximum units the shelf can hold" },
+        { "name": "CurrentLoad",       "type": "integer",  "description": "Units currently on the shelf" },
+        { "name": "ProductId",         "type": "string",   "description": "Primary product assigned to this shelf" },
+        { "name": "Temperature",       "type": "double",   "description": "Shelf temperature (for refrigerated sections)", "unit": "°C" },
+        { "name": "LastRestockDate",   "type": "datetime", "description": "When this shelf was last restocked" }
+      ],
+      "telemetryBindings": []
+    },
+
+    {
+      "id": "CheckoutLane",
+      "displayName": "Checkout Lane",
+      "description": "A point-of-sale checkout lane — staffed or self-service.",
+      "properties": [
+        { "name": "LaneId",            "type": "string",   "description": "Lane identifier (e.g., LANE-01)" },
+        { "name": "LaneType",          "type": "string",   "description": "Lane type", "enum": ["staffed", "self_service", "express"] },
+        { "name": "OperationalStatus", "type": "string",   "description": "Current state", "enum": ["open", "closed", "maintenance"], "default": "open" },
+        { "name": "CurrentQueueLength","type": "integer",  "description": "Number of customers waiting" },
+        { "name": "AvgTransactionTime","type": "double",   "description": "Average seconds per transaction", "unit": "seconds" },
+        { "name": "LastMaintenanceDate", "type": "datetime", "description": "Last service date" }
+      ],
+      "telemetryBindings": [
+        {
+          "name": "TransactionStream",
+          "source": "contoso_kqldb.RealtimeSales",
+          "filter": "StoreId == '{StoreId}'",
+          "valueColumn": "TotalAmount",
+          "timestampColumn": "Timestamp",
+          "refreshInterval": "10s",
+          "notes": "Links POS transaction stream to checkout lane activity for queue estimation"
+        }
+      ]
+    },
+
+    {
+      "id": "BackRoom",
+      "displayName": "Back Room",
+      "description": "Store back room / receiving area for inventory staging.",
+      "properties": [
+        { "name": "BackRoomId",        "type": "string",   "description": "Back room identifier" },
+        { "name": "OperationalStatus", "type": "string",   "description": "Current state", "enum": ["active", "full", "maintenance"], "default": "active" },
+        { "name": "Capacity",          "type": "integer",  "description": "Maximum pallet positions" },
+        { "name": "CurrentLoad",       "type": "integer",  "description": "Occupied pallet positions" },
+        { "name": "Temperature",       "type": "double",   "description": "Storage temperature", "unit": "°C" },
+        { "name": "LastReceivingDate", "type": "datetime", "description": "Last shipment received date" }
+      ],
+      "telemetryBindings": []
+    },
+
+    {
+      "id": "HVACUnit",
+      "displayName": "HVAC Unit",
+      "description": "Heating, ventilation, and air conditioning unit within the store.",
+      "properties": [
+        { "name": "UnitId",            "type": "string",   "description": "HVAC unit identifier" },
+        { "name": "OperationalStatus", "type": "string",   "description": "Current state", "enum": ["running", "idle", "maintenance", "fault"], "default": "running" },
+        { "name": "Capacity",          "type": "double",   "description": "Rated cooling/heating capacity", "unit": "BTU/h" },
+        { "name": "CurrentLoad",       "type": "double",   "description": "Current power draw", "unit": "kW" },
+        { "name": "Temperature",       "type": "double",   "description": "Output air temperature", "unit": "°C" },
+        { "name": "TargetTemperature", "type": "double",   "description": "Setpoint temperature", "unit": "°C", "default": 21.0 },
+        { "name": "LastMaintenanceDate", "type": "datetime", "description": "Last service date" },
+        { "name": "FilterLifeRemaining", "type": "double",  "description": "Remaining filter life percentage", "unit": "%" }
+      ],
+      "telemetryBindings": [
+        {
+          "name": "TemperatureSensor",
+          "source": "contoso_kqldb.RealtimeIoT",
+          "filter": "SensorType == 'Temperature' and StoreId == '{StoreId}'",
+          "valueColumn": "ReadingValue",
+          "timestampColumn": "ReadingTimestamp",
+          "refreshInterval": "15s"
+        },
+        {
+          "name": "EnergySensor",
+          "source": "contoso_kqldb.RealtimeIoT",
+          "filter": "SensorType == 'Energy' and StoreId == '{StoreId}'",
+          "valueColumn": "ReadingValue",
+          "timestampColumn": "ReadingTimestamp",
+          "refreshInterval": "60s"
+        }
+      ]
+    },
+
+    {
+      "id": "RefrigerationUnit",
+      "displayName": "Refrigeration Unit",
+      "description": "Commercial refrigeration unit for perishable goods.",
+      "properties": [
+        { "name": "UnitId",            "type": "string",   "description": "Refrigeration unit identifier" },
+        { "name": "OperationalStatus", "type": "string",   "description": "Current state", "enum": ["running", "defrosting", "maintenance", "fault"], "default": "running" },
+        { "name": "Capacity",          "type": "double",   "description": "Storage volume", "unit": "cubic_feet" },
+        { "name": "CurrentLoad",       "type": "double",   "description": "Current fill percentage", "unit": "%" },
+        { "name": "Temperature",       "type": "double",   "description": "Current internal temperature", "unit": "°C" },
+        { "name": "TargetTemperature", "type": "double",   "description": "Setpoint temperature", "unit": "°C", "default": 2.0 },
+        { "name": "DoorOpenCount",     "type": "integer",  "description": "Door open events in last hour" },
+        { "name": "LastMaintenanceDate", "type": "datetime", "description": "Last service date" }
+      ],
+      "telemetryBindings": [
+        {
+          "name": "TemperatureSensor",
+          "source": "contoso_kqldb.RealtimeIoT",
+          "filter": "SensorType == 'Temperature' and StoreId == '{StoreId}'",
+          "valueColumn": "ReadingValue",
+          "timestampColumn": "ReadingTimestamp",
+          "refreshInterval": "15s",
+          "notes": "In production, filter by specific DeviceId bound to this refrigeration unit"
+        }
+      ]
+    }
+  ],
+
+  "relationships": [
+    {
+      "name": "StoreHasDepartments",
+      "source": "Store",
+      "target": "Department",
+      "type": "composition",
+      "description": "A store contains multiple departments",
+      "minCount": 1,
+      "maxCount": 20
+    },
+    {
+      "name": "DepartmentHasAisles",
+      "source": "Department",
+      "target": "Aisle",
+      "type": "composition",
+      "description": "A department contains multiple aisles",
+      "minCount": 1,
+      "maxCount": 50
+    },
+    {
+      "name": "AisleHasShelves",
+      "source": "Aisle",
+      "target": "Shelf",
+      "type": "composition",
+      "description": "An aisle contains multiple shelves",
+      "minCount": 1,
+      "maxCount": 20
+    },
+    {
+      "name": "StoreHasCheckoutLanes",
+      "source": "Store",
+      "target": "CheckoutLane",
+      "type": "composition",
+      "description": "A store has multiple checkout lanes",
+      "minCount": 2,
+      "maxCount": 30
+    },
+    {
+      "name": "StoreHasBackRoom",
+      "source": "Store",
+      "target": "BackRoom",
+      "type": "composition",
+      "description": "A store has one or more back rooms",
+      "minCount": 1,
+      "maxCount": 3
+    },
+    {
+      "name": "StoreHasHVACUnits",
+      "source": "Store",
+      "target": "HVACUnit",
+      "type": "composition",
+      "description": "A store has HVAC units for climate control",
+      "minCount": 1,
+      "maxCount": 10
+    },
+    {
+      "name": "StoreHasRefrigerationUnits",
+      "source": "Store",
+      "target": "RefrigerationUnit",
+      "type": "composition",
+      "description": "A store has refrigeration units for perishable goods",
+      "minCount": 0,
+      "maxCount": 20
+    }
+  ],
+
+  "sampleInstance": {
+    "_comment": "Example twin instance for Store S-0001 (Flagship)",
+    "Store": {
+      "StoreId": "S-0001",
+      "StoreName": "Contoso Flagship - Downtown",
+      "StoreType": "Flagship",
+      "OperationalStatus": "open",
+      "Capacity": 500,
+      "CurrentLoad": 127,
+      "Latitude": 47.6062,
+      "Longitude": -122.3321,
+      "SquareFootage": 45000,
+      "LastMaintenanceDate": "2025-01-10T08:00:00Z"
+    },
+    "Departments": [
+      { "DepartmentId": "S-0001-DEPT-GROCERY", "DepartmentName": "Grocery", "OperationalStatus": "active", "Capacity": 5000, "CurrentLoad": 4200, "FloorArea": 15000 },
+      { "DepartmentId": "S-0001-DEPT-ELECTRONICS", "DepartmentName": "Electronics", "OperationalStatus": "active", "Capacity": 800, "CurrentLoad": 650, "FloorArea": 8000 },
+      { "DepartmentId": "S-0001-DEPT-APPAREL", "DepartmentName": "Apparel", "OperationalStatus": "active", "Capacity": 3000, "CurrentLoad": 2400, "FloorArea": 10000 }
+    ],
+    "HVACUnits": [
+      { "UnitId": "S-0001-HVAC-01", "OperationalStatus": "running", "Capacity": 120000, "CurrentLoad": 35.0, "Temperature": 21.2, "TargetTemperature": 21.0, "FilterLifeRemaining": 72.0 },
+      { "UnitId": "S-0001-HVAC-02", "OperationalStatus": "running", "Capacity": 120000, "CurrentLoad": 28.0, "Temperature": 21.5, "TargetTemperature": 21.0, "FilterLifeRemaining": 45.0 }
+    ],
+    "CheckoutLanes": [
+      { "LaneId": "S-0001-LANE-01", "LaneType": "staffed", "OperationalStatus": "open", "CurrentQueueLength": 3, "AvgTransactionTime": 45.0 },
+      { "LaneId": "S-0001-LANE-02", "LaneType": "self_service", "OperationalStatus": "open", "CurrentQueueLength": 1, "AvgTransactionTime": 90.0 }
+    ]
+  }
+}

@@ -1,0 +1,315 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/fabric-samples/main/docs-samples/realtime-hub-schema.json",
+  "_comment": [
+    "Fabric Real-Time Hub topology for Contoso Global Retail & Supply Chain.",
+    "",
+    "This file documents all data streams flowing through the tenant-wide",
+    "Real-Time Hub.  It is a reference map — the actual hub configuration",
+    "lives in the Fabric portal and is assembled from the Eventstream,",
+    "Event Hub, and Change Event Streaming resources provisioned by Terraform.",
+    "",
+    "Use this topology to onboard new consumers, audit data lineage, and",
+    "plan capacity (throughput estimates assume 500 stores, $500 M/year)."
+  ],
+
+  "hubName": "contoso-realtime-hub",
+  "tenant": "contoso.onmicrosoft.com",
+  "environment": "${environment}",
+  "lastUpdated": "2025-01-15T00:00:00Z",
+
+  "streams": [
+    {
+      "name": "POS Transactions",
+      "description": "Point-of-sale transaction headers and line items from all 500 stores, captured via SQL Database Change Event Streaming.",
+      "source_type": "FabricSQLDatabaseChangeEventStreaming",
+      "source_config": {
+        "workspaceName": "contoso-data-warehouse-${environment}",
+        "sqlDatabaseName": "contoso_operational_db",
+        "tables": [
+          {
+            "schema": "dbo",
+            "table": "Transactions",
+            "description": "POS transaction headers — one row per sale"
+          },
+          {
+            "schema": "dbo",
+            "table": "TransactionItems",
+            "description": "Line items for each transaction — one row per product per sale"
+          }
+        ],
+        "captureMode": "Incremental",
+        "eventStreamName": "contoso-change-events"
+      },
+      "destination": {
+        "type": "FabricEventhouse",
+        "eventhouseName": "contoso_eventhouse",
+        "kqlDatabaseName": "contoso_kqldb",
+        "tables": ["RealtimeSales"]
+      },
+      "consumers": [
+        {
+          "name": "Real-Time Dashboard",
+          "description": "Store Operations Live dashboard — transactions per minute, revenue, top products",
+          "artifact": "src/kql/dashboards/store_operations_live.json"
+        },
+        {
+          "name": "Anomaly Detection",
+          "description": "Sales volume and revenue anomaly detection using series_decompose_anomalies",
+          "artifact": "src/kql/queries/sales_anomaly_detection.kql"
+        },
+        {
+          "name": "Data Activator Alerts",
+          "description": "Reflex triggers for transaction spikes, unusual payment patterns, and fraud signals",
+          "artifact": "src/reflex/"
+        }
+      ],
+      "throughput_estimate": {
+        "average_events_per_second": 3.0,
+        "peak_events_per_second": 5.85,
+        "average_items_per_second": 8.0,
+        "daily_volume": "~260K transactions, ~700K line items",
+        "notes": "Base rate 3 txn/s × time-of-day multiplier (0.10–1.50) × weekend multiplier (1.3x). Each transaction has 2–3 line items on average."
+      },
+      "retention_days": 90,
+      "schema_fields": [
+        { "name": "TransactionId", "type": "string", "description": "Unique transaction identifier (UUID)" },
+        { "name": "Timestamp", "type": "datetime", "description": "Transaction timestamp" },
+        { "name": "StoreId", "type": "string", "description": "Store identifier (S-0001 to S-0500)" },
+        { "name": "StoreName", "type": "string", "description": "Store display name" },
+        { "name": "CustomerId", "type": "string", "description": "Customer identifier (nullable — 20% anonymous)" },
+        { "name": "ProductId", "type": "string", "description": "Product identifier (P-000001 to P-000020+)" },
+        { "name": "ProductName", "type": "string", "description": "Product display name" },
+        { "name": "Category", "type": "string", "description": "Product category" },
+        { "name": "Quantity", "type": "int", "description": "Units sold in this line item" },
+        { "name": "UnitPrice", "type": "real", "description": "Per-unit price before discount" },
+        { "name": "DiscountPct", "type": "real", "description": "Discount percentage (0.0–0.15, 25% of items)" },
+        { "name": "TotalAmount", "type": "real", "description": "Line-item total after discount" },
+        { "name": "PaymentMethod", "type": "string", "description": "Credit Card (45%), Debit Card (25%), Cash (15%), Digital Wallet (15%)" },
+        { "name": "Channel", "type": "string", "description": "In-Store (65%), Online (25%), Mobile (10%)" }
+      ]
+    },
+
+    {
+      "name": "Inventory Changes",
+      "description": "Stock-level changes from sales drawdowns and replenishment cycles across all 500 stores.",
+      "source_type": "FabricSQLDatabaseChangeEventStreaming",
+      "source_config": {
+        "workspaceName": "contoso-data-warehouse-${environment}",
+        "sqlDatabaseName": "contoso_operational_db",
+        "tables": [
+          {
+            "schema": "dbo",
+            "table": "Inventory",
+            "description": "Stock-level changes — decrements from sales, increments from replenishment"
+          }
+        ],
+        "captureMode": "Incremental",
+        "eventStreamName": "contoso-change-events"
+      },
+      "destination": {
+        "type": "FabricEventhouse",
+        "eventhouseName": "contoso_eventhouse",
+        "kqlDatabaseName": "contoso_kqldb",
+        "tables": ["InventorySnapshot"]
+      },
+      "consumers": [
+        {
+          "name": "Stock Level Alerts",
+          "description": "Inventory alert queries — out-of-stock, critical, low, below-reorder detection",
+          "artifact": "src/kql/queries/inventory_alerts.kql"
+        },
+        {
+          "name": "Replenishment Pipeline",
+          "description": "Data pipeline that triggers purchase orders when stock falls below reorder point",
+          "artifact": "src/pipelines/"
+        }
+      ],
+      "throughput_estimate": {
+        "average_events_per_second": 1.0,
+        "peak_events_per_second": 3.0,
+        "daily_volume": "~86K inventory change events",
+        "notes": "Batch replenishment of 1–3 products per store every 30 seconds, plus stock decrements from each sale."
+      },
+      "retention_days": 90,
+      "schema_fields": [
+        { "name": "ProductId", "type": "string", "description": "Product identifier" },
+        { "name": "ProductName", "type": "string", "description": "Product display name" },
+        { "name": "StoreId", "type": "string", "description": "Store identifier" },
+        { "name": "CurrentStock", "type": "int", "description": "Current on-hand quantity" },
+        { "name": "ReorderPoint", "type": "int", "description": "Threshold that triggers a reorder" },
+        { "name": "SnapshotTimestamp", "type": "datetime", "description": "Time of the inventory snapshot" }
+      ]
+    },
+
+    {
+      "name": "IoT Sensor Telemetry",
+      "description": "Environmental and operational sensor data from IoT devices across all 500 stores — temperature, humidity, foot traffic, energy, door counters.",
+      "source_type": "AzureEventHub",
+      "source_config": {
+        "eventHubNamespace": "contoso-eventhub-ns",
+        "eventHubName": "contoso-events",
+        "consumerGroup": "$Default",
+        "dataFormat": "JSON",
+        "simulatorPath": "streaming/",
+        "notes": "IoT Simulator (Node.js) generates telemetry and pushes to Event Hub via AMQP"
+      },
+      "destination": {
+        "type": "FabricEventhouse",
+        "eventhouseName": "contoso_eventhouse",
+        "kqlDatabaseName": "contoso_kqldb",
+        "tables": ["RealtimeIoT"]
+      },
+      "consumers": [
+        {
+          "name": "Store Environment Monitoring",
+          "description": "IoT monitoring dashboard — temperature, humidity, sensor health across stores",
+          "artifact": "src/kql/dashboards/iot_monitoring_live.json"
+        },
+        {
+          "name": "Energy Optimization",
+          "description": "Energy consumption trend analysis and HVAC efficiency tracking",
+          "artifact": "src/kql/dashboards/iot_monitoring_live.json"
+        },
+        {
+          "name": "Predictive Maintenance",
+          "description": "Equipment health scoring and anomalous reading detection via Z-Score method",
+          "artifact": "src/kql/queries/iot_device_health.kql"
+        }
+      ],
+      "throughput_estimate": {
+        "average_events_per_second": 100,
+        "peak_events_per_second": 150,
+        "daily_volume": "~8.6M sensor readings",
+        "notes": "500 stores × 11 sensors/store × ~1 reading per sensor per 60s at full scale. Demo simulator runs at 10 events/s by default."
+      },
+      "retention_days": 90,
+      "schema_fields": [
+        { "name": "ReadingId", "type": "string", "description": "Unique reading identifier (UUID)" },
+        { "name": "DeviceId", "type": "string", "description": "Device identifier (IOT-{StoreId}-{SensorType}-{Index})" },
+        { "name": "StoreId", "type": "string", "description": "Store identifier" },
+        { "name": "SensorType", "type": "string", "description": "Temperature, Humidity, FootTraffic, Energy, DoorCounter" },
+        { "name": "ReadingValue", "type": "real", "description": "Sensor measurement value" },
+        { "name": "ReadingTimestamp", "type": "datetime", "description": "Time the reading was captured" },
+        { "name": "BatteryLevel", "type": "real", "description": "Device battery percentage (0–100)" },
+        { "name": "IsAnomaly", "type": "bool", "description": "True if reading is flagged as anomalous (~2% rate)" }
+      ]
+    },
+
+    {
+      "name": "Customer Interactions",
+      "description": "Customer service interactions — calls, emails, chats, in-store visits, returns, complaints, and feedback.",
+      "source_type": "FabricSQLDatabaseChangeEventStreaming",
+      "source_config": {
+        "workspaceName": "contoso-data-warehouse-${environment}",
+        "sqlDatabaseName": "contoso_operational_db",
+        "tables": [
+          {
+            "schema": "dbo",
+            "table": "CustomerInteractions",
+            "description": "CRM interactions — phone, email, chat, in-store, returns, complaints, feedback"
+          }
+        ],
+        "captureMode": "Incremental",
+        "eventStreamName": "contoso-change-events"
+      },
+      "destination": {
+        "type": "FabricEventhouse",
+        "eventhouseName": "contoso_eventhouse",
+        "kqlDatabaseName": "contoso_kqldb",
+        "tables": ["customer_interactions_realtime"]
+      },
+      "consumers": [
+        {
+          "name": "Sentiment Analysis",
+          "description": "Real-time satisfaction score tracking and sentiment trend detection",
+          "artifact": "src/ai-agents/"
+        },
+        {
+          "name": "Service Quality Tracking",
+          "description": "Resolution rate monitoring, escalation alerts, and agent performance metrics",
+          "artifact": "src/kql/dashboards/store_operations_live.json"
+        }
+      ],
+      "throughput_estimate": {
+        "average_events_per_second": 0.5,
+        "peak_events_per_second": 1.5,
+        "daily_volume": "~43K interactions",
+        "notes": "Base rate 0.5 interactions/s. Seasonal peaks: Jan (1.5x), Nov (1.3x), Dec (1.8x)."
+      },
+      "retention_days": 90,
+      "schema_fields": [
+        { "name": "InteractionId", "type": "string", "description": "Unique interaction identifier (UUID)" },
+        { "name": "CustomerId", "type": "string", "description": "Customer identifier" },
+        { "name": "InteractionType", "type": "string", "description": "phone_call, email, web_chat, in_store, return, complaint, feedback" },
+        { "name": "Channel", "type": "string", "description": "phone, email, web_chat, social_media, in_store" },
+        { "name": "SubjectCategory", "type": "string", "description": "billing, product_inquiry, return_request, technical_support, complaint, feedback, order_status" },
+        { "name": "ResolutionStatus", "type": "string", "description": "resolved, pending, escalated, unresolved" },
+        { "name": "AgentEmployeeId", "type": "string", "description": "Service agent identifier" },
+        { "name": "StoreId", "type": "string", "description": "Store identifier (nullable — not all interactions are store-specific)" },
+        { "name": "SatisfactionScore", "type": "int", "description": "CSAT score 1–5 (nullable — only for resolved interactions)" },
+        { "name": "DurationMinutes", "type": "real", "description": "Interaction duration" },
+        { "name": "CreatedAt", "type": "datetime", "description": "Interaction start time" },
+        { "name": "ResolvedAt", "type": "datetime", "description": "Resolution time (nullable)" }
+      ]
+    },
+
+    {
+      "name": "Web Clickstream",
+      "description": "Website and mobile app user activity — page views, clicks, searches, cart actions. Ingested from Lakehouse bronze in periodic micro-batches.",
+      "source_type": "FabricLakehouseBatch",
+      "source_config": {
+        "workspaceName": "contoso-data-engineering-${environment}",
+        "lakehouseName": "lh_bronze",
+        "tablePath": "Tables/bronze_clickstream",
+        "dataFormat": "Delta",
+        "batchInterval": "5m",
+        "notes": "Clickstream data lands in bronze Lakehouse via external pipeline, then micro-batched into Eventhouse every 5 minutes for near-real-time analysis."
+      },
+      "destination": {
+        "type": "FabricEventhouse",
+        "eventhouseName": "contoso_eventhouse",
+        "kqlDatabaseName": "contoso_kqldb",
+        "tables": ["WebClickstream"]
+      },
+      "consumers": [
+        {
+          "name": "Funnel Analysis",
+          "description": "Conversion funnel tracking — landing → product view → add to cart → checkout → purchase",
+          "artifact": "src/notebooks/"
+        },
+        {
+          "name": "Personalization Engine",
+          "description": "Real-time product recommendations based on browsing behavior and session context",
+          "artifact": "src/ai-agents/"
+        }
+      ],
+      "throughput_estimate": {
+        "average_events_per_second": 50,
+        "peak_events_per_second": 200,
+        "daily_volume": "~4.3M clickstream events",
+        "notes": "Batch-ingested every 5 minutes. Volume peaks during promotional events and holiday seasons."
+      },
+      "retention_days": 30,
+      "schema_fields": [
+        { "name": "SessionId", "type": "string", "description": "Browser/app session identifier" },
+        { "name": "UserId", "type": "string", "description": "Authenticated user ID (nullable for anonymous)" },
+        { "name": "EventType", "type": "string", "description": "page_view, click, search, add_to_cart, remove_from_cart, checkout, purchase" },
+        { "name": "PageUrl", "type": "string", "description": "Page URL or screen name" },
+        { "name": "ProductId", "type": "string", "description": "Product involved in the event (nullable)" },
+        { "name": "SearchQuery", "type": "string", "description": "User search text (nullable)" },
+        { "name": "ReferrerUrl", "type": "string", "description": "Referrer page URL (nullable)" },
+        { "name": "DeviceType", "type": "string", "description": "desktop, mobile, tablet" },
+        { "name": "Timestamp", "type": "datetime", "description": "Event timestamp" }
+      ]
+    }
+  ],
+
+  "summary": {
+    "total_streams": 5,
+    "total_throughput_avg_events_per_second": 154.5,
+    "total_daily_volume": "~13.5M events across all streams",
+    "primary_destination": "contoso_eventhouse / contoso_kqldb",
+    "secondary_destination": "lh_bronze (Lakehouse CDC landing zone)",
+    "retention_policy": "90 days for real-time tables, 30 days for clickstream"
+  }
+}

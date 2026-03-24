@@ -1,0 +1,222 @@
+{
+  "$schema": "https://learn.microsoft.com/azure/cosmos-db/nosql/schema",
+  "_comment": "Contoso Global Retail — Order Events / Event Sourcing (Cosmos DB NoSQL)",
+  "containerConfig": {
+    "containerName": "order_events",
+    "partitionKey": {
+      "paths": ["/order_id"],
+      "kind": "Hash",
+      "version": 2
+    },
+    "indexingPolicy": {
+      "automatic": true,
+      "indexingMode": "consistent",
+      "includedPaths": [
+        { "path": "/order_id/?" },
+        { "path": "/event_type/?" },
+        { "path": "/timestamp/?" },
+        { "path": "/store_id/?" },
+        { "path": "/customer_id/?" }
+      ],
+      "excludedPaths": [
+        { "path": "/items/*" },
+        { "path": "/status_metadata/*" }
+      ],
+      "compositeIndexes": [
+        [
+          { "path": "/order_id", "order": "ascending" },
+          { "path": "/timestamp", "order": "ascending" }
+        ]
+      ]
+    },
+    "uniqueKeyPolicy": {
+      "uniqueKeys": [
+        { "paths": ["/event_id"] }
+      ]
+    },
+    "defaultTtl": 7776000,
+    "_ttl_comment": "90 days — events older than 90 days are archived to Lakehouse via mirroring"
+  },
+  "sampleDocuments_comment": "Complete lifecycle of order ORD-2025-091003: placed → confirmed → picking → packed → shipped → delivered",
+  "sampleDocuments": [
+    {
+      "event_id": "EVT-2025-091003-001",
+      "order_id": "ORD-2025-091003",
+      "event_type": "placed",
+      "timestamp": "2025-06-01T20:10:00Z",
+      "store_id": "ONLINE",
+      "customer_id": "CUST-00018456",
+      "items": [
+        {
+          "product_id": "PRD-00587",
+          "name": "Contoso SmartHome Hub Pro 3rd Gen",
+          "quantity": 1,
+          "unit_price": 249.99,
+          "line_total": 249.99
+        }
+      ],
+      "status_metadata": {
+        "channel": "web",
+        "payment_method": "credit_card",
+        "payment_status": "authorized",
+        "subtotal": 249.99,
+        "tax": 22.50,
+        "shipping": 0.00,
+        "total": 272.49,
+        "loyalty_points_earned": 250,
+        "shipping_address": {
+          "street": "892 Maple Court",
+          "city": "Seattle",
+          "state": "WA",
+          "zip_code": "98103"
+        },
+        "estimated_delivery": "2025-06-05"
+      },
+      "actor": {
+        "type": "customer",
+        "id": "CUST-00018456"
+      }
+    },
+    {
+      "event_id": "EVT-2025-091003-002",
+      "order_id": "ORD-2025-091003",
+      "event_type": "confirmed",
+      "timestamp": "2025-06-01T20:10:45Z",
+      "store_id": "ONLINE",
+      "customer_id": "CUST-00018456",
+      "items": [
+        {
+          "product_id": "PRD-00587",
+          "quantity": 1,
+          "unit_price": 249.99,
+          "line_total": 249.99
+        }
+      ],
+      "status_metadata": {
+        "payment_status": "captured",
+        "authorization_code": "AUTH-7X9K2M",
+        "fraud_check": "passed",
+        "fraud_score": 0.02,
+        "inventory_reserved": true,
+        "fulfillment_center": "FC-SEA-01"
+      },
+      "actor": {
+        "type": "system",
+        "id": "order-processing-service"
+      }
+    },
+    {
+      "event_id": "EVT-2025-091003-003",
+      "order_id": "ORD-2025-091003",
+      "event_type": "picking",
+      "timestamp": "2025-06-02T08:22:00Z",
+      "store_id": "FC-SEA-01",
+      "customer_id": "CUST-00018456",
+      "items": [
+        {
+          "product_id": "PRD-00587",
+          "quantity": 1,
+          "bin_location": "A-14-C-03",
+          "picked": true
+        }
+      ],
+      "status_metadata": {
+        "picker_id": "EMP-00482",
+        "pick_start": "2025-06-02T08:22:00Z",
+        "pick_complete": "2025-06-02T08:25:30Z",
+        "pick_duration_seconds": 210,
+        "wave_id": "WAVE-20250602-AM-003"
+      },
+      "actor": {
+        "type": "employee",
+        "id": "EMP-00482"
+      }
+    },
+    {
+      "event_id": "EVT-2025-091003-004",
+      "order_id": "ORD-2025-091003",
+      "event_type": "packed",
+      "timestamp": "2025-06-02T09:45:00Z",
+      "store_id": "FC-SEA-01",
+      "customer_id": "CUST-00018456",
+      "items": [
+        {
+          "product_id": "PRD-00587",
+          "quantity": 1,
+          "package_id": "PKG-20250602-001847"
+        }
+      ],
+      "status_metadata": {
+        "packer_id": "EMP-00291",
+        "package_weight_lbs": 2.4,
+        "package_dimensions_inches": { "length": 14, "width": 12, "height": 6 },
+        "packaging_type": "branded_box",
+        "includes_packing_slip": true,
+        "includes_return_label": true
+      },
+      "actor": {
+        "type": "employee",
+        "id": "EMP-00291"
+      }
+    },
+    {
+      "event_id": "EVT-2025-091003-005",
+      "order_id": "ORD-2025-091003",
+      "event_type": "shipped",
+      "timestamp": "2025-06-02T14:30:00Z",
+      "store_id": "FC-SEA-01",
+      "customer_id": "CUST-00018456",
+      "items": [
+        {
+          "product_id": "PRD-00587",
+          "quantity": 1,
+          "package_id": "PKG-20250602-001847"
+        }
+      ],
+      "status_metadata": {
+        "carrier": "UPS",
+        "service_level": "Ground",
+        "tracking_number": "1Z999AA10123456784",
+        "tracking_url": "https://www.ups.com/track?tracknum=1Z999AA10123456784",
+        "ship_date": "2025-06-02",
+        "estimated_delivery": "2025-06-05",
+        "shipping_cost": 8.50,
+        "label_created_at": "2025-06-02T14:15:00Z"
+      },
+      "actor": {
+        "type": "system",
+        "id": "shipping-service"
+      }
+    },
+    {
+      "event_id": "EVT-2025-091003-006",
+      "order_id": "ORD-2025-091003",
+      "event_type": "delivered",
+      "timestamp": "2025-06-05T11:42:00Z",
+      "store_id": "FC-SEA-01",
+      "customer_id": "CUST-00018456",
+      "items": [
+        {
+          "product_id": "PRD-00587",
+          "quantity": 1,
+          "package_id": "PKG-20250602-001847"
+        }
+      ],
+      "status_metadata": {
+        "carrier": "UPS",
+        "tracking_number": "1Z999AA10123456784",
+        "delivery_date": "2025-06-05",
+        "delivery_time": "11:42:00",
+        "signed_by": "J. O'BRIEN",
+        "delivery_location": "Front Door",
+        "delivery_photo_url": "https://contoso-delivery.blob.core.windows.net/proof/2025/06/05/PKG-20250602-001847.jpg",
+        "days_in_transit": 3,
+        "on_time": true
+      },
+      "actor": {
+        "type": "carrier",
+        "id": "UPS"
+      }
+    }
+  ]
+}

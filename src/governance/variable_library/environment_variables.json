@@ -1,0 +1,91 @@
+{
+  "name": "Contoso Environment Variables",
+  "description": "Variables that change between dev and prod environments. Used by notebooks, pipelines, and Spark jobs to configure behavior per environment.",
+  "version": "1.0",
+  "variables": [
+    {
+      "name": "LAKEHOUSE_NAME",
+      "description": "Display name of the primary gold lakehouse for analytics workloads",
+      "type": "string",
+      "values": {
+        "dev": "lh_gold",
+        "prod": "lh_gold"
+      },
+      "scope": "workspace",
+      "target_workspaces": ["data-engineering"],
+      "notes": "Lakehouse names are consistent across environments; workspace context provides isolation."
+    },
+    {
+      "name": "WAREHOUSE_NAME",
+      "description": "Display name of the central data warehouse",
+      "type": "string",
+      "values": {
+        "dev": "contoso_warehouse",
+        "prod": "contoso_warehouse"
+      },
+      "scope": "workspace",
+      "target_workspaces": ["data-warehouse"],
+      "notes": "Used in pipeline SQL steps and notebook warehouse connections."
+    },
+    {
+      "name": "SQL_DATABASE_NAME",
+      "description": "Display name of the OLTP operational SQL database",
+      "type": "string",
+      "values": {
+        "dev": "contoso_operational_db",
+        "prod": "contoso_operational_db"
+      },
+      "scope": "workspace",
+      "target_workspaces": ["data-warehouse"],
+      "notes": "Powers POS, inventory, and CRM transactional workloads."
+    },
+    {
+      "name": "DATA_RETENTION_DAYS",
+      "description": "Number of days to retain raw/bronze data before archival or deletion",
+      "type": "integer",
+      "values": {
+        "dev": 30,
+        "prod": 365
+      },
+      "scope": "workspace",
+      "target_workspaces": ["ingestion", "data-engineering"],
+      "notes": "Dev uses shorter retention to minimize storage costs. Prod retains 1 year for compliance."
+    },
+    {
+      "name": "BATCH_SIZE",
+      "description": "Number of records per batch in pipeline copy activities and Spark write operations",
+      "type": "integer",
+      "values": {
+        "dev": 10000,
+        "prod": 1000000
+      },
+      "scope": "workspace",
+      "target_workspaces": ["ingestion", "data-engineering"],
+      "notes": "Smaller batches in dev for faster iteration and lower capacity consumption."
+    },
+    {
+      "name": "LOG_LEVEL",
+      "description": "Logging verbosity for notebooks, Spark jobs, and pipeline activities",
+      "type": "string",
+      "values": {
+        "dev": "DEBUG",
+        "prod": "WARNING"
+      },
+      "scope": "workspace",
+      "target_workspaces": ["ingestion", "data-engineering", "data-science"],
+      "notes": "DEBUG in dev captures full trace for troubleshooting. WARNING in prod reduces log volume and cost."
+    },
+    {
+      "name": "REFRESH_SCHEDULE_CRON",
+      "description": "Cron expression for scheduled data refresh (semantic models, pipelines)",
+      "type": "string",
+      "values": {
+        "dev": "manual",
+        "prod": "0 */4 * * *"
+      },
+      "scope": "workspace",
+      "target_workspaces": ["data-engineering", "analytics"],
+      "notes": "Dev is manual-trigger only. Prod refreshes every 4 hours (6x/day)."
+    }
+  ]
+}

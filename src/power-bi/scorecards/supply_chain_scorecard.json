@@ -1,0 +1,173 @@
+{
+  "name": "Supply Chain Performance Scorecard",
+  "description": "Executive KPI scorecard for Contoso supply chain operations. Tracks delivery reliability, fulfillment efficiency, warehouse utilization, inventory health, supplier quality, and logistics costs across the distribution network.",
+  "version": "1.0",
+  "workspace": "contoso-analytics",
+  "semantic_model": "contoso_operations",
+  "update_frequency": "daily",
+  "fiscal_year_start": "February",
+  "goals": [
+    {
+      "name": "On-Time Delivery Rate",
+      "description": "Percentage of customer orders delivered on or before the promised delivery date",
+      "current_value": 93.2,
+      "target_value": 95.0,
+      "unit": "percent",
+      "format": "0.0%",
+      "status_rules": {
+        "on_track": { "min_value": 95.0 },
+        "at_risk": { "min_value": 90.0 },
+        "behind": { "below_value": 90.0 }
+      },
+      "connected_metric": {
+        "semantic_model": "contoso_operations",
+        "measure": "Measures.OnTimeDeliveryPct",
+        "filter": "DimDate.IsCurrentMonth = TRUE"
+      },
+      "trend": {
+        "direction": "up",
+        "sparkline_period": "last_12_months"
+      },
+      "owner": "VP of Logistics",
+      "update_frequency": "daily",
+      "notes": "Measured from order confirmation to customer receipt. Last-mile delivery is primary bottleneck at 91% vs. warehouse dispatch at 98%."
+    },
+    {
+      "name": "Order Fill Rate",
+      "description": "Percentage of customer orders fulfilled completely from available inventory without backorders",
+      "current_value": 96.8,
+      "target_value": 98.0,
+      "unit": "percent",
+      "format": "0.0%",
+      "status_rules": {
+        "on_track": { "min_value": 98.0 },
+        "at_risk": { "min_value": 95.0 },
+        "behind": { "below_value": 95.0 }
+      },
+      "connected_metric": {
+        "semantic_model": "contoso_operations",
+        "measure": "Measures.OrderFillRate",
+        "filter": null
+      },
+      "trend": {
+        "direction": "up",
+        "sparkline_period": "last_6_months"
+      },
+      "owner": "Director of Order Management",
+      "update_frequency": "daily",
+      "notes": "Partial fills counted as miss. Electronics category at 94% is dragging overall rate; grocery at 99.2%."
+    },
+    {
+      "name": "Warehouse Utilization",
+      "description": "Average cubic utilization across all 12 regional distribution centers",
+      "current_value": 82.0,
+      "target_value": 85.0,
+      "unit": "percent",
+      "format": "0%",
+      "status_rules": {
+        "on_track": { "min_value": 82, "max_value": 90 },
+        "at_risk_low": { "below_value": 75 },
+        "at_risk_high": { "above_value": 90 },
+        "behind": { "above_value": 95 }
+      },
+      "connected_metric": {
+        "semantic_model": "contoso_operations",
+        "measure": "Measures.WarehouseUtilization",
+        "filter": null
+      },
+      "trend": {
+        "direction": "stable",
+        "sparkline_period": "last_12_months"
+      },
+      "owner": "VP of Warehouse Operations",
+      "update_frequency": "weekly",
+      "notes": "Target is 85% — above 90% creates picking inefficiencies; below 75% indicates excess capacity costs. Seasonal peak (Nov-Dec) reaches 92%."
+    },
+    {
+      "name": "Days Sales of Inventory",
+      "description": "Average number of days current inventory would last at the current sales rate",
+      "current_value": 33,
+      "target_value": 30,
+      "unit": "days",
+      "format": "#,##0",
+      "status_rules": {
+        "on_track": { "max_value": 32 },
+        "at_risk": { "max_value": 40 },
+        "behind": { "above_value": 40 }
+      },
+      "connected_metric": {
+        "semantic_model": "contoso_operations",
+        "measure": "Measures.DaysSalesOfInventory",
+        "filter": null
+      },
+      "trend": {
+        "direction": "down",
+        "sparkline_period": "last_12_months"
+      },
+      "owner": "VP of Supply Chain",
+      "update_frequency": "weekly",
+      "notes": "Lower is better (less capital tied up). Perishables at 5 days, electronics at 45 days. Target blended across all categories."
+    },
+    {
+      "name": "Supplier Quality Rating",
+      "description": "Weighted average quality score for top 200 suppliers based on defect rates, compliance, and responsiveness",
+      "current_value": 4.3,
+      "target_value": 4.5,
+      "unit": "score",
+      "format": "0.0",
+      "status_rules": {
+        "on_track": { "min_value": 4.4 },
+        "at_risk": { "min_value": 4.0 },
+        "behind": { "below_value": 4.0 }
+      },
+      "connected_metric": {
+        "semantic_model": "contoso_operations",
+        "measure": "Measures.SupplierQualityRating",
+        "filter": "Suppliers.IsActive = TRUE"
+      },
+      "trend": {
+        "direction": "up",
+        "sparkline_period": "last_4_quarters"
+      },
+      "owner": "Director of Supplier Relations",
+      "update_frequency": "monthly",
+      "notes": "Scored 1-5 scale. Components: defect rate (40%), on-time shipping (30%), responsiveness (20%), compliance (10%). 15 suppliers below 3.5 under performance improvement plan."
+    },
+    {
+      "name": "Freight Cost per Unit",
+      "description": "Average freight and logistics cost per unit shipped across all transportation modes",
+      "current_value": 1.34,
+      "target_value": 1.20,
+      "unit": "USD",
+      "format": "$#,##0.00",
+      "status_rules": {
+        "on_track": { "max_value": 1.20 },
+        "at_risk": { "max_value": 1.40 },
+        "behind": { "above_value": 1.40 }
+      },
+      "connected_metric": {
+        "semantic_model": "contoso_operations",
+        "measure": "Measures.FreightCostPerUnit",
+        "filter": null
+      },
+      "trend": {
+        "direction": "down",
+        "sparkline_period": "last_12_months"
+      },
+      "owner": "VP of Logistics",
+      "update_frequency": "weekly",
+      "notes": "Lower is better. Includes inbound (supplier→DC) and outbound (DC→store/customer). Fuel surcharges driving current overage. Route optimization project targeting $0.08/unit savings."
+    }
+  ],
+  "layout": {
+    "columns": 3,
+    "rows": 2,
+    "show_trend_sparklines": true,
+    "show_status_indicators": true,
+    "color_scheme": {
+      "on_track": "#107C10",
+      "at_risk": "#FFB900",
+      "behind": "#D13438"
+    }
+  }
+}

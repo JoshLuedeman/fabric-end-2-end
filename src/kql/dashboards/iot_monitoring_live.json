@@ -1,0 +1,126 @@
+{
+  "_comment": [
+    "KQL Real-Time Dashboard — IoT / Facility Monitoring",
+    "Contoso Global Retail — contoso_kqldb",
+    "",
+    "Import this definition into a Fabric Real-Time Dashboard.",
+    "Each tile contains a standalone KQL query designed for the",
+    "RealtimeIoT table in the contoso_eventhouse / contoso_kqldb."
+  ],
+
+  "name": "IoT Monitoring Live",
+  "workspace": "contoso-real-time-${environment}",
+  "database": "contoso_kqldb",
+  "auto_refresh_seconds": 15,
+  "time_range_default": "Last 2 hours",
+
+  "tiles": [
+    {
+      "title": "Store Temperature Status",
+      "kql_query": "let lookback = 2h;\nRealtimeIoT\n| where SensorType == \"Temperature\" and ReadingTimestamp > ago(lookback)\n| summarize\n    AvgTemp = round(avg(ReadingValue), 1),\n    MinTemp = round(min(ReadingValue), 1),\n    MaxTemp = round(max(ReadingValue), 1)\n    by StoreId, bin(ReadingTimestamp, 5m)\n| order by ReadingTimestamp asc, StoreId asc",
+      "visualization": {
+        "type": "timechart",
+        "x_column": "ReadingTimestamp",
+        "y_columns": ["AvgTemp"],
+        "legend": "StoreId",
+        "y_axis_label": "Temperature (°C)",
+        "y_axis_min": 10,
+        "y_axis_max": 40,
+        "reference_lines": [
+          { "value": 18, "label": "Min Normal", "color": "#1565C0", "style": "dashed" },
+          { "value": 24, "label": "Max Normal", "color": "#1565C0", "style": "dashed" },
+          { "value": 28, "label": "Warning", "color": "#FF8F00", "style": "dashed" },
+          { "value": 32, "label": "Critical", "color": "#D32F2F", "style": "dashed" }
+        ]
+      },
+      "position": { "row": 0, "col": 0, "width": 8, "height": 4 },
+      "refresh_interval_seconds": 15
+    },
+
+    {
+      "title": "Humidity Alerts",
+      "kql_query": "let humidity_warning = 70.0;\nlet humidity_critical = 80.0;\nRealtimeIoT\n| where SensorType == \"Humidity\"\n| summarize arg_max(ReadingTimestamp, *) by DeviceId\n| extend AlertLevel = case(\n    ReadingValue >= humidity_critical, \"critical\",\n    ReadingValue >= humidity_warning,  \"warning\",\n    ReadingValue < 40.0,               \"low\",\n    \"normal\"\n  )\n| where AlertLevel != \"normal\"\n| project\n    StoreId,\n    DeviceId,\n    Humidity = round(ReadingValue, 1),\n    LastReading = ReadingTimestamp,\n    AlertLevel\n| order by case(\n    AlertLevel == \"critical\", 1,\n    AlertLevel == \"warning\",  2,\n    AlertLevel == \"low\",      3,\n    4\n  ) asc, ReadingValue desc",
+      "visualization": {
+        "type": "table",
+        "columns": ["StoreId", "DeviceId", "Humidity", "LastReading", "AlertLevel"],
+        "conditional_formatting": [
+          { "column": "AlertLevel", "value": "critical", "background_color": "#FFCDD2" },
+          { "column": "AlertLevel", "value": "warning", "background_color": "#FFF9C4" },
+          { "column": "AlertLevel", "value": "low", "background_color": "#BBDEFB" }
+        ]
+      },
+      "position": { "row": 0, "col": 8, "width": 4, "height": 4 },
+      "refresh_interval_seconds": 30
+    },
+
+    {
+      "title": "Energy Consumption Trend",
+      "kql_query": "let lookback = 24h;\nRealtimeIoT\n| where SensorType == \"Energy\" and ReadingTimestamp > ago(lookback)\n| extend StoreRegion = substring(StoreId, 0, 4)\n| summarize\n    AvgEnergy = round(avg(ReadingValue), 1),\n    MaxEnergy = round(max(ReadingValue), 1),\n    DeviceCount = dcount(DeviceId)\n    by StoreRegion, bin(ReadingTimestamp, 1h)\n| order by ReadingTimestamp asc, StoreRegion asc",
+      "visualization": {
+        "type": "areachart",
+        "x_column": "ReadingTimestamp",
+        "y_columns": ["AvgEnergy"],
+        "legend": "StoreRegion",
+        "y_axis_label": "Energy (kW)",
+        "stacked": true,
+        "opacity": 0.6
+      },
+      "position": { "row": 4, "col": 0, "width": 6, "height": 4 },
+      "refresh_interval_seconds": 60
+    },
+
+    {
+      "title": "Foot Traffic Now vs Yesterday",
+      "kql_query": "let bin_interval = 15m;\n// Today's foot traffic\nlet today_traffic =\n    RealtimeIoT\n    | where SensorType == \"FootTraffic\" and ReadingTimestamp > ago(24h) and ReadingTimestamp > startofday(now())\n    | summarize\n        TodayTraffic = round(avg(ReadingValue), 1)\n        by TimeSlot = bin(ReadingTimestamp - startofday(now()), bin_interval)\n    | extend TimeLabel = format_timespan(TimeSlot, \"HH:mm\");\n// Yesterday's foot traffic\nlet yesterday_traffic =\n    RealtimeIoT\n    | where SensorType == \"FootTraffic\" and ReadingTimestamp between(startofday(ago(1d)) .. startofday(now()))\n    | summarize\n        YesterdayTraffic = round(avg(ReadingValue), 1)\n        by TimeSlot = bin(ReadingTimestamp - startofday(ago(1d)), bin_interval)\n    | extend TimeLabel = format_timespan(TimeSlot, \"HH:mm\");\ntoday_traffic\n| join kind=leftouter yesterday_traffic on TimeSlot\n| project TimeLabel, TodayTraffic, YesterdayTraffic = coalesce(YesterdayTraffic, 0.0)\n| order by TimeLabel asc",
+      "visualization": {
+        "type": "timechart",
+        "x_column": "TimeLabel",
+        "y_columns": ["TodayTraffic", "YesterdayTraffic"],
+        "legend": "inline",
+        "y_axis_label": "Avg Persons/min",
+        "series_styles": {
+          "TodayTraffic": { "color": "#1565C0", "width": 2 },
+          "YesterdayTraffic": { "color": "#BDBDBD", "width": 1, "style": "dashed" }
+        }
+      },
+      "position": { "row": 4, "col": 6, "width": 6, "height": 4 },
+      "refresh_interval_seconds": 60
+    },
+
+    {
+      "title": "Equipment Health Score",
+      "kql_query": "let silence_threshold = 15m;\nlet battery_warning = 20.0;\nlet zscore_threshold = 3.0;\nlet sensor_stats =\n    RealtimeIoT\n    | where ReadingTimestamp > ago(24h)\n    | summarize\n        MeanValue = avg(ReadingValue),\n        StdDevValue = stdev(ReadingValue)\n      by SensorType;\nlet device_status =\n    RealtimeIoT\n    | summarize arg_max(ReadingTimestamp, *) by DeviceId\n    | join kind=leftouter sensor_stats on SensorType\n    | extend ZScore = iff(\n        StdDevValue > 0,\n        abs(ReadingValue - MeanValue) / StdDevValue,\n        0.0\n      )\n    | extend Status = case(\n        (now() - ReadingTimestamp) > silence_threshold, \"offline\",\n        BatteryLevel < battery_warning and ZScore > zscore_threshold, \"critical\",\n        ZScore > zscore_threshold, \"critical\",\n        BatteryLevel < battery_warning, \"warning\",\n        IsAnomaly == true, \"warning\",\n        \"healthy\"\n      );\ndevice_status\n| summarize\n    TotalDevices = dcount(DeviceId),\n    HealthyDevices = dcountif(DeviceId, Status == \"healthy\"),\n    WarningDevices = dcountif(DeviceId, Status == \"warning\"),\n    CriticalDevices = dcountif(DeviceId, Status == \"critical\"),\n    OfflineDevices = dcountif(DeviceId, Status == \"offline\")\n    by StoreId\n| extend HealthScore = round(100.0 * HealthyDevices / TotalDevices, 1)\n| project StoreId, HealthScore, TotalDevices, HealthyDevices, WarningDevices, CriticalDevices, OfflineDevices\n| order by HealthScore asc",
+      "visualization": {
+        "type": "gauge",
+        "value_column": "HealthScore",
+        "group_by": "StoreId",
+        "min": 0,
+        "max": 100,
+        "thresholds": [
+          { "value": 60, "color": "#D32F2F", "label": "Poor" },
+          { "value": 80, "color": "#FF8F00", "label": "Fair" },
+          { "value": 100, "color": "#2E7D32", "label": "Good" }
+        ],
+        "unit": "%"
+      },
+      "position": { "row": 8, "col": 0, "width": 6, "height": 4 },
+      "refresh_interval_seconds": 60
+    },
+
+    {
+      "title": "Sensor Offline Count",
+      "kql_query": "let silence_threshold = 15m;\nlet current_offline =\n    RealtimeIoT\n    | summarize LastReport = max(ReadingTimestamp) by DeviceId\n    | where (now() - LastReport) > silence_threshold\n    | count\n    | project OfflineNow = Count;\nlet previous_offline =\n    RealtimeIoT\n    | where ReadingTimestamp < ago(1h)\n    | summarize LastReport = max(ReadingTimestamp) by DeviceId\n    | where (ago(1h) - LastReport) > silence_threshold\n    | count\n    | project OfflinePrevious = Count;\ncurrent_offline\n| extend dummy = 1\n| join kind=leftouter (previous_offline | extend dummy = 1) on dummy\n| extend\n    OfflineNow = OfflineNow,\n    OfflinePrevious = coalesce(OfflinePrevious, 0),\n    Trend = case(\n        OfflineNow > coalesce(OfflinePrevious, 0), \"increasing\",\n        OfflineNow < coalesce(OfflinePrevious, 0), \"decreasing\",\n        \"stable\"\n    ),\n    Delta = OfflineNow - coalesce(OfflinePrevious, 0)\n| project OfflineNow, OfflinePrevious, Delta, Trend",
+      "visualization": {
+        "type": "stat",
+        "primary_value": "OfflineNow",
+        "comparison_value": "Delta",
+        "trend": "Trend",
+        "format": "#,##0",
+        "subtitle": "Sensors offline now",
+        "positive_delta_is_bad": true
+      },
+      "position": { "row": 8, "col": 6, "width": 6, "height": 4 },
+      "refresh_interval_seconds": 30
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "$schema": "https://learn.microsoft.com/fabric/database/mirrored-database/overview",
+  "_comment": "Mirroring configuration for Contoso ERP (Azure SQL Database) into OneLake",
+  "properties": {
+    "source": {
+      "type": "AzureSqlDatabase",
+      "typeProperties": {
+        "connectionString": "{{ .ERP_CONNECTION_STRING }}",
+        "database": "contoso_erp"
+      }
+    },
+    "defaultSchema": "dbo",
+    "mirroringDescriptor": {
+      "replicationMode": "Continuous",
+      "tables": [
+        {
+          "sourceSchema": "dbo",
+          "sourceTable": "Suppliers",
+          "enabled": true,
+          "description": "Master supplier list with contact information and payment terms"
+        },
+        {
+          "sourceSchema": "dbo",
+          "sourceTable": "PurchaseOrders",
+          "enabled": true,
+          "description": "Purchase order headers with supplier, dates, and status"
+        },
+        {
+          "sourceSchema": "dbo",
+          "sourceTable": "PurchaseOrderLines",
+          "enabled": true,
+          "description": "Purchase order line items with product, quantity, and unit cost"
+        },
+        {
+          "sourceSchema": "dbo",
+          "sourceTable": "GLJournalEntries",
+          "enabled": true,
+          "description": "General ledger journal entries for financial transactions"
+        },
+        {
+          "sourceSchema": "dbo",
+          "sourceTable": "ChartOfAccounts",
+          "enabled": true,
+          "description": "Chart of accounts hierarchy for financial reporting"
+        }
+      ]
+    },
+    "destination": {
+      "type": "Lakehouse",
+      "layer": "bronze",
+      "description": "Mirrored data lands in the bronze lakehouse for downstream medallion processing"
+    }
+  }
+}

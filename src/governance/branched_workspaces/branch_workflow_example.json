@@ -1,0 +1,255 @@
+{
+  "schema_version": "1.0",
+  "title": "Branched Workspace Workflow — Feature Development Example",
+  "description": "End-to-end example showing how a Contoso developer uses Branched Workspaces to add a 'Customer Churn Prediction' column to the data warehouse and update the analytics report, from branch creation to production deployment.",
+  "scenario": "Add customer churn prediction score to dim_customer and surface it in the Customer Insights report.",
+  "ticket_id": "CONTOSO-1234",
+
+  "steps": [
+    {
+      "step": 1,
+      "title": "Create Git branch",
+      "actor": "Developer",
+      "action": "Create a Git branch for code changes",
+      "details": {
+        "command": "git checkout -b feature/CONTOSO-1234-customer-churn-score",
+        "description": "This branch will contain SQL schema changes, notebook updates, and semantic model definition updates."
+      }
+    },
+    {
+      "step": 2,
+      "title": "Create workspace branches",
+      "actor": "GitHub Actions (automated)",
+      "action": "When the PR is opened, GitHub Actions triggers workspace branch creation via the Fabric REST API.",
+      "details": {
+        "api_calls": [
+          {
+            "description": "Branch the data-warehouse workspace (full isolation — schema changes need isolated data)",
+            "method": "POST",
+            "url": "https://api.fabric.microsoft.com/v1/workspaces/{data-warehouse-workspace-id}/branches",
+            "body": {
+              "branchName": "feature/CONTOSO-1234-customer-churn-score",
+              "isolationLevel": "full",
+              "description": "Auto-created for PR #42: Add customer churn prediction score",
+              "sourceItems": ["contoso_warehouse", "contoso_operational_db"]
+            },
+            "result": {
+              "branchId": "ws-branch-a1b2c3d4",
+              "status": "Creating",
+              "estimatedReadyTime": "2025-07-15T10:05:00Z"
+            }
+          },
+          {
+            "description": "Branch the analytics workspace (shared isolation — only report/model definitions)",
+            "method": "POST",
+            "url": "https://api.fabric.microsoft.com/v1/workspaces/{analytics-workspace-id}/branches",
+            "body": {
+              "branchName": "feature/CONTOSO-1234-customer-churn-score",
+              "isolationLevel": "shared",
+              "description": "Auto-created for PR #42: Add customer churn prediction score"
+            },
+            "result": {
+              "branchId": "ws-branch-e5f6g7h8",
+              "status": "Ready",
+              "estimatedReadyTime": "2025-07-15T10:00:30Z"
+            }
+          }
+        ],
+        "note": "Full-isolation branch takes 3–5 minutes to provision because it snapshots table data. Shared branch is ready in seconds."
+      }
+    },
+    {
+      "step": 3,
+      "title": "Develop schema changes",
+      "actor": "Developer",
+      "action": "Modify the warehouse schema in the branched workspace to add the churn score column.",
+      "details": {
+        "changes": [
+          {
+            "file": "src/warehouse/schemas/dimensions.sql",
+            "change": "ALTER TABLE dims.dim_customer ADD churn_risk_score DECIMAL(5,4);",
+            "description": "Add a new column to store the ML model's churn prediction score (0.0000 to 1.0000)."
+          },
+          {
+            "file": "src/warehouse/views/v_customer_360.sql",
+            "change": "Add churn_risk_score to the customer 360 view with CASE-based risk tier labeling.",
+            "description": "Expose the score via the view that the semantic model consumes."
+          }
+        ],
+        "testing": "Run the ALTER TABLE in the branched warehouse (isolated from main). Verify the column exists and accepts data.",
+        "git_commit": "git add . && git commit -m 'feat(warehouse): add churn_risk_score to dim_customer'"
+      }
+    },
+    {
+      "step": 4,
+      "title": "Update semantic model",
+      "actor": "Developer",
+      "action": "Add the churn score column and a calculated measure to the contoso_sales semantic model in the branched analytics workspace.",
+      "details": {
+        "changes": [
+          {
+            "file": "src/power-bi/semantic-models/contoso_sales.bim",
+            "change": "Add 'churn_risk_score' column to the dim_customer table definition and create a 'High Risk Customer Count' measure.",
+            "measure_dax": "CALCULATE(DISTINCTCOUNT(dim_customer[customer_key]), dim_customer[churn_risk_score] >= 0.7)"
+          }
+        ],
+        "testing": "In the branched analytics workspace, refresh the semantic model. Verify the new column and measure appear in the field list.",
+        "git_commit": "git add . && git commit -m 'feat(semantic-model): add churn risk score and high-risk measure'"
+      }
+    },
+    {
+      "step": 5,
+      "title": "Update report",
+      "actor": "Developer",
+      "action": "Add a churn risk visual to the Customer Insights report in the branched analytics workspace.",
+      "details": {
+        "changes": [
+          {
+            "workspace": "contoso-analytics-dev (branch: feature/CONTOSO-1234-customer-churn-score)",
+            "item": "customer_insights report",
+            "change": "Add a new report page 'Churn Risk' with: (1) Card showing High Risk Customer Count, (2) Scatter plot of lifetime_value vs churn_risk_score, (3) Table of top 50 at-risk customers"
+          }
+        ],
+        "testing": "Open the report in the branched workspace. Verify visuals render correctly with the branched data snapshot."
+      }
+    },
+    {
+      "step": 6,
+      "title": "Test with isolated data",
+      "actor": "Developer",
+      "action": "Run the ML inference notebook in the branched data-engineering workspace to populate the churn scores.",
+      "details": {
+        "description": "The branched data-warehouse workspace has a snapshot of dim_customer. The developer runs the churn prediction notebook which writes scores to the branched warehouse. This does NOT affect the main workspace's data.",
+        "validation_queries": [
+          "SELECT COUNT(*) FROM dims.dim_customer WHERE churn_risk_score IS NOT NULL;",
+          "SELECT AVG(churn_risk_score) as avg_score, MIN(churn_risk_score) as min_score, MAX(churn_risk_score) as max_score FROM dims.dim_customer;",
+          "SELECT customer_segment, AVG(churn_risk_score) FROM dims.dim_customer GROUP BY customer_segment;"
+        ]
+      }
+    },
+    {
+      "step": 7,
+      "title": "Create merge request (workspace)",
+      "actor": "Developer",
+      "action": "Create a workspace merge request to merge the branched changes back into the main dev workspace.",
+      "details": {
+        "api_call": {
+          "description": "Compare the branch with main to see what changed",
+          "method": "GET",
+          "url": "https://api.fabric.microsoft.com/v1/workspaces/{workspace-id}/branches/feature%2FCONTOSO-1234-customer-churn-score/compare/main",
+          "result": {
+            "changes": [
+              {
+                "itemType": "Warehouse",
+                "itemName": "contoso_warehouse",
+                "changeType": "modified",
+                "details": "Schema change: 1 column added to dims.dim_customer"
+              },
+              {
+                "itemType": "SemanticModel",
+                "itemName": "contoso_sales",
+                "changeType": "modified",
+                "details": "1 column added, 1 measure added"
+              },
+              {
+                "itemType": "Report",
+                "itemName": "customer_insights",
+                "changeType": "modified",
+                "details": "1 new report page added"
+              }
+            ],
+            "conflicts": [],
+            "dataChanges": {
+              "note": "Data changes (churn scores) in the branch are NOT merged — only schema/definition changes are merged. The ML pipeline will re-run in main to populate the scores."
+            }
+          }
+        }
+      }
+    },
+    {
+      "step": 8,
+      "title": "Review and approve",
+      "actor": "Reviewer (engineering lead)",
+      "action": "Review both the Git PR and the workspace merge request.",
+      "details": {
+        "git_review": {
+          "pr_number": 42,
+          "checks": [
+            "SQL schema change is backwards-compatible (additive only)",
+            "DAX measure is correct and performant",
+            "Semantic model .bim file changes are minimal",
+            "Unit tests pass in GitHub Actions"
+          ]
+        },
+        "workspace_review": {
+          "checks": [
+            "Report page looks correct in the comparison view",
+            "No unintended changes to other items",
+            "Semantic model refresh succeeds",
+            "No broken visuals"
+          ]
+        },
+        "approval": "Approved by @data-engineering-lead"
+      }
+    },
+    {
+      "step": 9,
+      "title": "Merge",
+      "actor": "GitHub Actions (automated after approval)",
+      "action": "Merge both the Git PR and the workspace branch.",
+      "details": {
+        "order": [
+          "1. Git PR merged into main (code is source of truth)",
+          "2. Workspace branch merged into main dev workspace (applies item changes)"
+        ],
+        "workspace_merge_api": {
+          "method": "POST",
+          "url": "https://api.fabric.microsoft.com/v1/workspaces/{workspace-id}/branches/feature%2FCONTOSO-1234-customer-churn-score/merge",
+          "body": {
+            "targetBranch": "main",
+            "deleteSourceBranch": true,
+            "conflictResolution": "source_wins"
+          },
+          "result": {
+            "status": "Succeeded",
+            "mergedItems": 3,
+            "deletedBranch": true
+          }
+        }
+      }
+    },
+    {
+      "step": 10,
+      "title": "Deploy to production via Deployment Pipeline",
+      "actor": "Deployment Pipeline (automated/approved)",
+      "action": "The merged changes in the dev main workspace are promoted through the Deployment Pipeline: Dev → Test → Prod.",
+      "details": {
+        "pipeline": "Analytics & Reporting",
+        "stages": [
+          {
+            "stage": "Dev → Test",
+            "auto_deploy": true,
+            "actions": ["Semantic model rebind to test data source", "Report validation", "Regression test suite"]
+          },
+          {
+            "stage": "Test → Prod",
+            "requires_approval": true,
+            "approver": "analytics-lead",
+            "pre_checks": ["All test reports render", "No performance regression", "RLS filters verified"],
+            "post_actions": ["Run ML pipeline in prod to populate churn scores", "Notify stakeholders"]
+          }
+        ]
+      }
+    }
+  ],
+
+  "timeline_summary": {
+    "day_1": "Developer creates Git branch + workspace branches auto-created",
+    "day_1_to_3": "Development: schema change, semantic model update, report update",
+    "day_3": "Testing in isolated branch with data snapshot",
+    "day_4": "Code review (Git PR) + workspace review (merge request)",
+    "day_4": "Merge to main dev workspace",
+    "day_4_to_5": "Deployment Pipeline: Dev → Test (auto) → Prod (approved)",
+    "total_elapsed": "3–5 business days"
+  }
+}

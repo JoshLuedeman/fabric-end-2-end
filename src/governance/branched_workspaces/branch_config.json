@@ -1,0 +1,227 @@
+{
+  "schema_version": "1.0",
+  "description": "Automated branch management configuration for Contoso Fabric Branched Workspaces. Integrated with GitHub Actions via the Fabric REST API.",
+
+  "auto_create_rules": {
+    "enabled": true,
+    "description": "Automatically create a workspace branch when a GitHub PR is opened targeting the main branch.",
+    "triggers": [
+      {
+        "event": "pull_request.opened",
+        "github_target_branch": "main",
+        "conditions": {
+          "label_required": false,
+          "path_filters": [
+            "src/power-bi/**",
+            "src/warehouse/**",
+            "src/notebooks/**",
+            "src/pipelines/**",
+            "src/dataflows/**",
+            "src/semantic-models/**",
+            "src/graphql/**"
+          ],
+          "excluded_authors": ["dependabot[bot]", "github-actions[bot]"]
+        },
+        "action": {
+          "create_branch": true,
+          "branch_name_template": "{github_branch_name}",
+          "workspaces_to_branch": [
+            {
+              "workspace_pattern": "contoso-analytics-dev",
+              "isolation_level": "shared",
+              "description": "Auto-created for PR #{pr_number}: {pr_title}"
+            },
+            {
+              "workspace_pattern": "contoso-data-warehouse-dev",
+              "isolation_level": "full",
+              "condition": "changed_paths_match('src/warehouse/**')",
+              "description": "Auto-created for PR #{pr_number}: {pr_title}"
+            },
+            {
+              "workspace_pattern": "contoso-data-engineering-dev",
+              "isolation_level": "full",
+              "condition": "changed_paths_match('src/notebooks/**') || changed_paths_match('src/pipelines/**')",
+              "description": "Auto-created for PR #{pr_number}: {pr_title}"
+            }
+          ],
+          "post_create_webhook": {
+            "url": "https://contoso-fabric-automation.azurewebsites.net/api/branch-created",
+            "headers": {
+              "X-Contoso-Source": "github-actions"
+            }
+          }
+        }
+      }
+    ]
+  },
+
+  "auto_cleanup": {
+    "enabled": true,
+    "description": "Automatically clean up workspace branches when they are no longer needed.",
+    "rules": [
+      {
+        "trigger": "pull_request.merged",
+        "action": "merge_and_delete",
+        "description": "When the GitHub PR is merged, merge the workspace branch into main and delete it.",
+        "merge_workspace_branch": true,
+        "delay_before_delete_minutes": 5,
+        "notify": ["branch_creator", "workspace_admins"]
+      },
+      {
+        "trigger": "pull_request.closed",
+        "action": "delete_after_grace_period",
+        "description": "When a PR is closed without merging, delete the workspace branch after a grace period.",
+        "grace_period_hours": 24,
+        "notify": ["branch_creator"]
+      },
+      {
+        "trigger": "branch_age_exceeded",
+        "max_age_days": 30,
+        "action": "warn_then_delete",
+        "warning_days_before_delete": 7,
+        "notify": ["branch_creator", "workspace_admins"],
+        "exceptions": ["release/*"]
+      },
+      {
+        "trigger": "branch_idle",
+        "idle_threshold_days": 7,
+        "action": "suspend_compute",
+        "description": "Suspend compute for branches with no activity to reduce costs."
+      },
+      {
+        "trigger": "experiment_expired",
+        "branch_pattern": "experiment/*",
+        "max_age_days": 14,
+        "action": "delete",
+        "require_documentation": true,
+        "documentation_location": "docs/experiments/"
+      }
+    ]
+  },
+
+  "isolation_levels": {
+    "full": {
+      "description": "Complete isolation with separate compute and data snapshot. Branch gets a point-in-time copy of all table data at creation.",
+      "separate_compute": true,
+      "data_snapshot": true,
+      "compute_auto_suspend_minutes": 120,
+      "max_storage_gb": 100,
+      "recommended_for": ["data-warehouse", "data-engineering", "data-science", "ingestion"]
+    },
+    "shared": {
+      "description": "Lightweight isolation with shared compute and live data. Only item definitions (reports, dashboards, semantic models) are branched.",
+      "separate_compute": false,
+      "data_snapshot": false,
+      "recommended_for": ["analytics", "real-time", "ai-agents"]
+    }
+  },
+
+  "protected_branches": {
+    "description": "Branches that cannot be deleted or force-merged. Only authorized roles can merge into these.",
+    "patterns": [
+      {
+        "pattern": "main",
+        "protections": {
+          "prevent_deletion": true,
+          "require_merge_request": true,
+          "required_approvals": 1,
+          "required_roles": ["Admin", "Member"],
+          "require_passing_checks": true
+        }
+      },
+      {
+        "pattern": "release/*",
+        "protections": {
+          "prevent_deletion": false,
+          "require_merge_request": true,
+          "required_approvals": 2,
+          "required_roles": ["Admin"],
+          "require_passing_checks": true
+        }
+      }
+    ]
+  },
+
+  "merge_conflict_resolution": {
+    "description": "How conflicts are handled when merging a workspace branch into main.",
+    "policies": [
+      {
+        "item_type": "Warehouse",
+        "resolution": "prompt",
+        "description": "Schema changes (DDL) require manual review. Fabric shows a diff of the schema and prompts the user to choose."
+      },
+      {
+        "item_type": "SemanticModel",
+        "resolution": "prompt",
+        "description": "Semantic model changes (new measures, relationships) require manual review to avoid breaking reports."
+      },
+      {
+        "item_type": "Report",
+        "resolution": "auto_branch_wins",
+        "description": "Report layout changes from the branch overwrite main. Visual diffs are recorded for audit."
+      },
+      {
+        "item_type": "Dashboard",
+        "resolution": "auto_branch_wins",
+        "description": "Dashboard changes from the branch overwrite main."
+      },
+      {
+        "item_type": "Notebook",
+        "resolution": "prompt",
+        "description": "Notebook code should be resolved via Git. If only Fabric metadata differs, branch wins."
+      },
+      {
+        "item_type": "DataPipeline",
+        "resolution": "prompt",
+        "description": "Pipeline definitions require manual review to prevent data flow disruptions."
+      },
+      {
+        "item_type": "Dataflow",
+        "resolution": "prompt",
+        "description": "Power Query M expressions require careful review for logic changes."
+      },
+      {
+        "item_type": "Eventstream",
+        "resolution": "prompt",
+        "description": "Eventstream configuration changes require manual validation to avoid data loss."
+      }
+    ]
+  },
+
+  "capacity_limits": {
+    "max_concurrent_branches_per_workspace": 5,
+    "max_total_branches_across_all_workspaces": 20,
+    "max_full_isolation_branches": 10,
+    "alert_at_branch_count": 15,
+    "alert_recipients": ["contoso-fabric-admins@contoso.com"]
+  },
+
+  "notifications": {
+    "channels": [
+      {
+        "type": "teams_webhook",
+        "url": "https://contoso.webhook.office.com/webhookb2/{tenant_id}/{webhook_id}",
+        "events": ["branch_created", "branch_merged", "branch_deleted", "merge_conflict", "branch_expiring"]
+      },
+      {
+        "type": "email",
+        "recipients": ["fabric-ops@contoso.com"],
+        "events": ["branch_expiring", "capacity_limit_warning"]
+      }
+    ]
+  },
+
+  "api_reference": {
+    "description": "Fabric REST API endpoints for workspace branch management. Use these in GitHub Actions or custom automation.",
+    "base_url": "https://api.fabric.microsoft.com/v1",
+    "endpoints": {
+      "create_branch": "POST /workspaces/{workspaceId}/branches",
+      "list_branches": "GET /workspaces/{workspaceId}/branches",
+      "get_branch": "GET /workspaces/{workspaceId}/branches/{branchName}",
+      "merge_branch": "POST /workspaces/{workspaceId}/branches/{branchName}/merge",
+      "delete_branch": "DELETE /workspaces/{workspaceId}/branches/{branchName}",
+      "compare_branches": "GET /workspaces/{workspaceId}/branches/{branchName}/compare/{targetBranch}"
+    },
+    "authentication": "Bearer token with Fabric.ReadWrite.All scope"
+  }
+}

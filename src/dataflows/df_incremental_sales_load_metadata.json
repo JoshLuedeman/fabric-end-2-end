@@ -1,0 +1,9 @@
+{
+  "queries": [
+    {
+      "queryName": "IncrementalSalesLoad",
+      "queryDescription": "Incrementally loads sales transactions from staging (bronze) to silver using a high-watermark pattern on the modified_at timestamp.",
+      "loadEnabled": true
+    }
+  ]
+}

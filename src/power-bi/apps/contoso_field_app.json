@@ -1,0 +1,234 @@
+{
+  "schema_version": "1.0",
+  "app_type": "power_bi_app",
+
+  "metadata": {
+    "name": "Contoso Field Operations",
+    "description": "Mobile-first app for field technicians, delivery drivers, and warehouse workers. Provides store-specific performance data, inventory alerts, and equipment health status optimized for on-the-go access.",
+    "contact_email": "field-ops@contoso.com",
+    "support_url": "https://contoso.sharepoint.com/sites/field-ops/help",
+    "publisher": "Contoso Global Retail — Field Operations",
+    "version": "1.0.0"
+  },
+
+  "branding": {
+    "logo_path": "assets/contoso_field_logo.png",
+    "theme_colors": {
+      "primary": "#0078D4",
+      "secondary": "#107C10",
+      "background": "#FAF9F8",
+      "text": "#323130",
+      "accent": "#D83B01"
+    },
+    "landing_page": {
+      "type": "specific_content",
+      "content_reference": "sections[0].items[0]",
+      "description": "My Store view is the default landing page, showing the user's assigned store data."
+    }
+  },
+
+  "audience": {
+    "description": "Frontline workers who need quick, mobile-optimized access to operational data for their assigned store or route.",
+    "security_groups": [
+      {
+        "entra_group_name": "contoso-field-technicians",
+        "entra_group_id": "{field-technicians-group-id}",
+        "permissions": "Viewer",
+        "members_description": "Field technicians responsible for store equipment maintenance"
+      },
+      {
+        "entra_group_name": "contoso-delivery-drivers",
+        "entra_group_id": "{delivery-drivers-group-id}",
+        "permissions": "Viewer",
+        "members_description": "Delivery drivers for store replenishment routes"
+      },
+      {
+        "entra_group_name": "contoso-warehouse-workers",
+        "entra_group_id": "{warehouse-workers-group-id}",
+        "permissions": "Viewer",
+        "members_description": "Distribution center and warehouse floor staff"
+      },
+      {
+        "entra_group_name": "contoso-field-ops-leads",
+        "entra_group_id": "{field-ops-leads-group-id}",
+        "permissions": "Member",
+        "members_description": "Field operations team leads who manage and update the app"
+      }
+    ],
+    "auto_install": {
+      "enabled": true,
+      "target_groups": [
+        "contoso-field-technicians",
+        "contoso-delivery-drivers",
+        "contoso-warehouse-workers"
+      ]
+    }
+  },
+
+  "update_policy": {
+    "type": "automatic",
+    "description": "Field workers always get the latest version. Updates are validated by field ops leads before publishing.",
+    "allow_user_personalization": false,
+    "notify_on_update": false
+  },
+
+  "mobile_optimization": {
+    "enabled": true,
+    "description": "All report pages include mobile-optimized layouts designed for phone screens (portrait orientation). Visuals are stacked vertically with touch-friendly filters.",
+    "features": {
+      "phone_layout": true,
+      "tablet_layout": true,
+      "touch_friendly_slicers": true,
+      "large_tap_targets": true,
+      "simplified_visuals": true,
+      "dark_mode_support": true
+    }
+  },
+
+  "offline_access": {
+    "enabled": true,
+    "description": "Key reports are cached on the mobile device for offline access in areas with poor connectivity (warehouses, delivery routes, remote stores).",
+    "cached_items": [
+      {
+        "item": "My Store Performance",
+        "cache_frequency": "every_4_hours",
+        "max_cache_size_mb": 25
+      },
+      {
+        "item": "Inventory Alerts",
+        "cache_frequency": "every_2_hours",
+        "max_cache_size_mb": 10
+      },
+      {
+        "item": "My Route / My Warehouse",
+        "cache_frequency": "every_4_hours",
+        "max_cache_size_mb": 15
+      }
+    ],
+    "total_max_cache_mb": 100,
+    "auto_sync_on_wifi": true
+  },
+
+  "sections": [
+    {
+      "name": "My Store",
+      "icon": "Shop",
+      "description": "Store-specific performance data filtered by the logged-in user's assigned store via RLS.",
+      "items": [
+        {
+          "type": "report",
+          "source_report": "sales_analytics",
+          "source_workspace": "contoso-analytics-{env}",
+          "display_name": "My Store Performance",
+          "description": "Today's sales, transaction count, top products, and comparison to yesterday / last week. Auto-filtered to your assigned store.",
+          "source_path": "src/power-bi/reports/sales_analytics.pbip",
+          "semantic_model": "contoso_sales",
+          "rls_filter": "Automatically filtered by the user's store assignment in Entra ID. Store Managers see their store; warehouse workers see their distribution center."
+        },
+        {
+          "type": "scorecard",
+          "source_scorecard": "retail_operations_scorecard",
+          "source_workspace": "contoso-analytics-{env}",
+          "display_name": "Daily Goals",
+          "description": "Track your store's daily goals: revenue target, customer count, and basket size vs. targets.",
+          "source_path": "src/power-bi/scorecards/retail_operations_scorecard.json"
+        }
+      ]
+    },
+    {
+      "name": "Inventory",
+      "icon": "Package",
+      "description": "Stock levels, reorder alerts, and replenishment status.",
+      "items": [
+        {
+          "type": "report",
+          "source_report": "inventory_operations",
+          "source_workspace": "contoso-analytics-{env}",
+          "display_name": "Inventory Alerts",
+          "description": "Products below reorder point at your location, with severity indicators and estimated days to stockout. Tap a product to see reorder status.",
+          "source_path": "src/power-bi/reports/inventory_operations.pbip",
+          "semantic_model": "contoso_operations",
+          "report_page_filter": "ReportSection_LowStock",
+          "rls_filter": "Filtered to user's assigned store or warehouse"
+        },
+        {
+          "type": "paginated_report",
+          "source_report": "inventory_reorder_report",
+          "source_workspace": "contoso-analytics-{env}",
+          "display_name": "Reorder Report",
+          "description": "Printable reorder report for submission to purchasing. Lists all items below reorder point with suggested order quantities.",
+          "source_path": "src/power-bi/paginated-reports/inventory_reorder_report.json",
+          "export_formats": ["PDF"],
+          "parameters": {
+            "store_id": "auto_from_rls"
+          }
+        }
+      ]
+    },
+    {
+      "name": "IoT Status",
+      "icon": "Diagnostic",
+      "description": "Equipment health monitoring for assigned store locations.",
+      "items": [
+        {
+          "type": "report",
+          "source_report": "realtime_monitoring",
+          "source_workspace": "contoso-analytics-{env}",
+          "display_name": "Equipment Health",
+          "description": "Real-time status of HVAC, refrigeration, POS terminals, and security systems for your store. Shows alerts for equipment requiring attention.",
+          "source_path": "src/power-bi/reports/realtime_monitoring.pbip",
+          "semantic_model": "contoso_operations",
+          "report_page_filter": "ReportSection_IoTEquipment",
+          "rls_filter": "Filtered to user's assigned store"
+        }
+      ]
+    }
+  ],
+
+  "navigation": {
+    "type": "custom",
+    "show_section_headers": true,
+    "show_item_descriptions": false,
+    "default_section": "My Store",
+    "footer_links": [
+      {
+        "label": "Report Equipment Issue",
+        "url": "https://contoso.sharepoint.com/sites/field-ops/equipment-issue"
+      },
+      {
+        "label": "Help",
+        "url": "https://contoso.sharepoint.com/sites/field-ops/help"
+      }
+    ]
+  },
+
+  "row_level_security": {
+    "enabled": true,
+    "description": "All data is filtered to the user's assigned store or distribution center. Assignment is managed via Entra ID custom attributes mapped to store_id in the semantic model.",
+    "role_mapping": [
+      {
+        "security_group": "contoso-field-technicians",
+        "rls_role": "FieldWorker",
+        "filter": "dim_store[store_id] IN (USER_ASSIGNED_STORES())"
+      },
+      {
+        "security_group": "contoso-delivery-drivers",
+        "rls_role": "FieldWorker",
+        "filter": "dim_store[store_id] IN (USER_ASSIGNED_ROUTE_STORES())"
+      },
+      {
+        "security_group": "contoso-warehouse-workers",
+        "rls_role": "WarehouseWorker",
+        "filter": "dim_store[store_id] = USER_ASSIGNED_WAREHOUSE()"
+      },
+      {
+        "security_group": "contoso-field-ops-leads",
+        "rls_role": "FieldOpsLead",
+        "filter": "dim_store[region] = USER_ASSIGNED_REGION()"
+      }
+    ]
+  },
+
+  "sensitivity_label": "Internal",
+  "data_classification": "Business Internal — Operational"
+}

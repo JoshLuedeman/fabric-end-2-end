@@ -1,0 +1,395 @@
+# =============================================================================
+# Contoso Global Retail & Supply Chain — GraphQL API Schema
+# =============================================================================
+#
+# This schema exposes the Contoso Fabric data warehouse through a unified
+# GraphQL API layer. Types map directly to the star-schema tables:
+#
+#   dims.dim_customer  → Customer
+#   dims.dim_product   → Product
+#   dims.dim_store     → Store
+#   dims.dim_date      → (used in DateRange filters)
+#   facts.fact_sales   → SalesTransaction, SalesSummary
+#   facts.fact_inventory → InventoryItem, LowStockAlert
+#
+# Data source: contoso_warehouse (Fabric Warehouse)
+# Authentication: Microsoft Entra ID (OAuth 2.0 bearer token)
+# =============================================================================
+
+# ---------------------------------------------------------------------------
+# Root Query
+# ---------------------------------------------------------------------------
+type Query {
+  # --- Product Catalog ---
+  """Retrieve products with optional filters on category, price, and stock status."""
+  products(category: String, subcategory: String, priceRange: PriceRangeInput, inStock: Boolean, first: Int = 50, offset: Int = 0): ProductConnection!
+
+  """Retrieve a single product by its business ID (e.g., 'PRD-00142')."""
+  product(id: ID!): Product
+
+  # --- Store Operations ---
+  """List stores with optional region/state filters."""
+  stores(region: String, state: String, storeType: StoreType, first: Int = 50, offset: Int = 0): StoreConnection!
+
+  """Get aggregated performance metrics for a specific store over a date range."""
+  storePerformance(storeId: ID!, dateRange: DateRangeInput!): StoreMetrics!
+
+  # --- Customer Data ---
+  """Retrieve a single customer by their business ID (e.g., 'CUST-01234')."""
+  customer(id: ID!): Customer
+
+  """List customers belonging to a specific segment (Premium, Standard, Basic)."""
+  customerSegment(segment: CustomerSegment!, first: Int = 50, offset: Int = 0): CustomerConnection!
+
+  # --- Sales Analytics ---
+  """Aggregated sales summary over a date range, optionally grouped by a dimension."""
+  salesSummary(dateRange: DateRangeInput!, groupBy: GroupByField): SalesSummary!
+
+  """Ranked list of top-selling products by revenue."""
+  topProducts(limit: Int = 10, dateRange: DateRangeInput!): [ProductRanking!]!
+
+  """Daily sales trend for charting (returns one data point per day)."""
+  salesTrend(dateRange: DateRangeInput!, storeId: ID, region: String): [DailySalesPoint!]!
+
+  # --- Inventory ---
+  """Current inventory levels, optionally filtered by store or warehouse."""
+  inventoryLevels(storeId: ID, productId: ID, belowReorderOnly: Boolean = false, first: Int = 50, offset: Int = 0): InventoryConnection!
+
+  """Products currently below their reorder point — requires immediate action."""
+  lowStockAlerts(region: String, storeId: ID): [LowStockAlert!]!
+
+  # --- Supply Chain ---
+  """List shipments with optional status filter."""
+  shipments(status: ShipmentStatus, supplierId: ID, first: Int = 50, offset: Int = 0): ShipmentConnection!
+
+  """Aggregated performance metrics for a supplier."""
+  supplierPerformance(supplierId: ID!): SupplierMetrics!
+}
+
+# ---------------------------------------------------------------------------
+# Types — mapped from dims.dim_product
+# ---------------------------------------------------------------------------
+type Product {
+  """Surrogate key (product_sk) — internal, use productId for API calls."""
+  id: ID!
+  """Business identifier (e.g., 'PRD-00142') from dims.dim_product.product_id."""
+  productId: String!
+  """Product display name from dims.dim_product.product_name."""
+  name: String!
+  """Top-level category from dims.dim_product.category."""
+  category: String!
+  """Subcategory from dims.dim_product.subcategory."""
+  subcategory: String!
+  """Brand name from dims.dim_product.brand."""
+  brand: String!
+  """Unit cost from dims.dim_product.unit_cost."""
+  unitCost: Float!
+  """Retail unit price from dims.dim_product.unit_price."""
+  unitPrice: Float!
+  """Gross margin percentage from dims.dim_product.margin_pct."""
+  marginPct: Float!
+  """Weight in kilograms from dims.dim_product.weight_kg."""
+  weightKg: Float
+  """Supplier business ID from dims.dim_product.supplier_id."""
+  supplierId: String
+  """Whether the product is currently active from dims.dim_product.is_active."""
+  isActive: Boolean!
+}
+
+type ProductConnection {
+  items: [Product!]!
+  totalCount: Int!
+  hasNextPage: Boolean!
+}
+
+type ProductRanking {
+  rank: Int!
+  product: Product!
+  totalRevenue: Float!
+  totalQuantity: Int!
+  transactionCount: Int!
+}
+
+# ---------------------------------------------------------------------------
+# Types — mapped from dims.dim_store
+# ---------------------------------------------------------------------------
+type Store {
+  """Surrogate key (store_sk)."""
+  id: ID!
+  """Business identifier (e.g., 'STR-0042') from dims.dim_store.store_id."""
+  storeId: String!
+  """Store display name from dims.dim_store.store_name."""
+  name: String!
+  """Store type from dims.dim_store.store_type (Flagship, Standard, Outlet, Express)."""
+  storeType: StoreType!
+  """City from dims.dim_store.city."""
+  city: String!
+  """State/province from dims.dim_store.state."""
+  state: String!
+  """Country from dims.dim_store.country."""
+  country: String!
+  """Business region from dims.dim_store.region (Northeast, Southeast, Midwest, West, International)."""
+  region: String!
+  """GPS latitude from dims.dim_store.latitude."""
+  latitude: Float!
+  """GPS longitude from dims.dim_store.longitude."""
+  longitude: Float!
+  """Total selling area from dims.dim_store.square_footage."""
+  squareFootage: Int
+  """Date the store opened from dims.dim_store.opening_date."""
+  openingDate: String
+}
+
+type StoreConnection {
+  items: [Store!]!
+  totalCount: Int!
+  hasNextPage: Boolean!
+}
+
+type StoreMetrics {
+  store: Store!
+  dateRange: DateRange!
+  totalRevenue: Float!
+  totalTransactions: Int!
+  averageOrderValue: Float!
+  uniqueCustomers: Int!
+  topSellingCategory: String
+  revenueByChannel: [ChannelRevenue!]!
+  dailyTrend: [DailySalesPoint!]!
+}
+
+type ChannelRevenue {
+  """Sales channel from facts.fact_sales.channel (Online, In-Store, Mobile)."""
+  channel: String!
+  revenue: Float!
+  transactionCount: Int!
+}
+
+# ---------------------------------------------------------------------------
+# Types — mapped from dims.dim_customer
+# ---------------------------------------------------------------------------
+type Customer {
+  """Surrogate key (customer_sk)."""
+  id: ID!
+  """Business identifier (e.g., 'CUST-01234') from dims.dim_customer.customer_id."""
+  customerId: String!
+  """First name from dims.dim_customer.first_name."""
+  firstName: String!
+  """Last name from dims.dim_customer.last_name."""
+  lastName: String!
+  """Email from dims.dim_customer.email."""
+  email: String
+  """Phone from dims.dim_customer.phone."""
+  phone: String
+  """City from dims.dim_customer.city."""
+  city: String!
+  """State from dims.dim_customer.state."""
+  state: String!
+  """Country from dims.dim_customer.country."""
+  country: String!
+  """Postal code from dims.dim_customer.postal_code."""
+  postalCode: String
+  """Loyalty program tier from dims.dim_customer.loyalty_tier."""
+  loyaltyTier: String
+  """Customer segment from dims.dim_customer.customer_segment (Premium, Standard, Basic)."""
+  segment: CustomerSegment!
+  """Calculated lifetime value from dims.dim_customer.lifetime_value."""
+  lifetimeValue: Float!
+  """Whether the customer account is active from dims.dim_customer.is_active."""
+  isActive: Boolean!
+  """Customer age from dims.dim_customer.customer_age."""
+  age: Int
+}
+
+type CustomerConnection {
+  items: [Customer!]!
+  totalCount: Int!
+  hasNextPage: Boolean!
+}
+
+# ---------------------------------------------------------------------------
+# Types — Sales Analytics (aggregated from facts.fact_sales)
+# ---------------------------------------------------------------------------
+type SalesSummary {
+  dateRange: DateRange!
+  groupBy: GroupByField
+  totalRevenue: Float!
+  totalGrossAmount: Float!
+  totalNetAmount: Float!
+  totalTaxAmount: Float!
+  totalTransactions: Int!
+  totalQuantitySold: Int!
+  averageOrderValue: Float!
+  averageDiscountPct: Float!
+  breakdowns: [SalesBreakdown!]
+}
+
+type SalesBreakdown {
+  """The group key value (e.g., region name, category name, channel)."""
+  key: String!
+  revenue: Float!
+  quantity: Int!
+  transactionCount: Int!
+  averageOrderValue: Float!
+}
+
+type DailySalesPoint {
+  """Date in YYYY-MM-DD format, derived from dims.dim_date.full_date."""
+  date: String!
+  revenue: Float!
+  transactionCount: Int!
+  quantity: Int!
+}
+
+# ---------------------------------------------------------------------------
+# Types — Inventory (from facts.fact_inventory)
+# ---------------------------------------------------------------------------
+type InventoryItem {
+  """Surrogate key (inventory_sk)."""
+  id: ID!
+  """Inventory record ID from facts.fact_inventory.inventory_id."""
+  inventoryId: String!
+  """The product this inventory record relates to."""
+  product: Product!
+  """The store holding this inventory."""
+  store: Store!
+  """Movement type from facts.fact_inventory.movement_type (Receipt, Sale, Adjustment, Return)."""
+  movementType: String!
+  """Quantity moved from facts.fact_inventory.quantity."""
+  quantity: Int!
+  """Unit cost from facts.fact_inventory.unit_cost."""
+  unitCost: Float!
+  """Stock on hand after this movement from facts.fact_inventory.on_hand_after."""
+  onHandAfter: Int!
+  """Reorder threshold from facts.fact_inventory.reorder_point."""
+  reorderPoint: Int!
+  """Whether stock is below reorder point from facts.fact_inventory.is_below_reorder."""
+  isBelowReorder: Boolean!
+}
+
+type InventoryConnection {
+  items: [InventoryItem!]!
+  totalCount: Int!
+  hasNextPage: Boolean!
+}
+
+type LowStockAlert {
+  product: Product!
+  store: Store!
+  currentOnHand: Int!
+  reorderPoint: Int!
+  deficit: Int!
+  """Estimated days until stockout based on recent daily sales velocity."""
+  estimatedDaysToStockout: Int
+  """Urgency level derived from deficit magnitude."""
+  severity: AlertSeverity!
+}
+
+# ---------------------------------------------------------------------------
+# Types — Supply Chain
+# ---------------------------------------------------------------------------
+type Shipment {
+  id: ID!
+  shipmentId: String!
+  supplierId: String!
+  supplierName: String
+  originCity: String!
+  originCountry: String!
+  destinationStoreId: String
+  destinationWarehouseId: String
+  status: ShipmentStatus!
+  shippedDate: String
+  estimatedArrival: String
+  actualArrival: String
+  itemCount: Int!
+  totalWeight: Float
+  carrier: String
+}
+
+type ShipmentConnection {
+  items: [Shipment!]!
+  totalCount: Int!
+  hasNextPage: Boolean!
+}
+
+type SupplierMetrics {
+  supplierId: String!
+  supplierName: String!
+  country: String!
+  onTimeDeliveryRate: Float!
+  averageLeadTimeDays: Float!
+  totalShipments: Int!
+  activeProductCount: Int!
+  qualityScore: Float!
+  reliabilityScore: Float!
+}
+
+# ---------------------------------------------------------------------------
+# Enums
+# ---------------------------------------------------------------------------
+enum StoreType {
+  FLAGSHIP
+  STANDARD
+  OUTLET
+  EXPRESS
+}
+
+enum CustomerSegment {
+  PREMIUM
+  STANDARD
+  BASIC
+}
+
+enum GroupByField {
+  REGION
+  STORE
+  CATEGORY
+  SUBCATEGORY
+  BRAND
+  CHANNEL
+  PAYMENT_METHOD
+  DAY
+  WEEK
+  MONTH
+  QUARTER
+}
+
+enum ShipmentStatus {
+  PENDING
+  IN_TRANSIT
+  DELIVERED
+  DELAYED
+  CANCELLED
+}
+
+enum AlertSeverity {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+}
+
+# ---------------------------------------------------------------------------
+# Input Types
+# ---------------------------------------------------------------------------
+input DateRangeInput {
+  """Start date in YYYY-MM-DD format."""
+  startDate: String!
+  """End date in YYYY-MM-DD format."""
+  endDate: String!
+}
+
+input PriceRangeInput {
+  """Minimum unit price (inclusive)."""
+  min: Float
+  """Maximum unit price (inclusive)."""
+  max: Float
+}
+
+# ---------------------------------------------------------------------------
+# Output Types (non-input mirrors for responses)
+# ---------------------------------------------------------------------------
+type DateRange {
+  startDate: String!
+  endDate: String!
+}

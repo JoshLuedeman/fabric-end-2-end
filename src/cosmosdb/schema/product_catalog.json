@@ -1,0 +1,278 @@
+{
+  "$schema": "https://learn.microsoft.com/azure/cosmos-db/nosql/schema",
+  "_comment": "Contoso Global Retail — Product Catalog (Cosmos DB NoSQL)",
+  "containerConfig": {
+    "containerName": "product_catalog",
+    "partitionKey": {
+      "paths": ["/category/l1"],
+      "kind": "Hash",
+      "version": 2
+    },
+    "indexingPolicy": {
+      "automatic": true,
+      "indexingMode": "consistent",
+      "includedPaths": [
+        { "path": "/category/*" },
+        { "path": "/pricing/list_price/?" },
+        { "path": "/pricing/sale_price/?" },
+        { "path": "/reviews_summary/avg_rating/?" },
+        { "path": "/tags/[]" }
+      ],
+      "excludedPaths": [
+        { "path": "/images/*" },
+        { "path": "/seo_metadata/*" }
+      ],
+      "compositeIndexes": [
+        [
+          { "path": "/category/l1", "order": "ascending" },
+          { "path": "/pricing/list_price", "order": "descending" }
+        ],
+        [
+          { "path": "/category/l1", "order": "ascending" },
+          { "path": "/reviews_summary/avg_rating", "order": "descending" }
+        ]
+      ]
+    },
+    "uniqueKeyPolicy": {
+      "uniqueKeys": [
+        { "paths": ["/product_id"] }
+      ]
+    },
+    "defaultTtl": -1
+  },
+  "sampleDocuments": [
+    {
+      "product_id": "PRD-00142",
+      "name": "Contoso Premium Merino Wool Sweater",
+      "description": "Ultra-soft merino wool crew neck sweater with ribbed cuffs and hem. Sustainably sourced from New Zealand farms.",
+      "category": {
+        "l1": "Apparel",
+        "l2": "Knitwear",
+        "l3": "Sweaters"
+      },
+      "attributes": {
+        "material": "100% Merino Wool",
+        "sizes": ["XS", "S", "M", "L", "XL", "XXL"],
+        "colors": ["Heather Grey", "Navy", "Burgundy", "Forest Green"],
+        "care_instructions": "Hand wash cold, lay flat to dry",
+        "weight_grams": 340,
+        "gender": "Unisex",
+        "season": ["Fall", "Winter"]
+      },
+      "pricing": {
+        "list_price": 89.99,
+        "sale_price": 71.99,
+        "cost": 32.50,
+        "margin_pct": 0.638,
+        "currency": "USD"
+      },
+      "images": [
+        {
+          "url": "https://contoso-cdn.azureedge.net/products/PRD-00142/main.webp",
+          "alt_text": "Merino wool sweater front view",
+          "type": "main"
+        },
+        {
+          "url": "https://contoso-cdn.azureedge.net/products/PRD-00142/detail-01.webp",
+          "alt_text": "Merino wool sweater texture close-up",
+          "type": "detail"
+        }
+      ],
+      "reviews_summary": {
+        "avg_rating": 4.6,
+        "total_count": 1247,
+        "rating_distribution": { "5": 743, "4": 312, "3": 118, "2": 49, "1": 25 }
+      },
+      "inventory_snapshot": {
+        "STR-001": 23,
+        "STR-012": 8,
+        "STR-047": 15,
+        "STR-103": 0,
+        "STR-250": 31,
+        "ONLINE": 542
+      },
+      "tags": ["sustainable", "premium", "merino", "winter-essentials", "gift-guide"],
+      "seo_metadata": {
+        "title": "Premium Merino Wool Sweater | Contoso",
+        "meta_description": "Shop our sustainably sourced merino wool sweater. Ultra-soft, breathable, and perfect for layering.",
+        "slug": "premium-merino-wool-sweater"
+      },
+      "_ts": 1717200000
+    },
+    {
+      "product_id": "PRD-00587",
+      "name": "Contoso SmartHome Hub Pro 3rd Gen",
+      "description": "Voice-controlled smart home hub with 10-inch touchscreen, Zigbee/Z-Wave/Matter support, and built-in Alexa and Google Assistant.",
+      "category": {
+        "l1": "Electronics",
+        "l2": "Smart Home",
+        "l3": "Hubs & Controllers"
+      },
+      "attributes": {
+        "display_size_inches": 10.1,
+        "resolution": "1920x1200",
+        "connectivity": ["WiFi 6E", "Bluetooth 5.3", "Zigbee 3.0", "Z-Wave", "Matter", "Thread"],
+        "processor": "Qualcomm QCS8250",
+        "ram_gb": 4,
+        "storage_gb": 32,
+        "speakers": "2x 10W stereo with Dolby Audio",
+        "camera": "13MP with physical privacy shutter",
+        "dimensions_mm": { "width": 260, "height": 170, "depth": 35 },
+        "weight_grams": 680,
+        "warranty_months": 24
+      },
+      "pricing": {
+        "list_price": 249.99,
+        "sale_price": null,
+        "cost": 112.00,
+        "margin_pct": 0.552,
+        "currency": "USD"
+      },
+      "images": [
+        {
+          "url": "https://contoso-cdn.azureedge.net/products/PRD-00587/main.webp",
+          "alt_text": "SmartHome Hub Pro front view",
+          "type": "main"
+        }
+      ],
+      "reviews_summary": {
+        "avg_rating": 4.3,
+        "total_count": 832,
+        "rating_distribution": { "5": 401, "4": 245, "3": 107, "2": 52, "1": 27 }
+      },
+      "inventory_snapshot": {
+        "STR-001": 12,
+        "STR-012": 5,
+        "STR-047": 9,
+        "STR-103": 2,
+        "ONLINE": 1847
+      },
+      "tags": ["smart-home", "matter-compatible", "voice-control", "tech-gifts"],
+      "seo_metadata": {
+        "title": "SmartHome Hub Pro 3rd Gen | Contoso Electronics",
+        "meta_description": "Control your entire smart home from one hub. WiFi 6E, Matter support, 10-inch touchscreen.",
+        "slug": "smarthome-hub-pro-3rd-gen"
+      },
+      "_ts": 1717286400
+    },
+    {
+      "product_id": "PRD-01023",
+      "name": "Contoso Organic Acai Berry Smoothie Mix",
+      "description": "USDA organic freeze-dried acai berry powder blended with banana, spinach, and chia seeds. Just add water or milk for a superfood smoothie.",
+      "category": {
+        "l1": "Food & Beverage",
+        "l2": "Health & Wellness",
+        "l3": "Smoothie Mixes"
+      },
+      "attributes": {
+        "weight_oz": 12,
+        "servings_per_container": 20,
+        "ingredients": ["Organic Acai Berry Powder", "Organic Banana Powder", "Organic Spinach Powder", "Organic Chia Seeds", "Organic Stevia"],
+        "allergens": [],
+        "certifications": ["USDA Organic", "Non-GMO Project Verified", "Vegan"],
+        "nutrition_per_serving": {
+          "calories": 120,
+          "total_fat_g": 3.5,
+          "saturated_fat_g": 0.5,
+          "sodium_mg": 15,
+          "total_carbs_g": 18,
+          "dietary_fiber_g": 6,
+          "sugars_g": 8,
+          "protein_g": 4,
+          "vitamin_a_pct": 15,
+          "vitamin_c_pct": 25,
+          "iron_pct": 10,
+          "calcium_pct": 6
+        },
+        "shelf_life_months": 18,
+        "storage": "Cool, dry place. Refrigerate after opening."
+      },
+      "pricing": {
+        "list_price": 24.99,
+        "sale_price": 19.99,
+        "cost": 9.75,
+        "margin_pct": 0.610,
+        "currency": "USD"
+      },
+      "images": [
+        {
+          "url": "https://contoso-cdn.azureedge.net/products/PRD-01023/main.webp",
+          "alt_text": "Organic acai smoothie mix pouch",
+          "type": "main"
+        }
+      ],
+      "reviews_summary": {
+        "avg_rating": 4.8,
+        "total_count": 2156,
+        "rating_distribution": { "5": 1583, "4": 387, "3": 112, "2": 48, "1": 26 }
+      },
+      "inventory_snapshot": {
+        "STR-001": 45,
+        "STR-012": 28,
+        "STR-047": 33,
+        "STR-103": 51,
+        "STR-250": 19,
+        "ONLINE": 3420
+      },
+      "tags": ["organic", "superfood", "vegan", "health-wellness", "smoothie"],
+      "seo_metadata": {
+        "title": "Organic Acai Berry Smoothie Mix | Contoso Food",
+        "meta_description": "USDA organic acai smoothie mix with banana, spinach & chia. 20 servings per pouch.",
+        "slug": "organic-acai-berry-smoothie-mix"
+      },
+      "_ts": 1717372800
+    },
+    {
+      "product_id": "PRD-00891",
+      "name": "Contoso Artisan Leather Messenger Bag",
+      "description": "Full-grain Italian leather messenger bag with brass hardware, padded 15-inch laptop compartment, and adjustable crossbody strap.",
+      "category": {
+        "l1": "Apparel",
+        "l2": "Bags & Accessories",
+        "l3": "Messenger Bags"
+      },
+      "attributes": {
+        "material": "Full-grain Italian Leather",
+        "hardware": "Solid Brass",
+        "dimensions_inches": { "width": 16, "height": 12, "depth": 4.5 },
+        "laptop_compartment_inches": 15.6,
+        "pockets": { "exterior": 2, "interior": 5, "hidden": 1 },
+        "colors": ["Cognac", "Dark Brown", "Black"],
+        "weight_lbs": 2.8,
+        "gender": "Unisex"
+      },
+      "pricing": {
+        "list_price": 189.00,
+        "sale_price": null,
+        "cost": 68.00,
+        "margin_pct": 0.640,
+        "currency": "USD"
+      },
+      "images": [
+        {
+          "url": "https://contoso-cdn.azureedge.net/products/PRD-00891/main.webp",
+          "alt_text": "Leather messenger bag front view",
+          "type": "main"
+        }
+      ],
+      "reviews_summary": {
+        "avg_rating": 4.7,
+        "total_count": 589,
+        "rating_distribution": { "5": 372, "4": 142, "3": 48, "2": 17, "1": 10 }
+      },
+      "inventory_snapshot": {
+        "STR-001": 7,
+        "STR-012": 3,
+        "STR-047": 5,
+        "ONLINE": 234
+      },
+      "tags": ["leather", "premium", "laptop-bag", "business", "gift-guide"],
+      "seo_metadata": {
+        "title": "Artisan Leather Messenger Bag | Contoso",
+        "meta_description": "Handcrafted full-grain Italian leather messenger bag with padded laptop compartment.",
+        "slug": "artisan-leather-messenger-bag"
+      },
+      "_ts": 1717459200
+    }
+  ]
+}

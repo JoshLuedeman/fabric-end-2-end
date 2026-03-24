@@ -1,0 +1,51 @@
+{
+  "$schema": "https://learn.microsoft.com/fabric/database/mirrored-database/overview",
+  "_comment": "Mirroring configuration — Fabric Cosmos DB into OneLake Lakehouse",
+  "_use_case": "Operational NoSQL data (product catalog, customer profiles) from the Fabric Cosmos DB is automatically mirrored into the analytical Lakehouse. This enables SQL-based analytics, joins with transactional data, and ML feature engineering — all without impacting the operational workload.",
+  "properties": {
+    "source": {
+      "type": "CosmosDB",
+      "typeProperties": {
+        "accountEndpoint": "{{ .COSMOS_ACCOUNT_ENDPOINT }}",
+        "database": "contoso_cosmosdb",
+        "authentication": {
+          "type": "ManagedIdentity",
+          "_comment": "Fabric uses the workspace managed identity for Cosmos DB access — no secrets needed"
+        }
+      }
+    },
+    "mirroringDescriptor": {
+      "replicationMode": "Continuous",
+      "tables": [
+        {
+          "sourceContainer": "product_catalog",
+          "enabled": true,
+          "description": "Rich product catalog with attributes, pricing, reviews, and inventory snapshots. Partitioned by /category/l1. ~50K documents.",
+          "destinationTable": "product_catalog",
+          "columnMapping": {
+            "_comment": "Cosmos DB documents are flattened to columnar format during mirroring. Nested objects become JSON columns in Delta.",
+            "flattenDepth": 1,
+            "preserveArraysAsJson": true
+          }
+        },
+        {
+          "sourceContainer": "customer_360",
+          "enabled": true,
+          "description": "Customer 360 profiles: demographics, purchase history, loyalty, churn risk, recommendations. Partitioned by /loyalty_tier. ~2M documents.",
+          "destinationTable": "customer_profiles",
+          "columnMapping": {
+            "flattenDepth": 1,
+            "preserveArraysAsJson": true
+          }
+        }
+      ],
+      "_note_order_events": "Order events are NOT mirrored here — they are synced via the Spark notebook (sync_cosmos_to_lakehouse.py) for finer control over incremental processing and dedup."
+    },
+    "destination": {
+      "type": "Lakehouse",
+      "layer": "bronze",
+      "targetPrefix": "mirror_cosmos_",
+      "description": "Cosmos DB operational data lands in bronze lakehouse with 'mirror_cosmos_' prefix. Product catalog and customer profiles are available for SQL analytics, joins, and ML features."
+    }
+  }
+}

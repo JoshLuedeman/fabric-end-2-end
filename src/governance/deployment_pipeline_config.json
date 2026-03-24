@@ -1,0 +1,224 @@
+{
+  "schema_version": "1.0",
+  "description": "Fabric native deployment pipeline configuration for Contoso Global Retail & Supply Chain. These pipelines handle Fabric-item promotion (lakehouses, warehouses, semantic models, reports, notebooks) across Dev → Test → Prod workspaces.",
+  "pipelines": [
+    {
+      "name": "Retail Data Pipeline",
+      "description": "Promotes ingestion and data engineering artifacts: lakehouses, data pipelines, and Spark notebooks through the medallion architecture.",
+      "stages": [
+        {
+          "name": "Development",
+          "workspace_pattern": "contoso-{area}-dev",
+          "workspace_areas": ["ingestion", "data-engineering"]
+        },
+        {
+          "name": "Test",
+          "workspace_pattern": "contoso-{area}-test",
+          "workspace_areas": ["ingestion", "data-engineering"]
+        },
+        {
+          "name": "Production",
+          "workspace_pattern": "contoso-{area}-prod",
+          "workspace_areas": ["ingestion", "data-engineering"]
+        }
+      ],
+      "items": [
+        { "type": "Lakehouse", "names": ["lh_bronze", "lh_silver", "lh_gold"] },
+        { "type": "DataPipeline", "names": ["*"] },
+        { "type": "Notebook", "names": ["ingest_*", "transform_*", "dim_*", "fact_*"] }
+      ],
+      "rules": {
+        "auto_deploy": {
+          "Development_to_Test": true,
+          "Test_to_Production": false
+        },
+        "approval_gates": {
+          "Test_to_Production": {
+            "required_approvers": ["data-engineering-lead"],
+            "min_approvals": 1
+          }
+        },
+        "pre_deployment_checks": {
+          "Test_to_Production": [
+            "All data pipeline runs succeeded in last 24h",
+            "Data quality checks passed (Great Expectations)",
+            "No schema-breaking changes detected"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Analytics & Reporting",
+      "description": "Promotes semantic models, Power BI reports, and warehouse objects for the analytics workspace.",
+      "stages": [
+        {
+          "name": "Development",
+          "workspace_pattern": "contoso-{area}-dev",
+          "workspace_areas": ["data-warehouse", "analytics"]
+        },
+        {
+          "name": "Test",
+          "workspace_pattern": "contoso-{area}-test",
+          "workspace_areas": ["data-warehouse", "analytics"]
+        },
+        {
+          "name": "Production",
+          "workspace_pattern": "contoso-{area}-prod",
+          "workspace_areas": ["data-warehouse", "analytics"]
+        }
+      ],
+      "items": [
+        { "type": "Warehouse", "names": ["contoso_warehouse"] },
+        { "type": "SemanticModel", "names": ["contoso_retail_model", "contoso_supply_chain_model"] },
+        { "type": "Report", "names": ["*"] },
+        { "type": "SQLDatabase", "names": ["contoso_operational_db"] }
+      ],
+      "rules": {
+        "auto_deploy": {
+          "Development_to_Test": true,
+          "Test_to_Production": false
+        },
+        "approval_gates": {
+          "Test_to_Production": {
+            "required_approvers": ["analytics-lead", "data-warehouse-lead"],
+            "min_approvals": 1
+          }
+        },
+        "semantic_model_rules": {
+          "require_approval": true,
+          "require_data_source_rebind": true,
+          "note": "Semantic models must be re-pointed to production data sources after promotion"
+        },
+        "report_rules": {
+          "auto_deploy": true,
+          "note": "Reports auto-deploy because they inherit the promoted semantic model connection"
+        }
+      }
+    },
+    {
+      "name": "Real-Time Intelligence",
+      "description": "Promotes eventstreams, eventhouse, KQL databases, and Reflex triggers for real-time analytics.",
+      "stages": [
+        {
+          "name": "Development",
+          "workspace_pattern": "contoso-real-time-dev",
+          "workspace_areas": ["real-time"]
+        },
+        {
+          "name": "Test",
+          "workspace_pattern": "contoso-real-time-test",
+          "workspace_areas": ["real-time"]
+        },
+        {
+          "name": "Production",
+          "workspace_pattern": "contoso-real-time-prod",
+          "workspace_areas": ["real-time"]
+        }
+      ],
+      "items": [
+        { "type": "Eventhouse", "names": ["contoso_eventhouse"] },
+        { "type": "KQLDatabase", "names": ["contoso_kqldb"] },
+        { "type": "Eventstream", "names": ["*"] },
+        { "type": "Reflex", "names": ["*"] }
+      ],
+      "rules": {
+        "auto_deploy": {
+          "Development_to_Test": false,
+          "Test_to_Production": false
+        },
+        "approval_gates": {
+          "Development_to_Test": {
+            "required_approvers": ["real-time-lead"],
+            "min_approvals": 1
+          },
+          "Test_to_Production": {
+            "required_approvers": ["real-time-lead", "platform-lead"],
+            "min_approvals": 2
+          }
+        },
+        "pre_deployment_checks": {
+          "Development_to_Test": [
+            "Eventstream throughput test passed (>1000 events/sec)",
+            "KQL queries return expected results"
+          ],
+          "Test_to_Production": [
+            "Load test completed successfully",
+            "Reflex alert thresholds validated",
+            "No data loss during switchover"
+          ]
+        }
+      }
+    },
+    {
+      "name": "AI & Data Science",
+      "description": "Promotes ML notebooks, ML models, and experiment artifacts for the data science workspace.",
+      "stages": [
+        {
+          "name": "Development",
+          "workspace_pattern": "contoso-data-science-dev",
+          "workspace_areas": ["data-science"]
+        },
+        {
+          "name": "Test",
+          "workspace_pattern": "contoso-data-science-test",
+          "workspace_areas": ["data-science"]
+        },
+        {
+          "name": "Production",
+          "workspace_pattern": "contoso-data-science-prod",
+          "workspace_areas": ["data-science"]
+        }
+      ],
+      "items": [
+        { "type": "Notebook", "names": ["demand_forecasting", "churn_prediction", "customer_segmentation", "promotion_effectiveness", "anomaly_detection_ml", "deploy_*", "model_monitoring"] },
+        { "type": "MLModel", "names": ["demand-forecaster", "churn-predictor", "customer-segmenter", "promo-effectiveness", "anomaly-detector"] },
+        { "type": "MLExperiment", "names": ["contoso-demand-forecasting", "contoso-churn-prediction", "contoso-customer-segmentation", "contoso-promotion-effectiveness", "contoso-anomaly-detection"] }
+      ],
+      "rules": {
+        "auto_deploy": {
+          "Development_to_Test": false,
+          "Test_to_Production": false
+        },
+        "approval_gates": {
+          "Development_to_Test": {
+            "required_approvers": ["data-science-lead"],
+            "min_approvals": 1
+          },
+          "Test_to_Production": {
+            "required_approvers": ["data-science-lead", "ml-ops-lead"],
+            "min_approvals": 2
+          }
+        },
+        "notebook_rules": {
+          "require_test_pass": true,
+          "required_tests": [
+            "Model accuracy above baseline threshold",
+            "No data drift detected (PSI < 0.2)",
+            "Inference latency under SLA (< 500ms for online, < 30min for batch)"
+          ]
+        },
+        "ml_model_rules": {
+          "require_approval": true,
+          "require_champion_challenger": true,
+          "note": "New model versions must outperform the current champion on the test dataset before promotion"
+        }
+      }
+    }
+  ],
+  "global_settings": {
+    "notification_channels": {
+      "teams_webhook": "${TEAMS_WEBHOOK_URL}",
+      "email_group": "contoso-fabric-ops@contoso.com"
+    },
+    "deployment_window": {
+      "allowed_days": ["Monday", "Tuesday", "Wednesday", "Thursday"],
+      "blocked_hours_utc": ["00:00-06:00"],
+      "note": "No deployments on Fridays or during nightly batch windows"
+    },
+    "rollback_policy": {
+      "auto_rollback_on_failure": true,
+      "max_rollback_stages": 1,
+      "note": "If a deployment fails health checks, auto-rollback to previous stage"
+    }
+  }
+}

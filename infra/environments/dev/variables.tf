@@ -47,3 +47,9 @@ variable "tags" {
     managed_by  = "terraform"
   }
 }
+
+variable "weather_adls_connection_id" {
+  description = "Fabric connection ID for the external ADLS Gen2 weather data feed. Required for OneLake shortcuts."
+  type        = string
+  default     = ""
+}

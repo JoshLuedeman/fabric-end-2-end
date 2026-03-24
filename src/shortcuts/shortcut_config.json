@@ -1,0 +1,54 @@
+{
+  "$schema": "https://learn.microsoft.com/fabric/onelake/onelake-shortcuts",
+  "_comment": "OneLake shortcut topology for Contoso Global Retail & Supply Chain",
+  "shortcuts": {
+    "adls_gen2": {
+      "weather_data_feed": {
+        "description": "External weather data feed (daily forecasts, historical temperatures) stored as Parquet files in a partner ADLS Gen2 storage account. Used for demand forecasting models.",
+        "source_type": "ADLS Gen2",
+        "storage_account": "stweatherdataeastus",
+        "container": "weather-feed",
+        "subpath": "/daily",
+        "format": "Parquet",
+        "shortcut_path": "Files/external/weather",
+        "target_workspace": "data-engineering",
+        "target_lakehouse": "lh_bronze",
+        "refresh": "Real-time (shortcut, no copy)",
+        "connection_notes": "Requires a Fabric cloud connection to the partner storage account with Storage Blob Data Reader access."
+      }
+    },
+    "onelake_cross_workspace": {
+      "gold_to_warehouse": {
+        "description": "Links the gold Lakehouse curated tables (dimensions and facts) into the data-warehouse workspace so the Synapse SQL endpoint and warehouse can query gold-layer Delta tables without data duplication.",
+        "source_type": "OneLake",
+        "source_workspace": "data-engineering",
+        "source_item": "lh_gold",
+        "source_path": "Tables",
+        "shortcut_path": "Tables/gold",
+        "target_workspace": "data-warehouse",
+        "target_lakehouse": "contoso_warehouse (Lakehouse shortcut mounted in warehouse workspace)",
+        "refresh": "Real-time (shortcut, no copy)"
+      }
+    },
+    "amazon_s3": {
+      "_comment": "Commented out in Terraform — enable when partner data sharing agreement is finalized.",
+      "partner_product_catalog": {
+        "description": "Third-party marketplace product catalog from a retail partner, stored in an S3 bucket. Contains competitive pricing, product attributes, and category mappings.",
+        "source_type": "Amazon S3",
+        "bucket": "contoso-partner-catalog",
+        "region": "us-east-1",
+        "subpath": "/contoso/shared-catalog",
+        "format": "Parquet + CSV",
+        "shortcut_path": "Files/external/partner_catalog",
+        "target_workspace": "data-engineering",
+        "target_lakehouse": "lh_bronze",
+        "status": "Planned — pending data sharing agreement"
+      }
+    }
+  },
+  "topology_notes": {
+    "data_flow": "External ADLS Gen2 (weather) → bronze Lakehouse via shortcut → notebooks transform to silver/gold → gold Lakehouse tables shortcutted into data-warehouse workspace for analytics",
+    "no_data_copy": "All shortcuts are zero-copy virtual links. Data remains in its source location and is read on-demand.",
+    "security": "Access is controlled by the Fabric connection (ADLS Gen2/S3) or OneLake workspace permissions (cross-workspace)."
+  }
+}

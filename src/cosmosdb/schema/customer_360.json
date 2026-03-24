@@ -1,0 +1,303 @@
+{
+  "$schema": "https://learn.microsoft.com/azure/cosmos-db/nosql/schema",
+  "_comment": "Contoso Global Retail — Customer 360 Profile (Cosmos DB NoSQL)",
+  "containerConfig": {
+    "containerName": "customer_360",
+    "partitionKey": {
+      "paths": ["/loyalty_tier"],
+      "kind": "Hash",
+      "version": 2
+    },
+    "indexingPolicy": {
+      "automatic": true,
+      "indexingMode": "consistent",
+      "includedPaths": [
+        { "path": "/customer_id/?" },
+        { "path": "/loyalty_tier/?" },
+        { "path": "/lifetime_value/?" },
+        { "path": "/churn_risk_score/?" },
+        { "path": "/segments/[]" },
+        { "path": "/demographics/zip_code/?" },
+        { "path": "/preferred_store/?" }
+      ],
+      "excludedPaths": [
+        { "path": "/communication_preferences/*" }
+      ],
+      "compositeIndexes": [
+        [
+          { "path": "/loyalty_tier", "order": "ascending" },
+          { "path": "/lifetime_value", "order": "descending" }
+        ],
+        [
+          { "path": "/loyalty_tier", "order": "ascending" },
+          { "path": "/churn_risk_score", "order": "descending" }
+        ]
+      ]
+    },
+    "uniqueKeyPolicy": {
+      "uniqueKeys": [
+        { "paths": ["/customer_id"] }
+      ]
+    },
+    "defaultTtl": -1
+  },
+  "sampleDocuments": [
+    {
+      "customer_id": "CUST-00042781",
+      "demographics": {
+        "first_name": "Maria",
+        "last_name": "Santos",
+        "email": "maria.santos@example.com",
+        "phone": "+1-555-0142",
+        "date_of_birth": "1988-03-15",
+        "gender": "Female",
+        "address": {
+          "street": "1247 Oak Valley Drive",
+          "city": "Austin",
+          "state": "TX",
+          "zip_code": "78704",
+          "country": "US"
+        },
+        "age_band": "35-44"
+      },
+      "loyalty_tier": "Gold",
+      "loyalty_points": 14520,
+      "member_since": "2019-06-22",
+      "preferences": {
+        "preferred_categories": ["Apparel", "Food & Beverage", "Home & Garden"],
+        "price_sensitivity": "medium",
+        "preferred_channels": ["mobile_app", "in_store"],
+        "notification_opt_in": true,
+        "size_profile": {
+          "top": "M",
+          "bottom": "8",
+          "shoe": "7.5"
+        },
+        "dietary_preferences": ["organic", "gluten-free"]
+      },
+      "purchase_history_summary": {
+        "total_orders": 87,
+        "total_items": 214,
+        "first_purchase_date": "2019-07-03",
+        "last_purchase_date": "2025-05-28",
+        "avg_order_value": 68.42,
+        "avg_items_per_order": 2.5,
+        "favorite_store": "STR-047",
+        "online_pct": 0.35,
+        "return_rate": 0.04,
+        "top_categories": [
+          { "category": "Apparel", "spend": 2418.50, "orders": 32 },
+          { "category": "Food & Beverage", "spend": 1856.20, "orders": 38 },
+          { "category": "Home & Garden", "spend": 1678.90, "orders": 17 }
+        ]
+      },
+      "lifetime_value": 5952.60,
+      "segments": [
+        "high-value-regular",
+        "organic-enthusiast",
+        "mobile-first",
+        "weekend-shopper"
+      ],
+      "last_interactions": [
+        {
+          "type": "purchase",
+          "channel": "mobile_app",
+          "timestamp": "2025-05-28T14:32:00Z",
+          "details": { "order_id": "ORD-2025-087412", "amount": 47.98 }
+        },
+        {
+          "type": "email_open",
+          "channel": "email",
+          "timestamp": "2025-05-26T09:15:00Z",
+          "details": { "campaign_id": "CAMP-2025-SUMMER-PREVIEW", "subject": "Summer Collection Early Access" }
+        },
+        {
+          "type": "store_visit",
+          "channel": "in_store",
+          "timestamp": "2025-05-22T11:45:00Z",
+          "details": { "store_id": "STR-047", "dwell_time_minutes": 35 }
+        }
+      ],
+      "recommendations": [
+        { "product_id": "PRD-00891", "score": 0.94, "reason": "frequently_bought_together" },
+        { "product_id": "PRD-01023", "score": 0.91, "reason": "category_affinity" },
+        { "product_id": "PRD-01205", "score": 0.87, "reason": "collaborative_filtering" }
+      ],
+      "churn_risk_score": 0.12,
+      "preferred_store": "STR-047",
+      "communication_preferences": {
+        "email": { "enabled": true, "frequency": "weekly" },
+        "sms": { "enabled": true, "frequency": "promotions_only" },
+        "push": { "enabled": true, "frequency": "daily" },
+        "mail": { "enabled": false }
+      },
+      "_ts": 1717200000
+    },
+    {
+      "customer_id": "CUST-00018456",
+      "demographics": {
+        "first_name": "James",
+        "last_name": "O'Brien",
+        "email": "j.obrien@example.com",
+        "phone": "+1-555-0298",
+        "date_of_birth": "1975-11-02",
+        "gender": "Male",
+        "address": {
+          "street": "892 Maple Court",
+          "city": "Seattle",
+          "state": "WA",
+          "zip_code": "98103",
+          "country": "US"
+        },
+        "age_band": "45-54"
+      },
+      "loyalty_tier": "Platinum",
+      "loyalty_points": 52340,
+      "member_since": "2017-01-15",
+      "preferences": {
+        "preferred_categories": ["Electronics", "Apparel"],
+        "price_sensitivity": "low",
+        "preferred_channels": ["online", "in_store"],
+        "notification_opt_in": true,
+        "size_profile": {
+          "top": "L",
+          "bottom": "34x32",
+          "shoe": "11"
+        }
+      },
+      "purchase_history_summary": {
+        "total_orders": 234,
+        "total_items": 512,
+        "first_purchase_date": "2017-01-28",
+        "last_purchase_date": "2025-06-01",
+        "avg_order_value": 124.85,
+        "avg_items_per_order": 2.2,
+        "favorite_store": "STR-001",
+        "online_pct": 0.62,
+        "return_rate": 0.08,
+        "top_categories": [
+          { "category": "Electronics", "spend": 18420.00, "orders": 89 },
+          { "category": "Apparel", "spend": 8915.50, "orders": 102 },
+          { "category": "Home & Garden", "spend": 2080.40, "orders": 43 }
+        ]
+      },
+      "lifetime_value": 29215.90,
+      "segments": [
+        "top-spender",
+        "tech-enthusiast",
+        "omnichannel-shopper",
+        "early-adopter"
+      ],
+      "last_interactions": [
+        {
+          "type": "purchase",
+          "channel": "online",
+          "timestamp": "2025-06-01T20:10:00Z",
+          "details": { "order_id": "ORD-2025-091003", "amount": 249.99 }
+        },
+        {
+          "type": "product_review",
+          "channel": "online",
+          "timestamp": "2025-05-30T16:45:00Z",
+          "details": { "product_id": "PRD-00587", "rating": 5, "comment": "Best smart home hub I've owned" }
+        }
+      ],
+      "recommendations": [
+        { "product_id": "PRD-00612", "score": 0.96, "reason": "purchase_history" },
+        { "product_id": "PRD-00142", "score": 0.88, "reason": "trending_in_segment" }
+      ],
+      "churn_risk_score": 0.05,
+      "preferred_store": "STR-001",
+      "communication_preferences": {
+        "email": { "enabled": true, "frequency": "daily" },
+        "sms": { "enabled": false },
+        "push": { "enabled": true, "frequency": "daily" },
+        "mail": { "enabled": true, "frequency": "monthly" }
+      },
+      "_ts": 1717286400
+    },
+    {
+      "customer_id": "CUST-00095123",
+      "demographics": {
+        "first_name": "Aisha",
+        "last_name": "Patel",
+        "email": "aisha.p@example.com",
+        "phone": "+1-555-0371",
+        "date_of_birth": "2001-07-19",
+        "gender": "Female",
+        "address": {
+          "street": "4510 University Blvd Apt 12B",
+          "city": "Chicago",
+          "state": "IL",
+          "zip_code": "60637",
+          "country": "US"
+        },
+        "age_band": "18-24"
+      },
+      "loyalty_tier": "Silver",
+      "loyalty_points": 3280,
+      "member_since": "2023-09-01",
+      "preferences": {
+        "preferred_categories": ["Apparel", "Food & Beverage"],
+        "price_sensitivity": "high",
+        "preferred_channels": ["mobile_app"],
+        "notification_opt_in": true,
+        "size_profile": {
+          "top": "S",
+          "bottom": "4",
+          "shoe": "7"
+        },
+        "dietary_preferences": ["vegan"]
+      },
+      "purchase_history_summary": {
+        "total_orders": 18,
+        "total_items": 31,
+        "first_purchase_date": "2023-09-15",
+        "last_purchase_date": "2025-04-12",
+        "avg_order_value": 35.20,
+        "avg_items_per_order": 1.7,
+        "favorite_store": "ONLINE",
+        "online_pct": 0.89,
+        "return_rate": 0.11,
+        "top_categories": [
+          { "category": "Apparel", "spend": 412.80, "orders": 12 },
+          { "category": "Food & Beverage", "spend": 220.80, "orders": 6 }
+        ]
+      },
+      "lifetime_value": 633.60,
+      "segments": [
+        "gen-z",
+        "value-conscious",
+        "mobile-only",
+        "eco-aware"
+      ],
+      "last_interactions": [
+        {
+          "type": "cart_abandonment",
+          "channel": "mobile_app",
+          "timestamp": "2025-05-15T19:22:00Z",
+          "details": { "cart_value": 52.98, "items_count": 2 }
+        },
+        {
+          "type": "purchase",
+          "channel": "mobile_app",
+          "timestamp": "2025-04-12T13:05:00Z",
+          "details": { "order_id": "ORD-2025-072890", "amount": 29.99 }
+        }
+      ],
+      "recommendations": [
+        { "product_id": "PRD-01023", "score": 0.92, "reason": "category_affinity" },
+        { "product_id": "PRD-00142", "score": 0.78, "reason": "trending_in_segment" }
+      ],
+      "churn_risk_score": 0.38,
+      "preferred_store": "ONLINE",
+      "communication_preferences": {
+        "email": { "enabled": true, "frequency": "weekly" },
+        "sms": { "enabled": false },
+        "push": { "enabled": true, "frequency": "promotions_only" },
+        "mail": { "enabled": false }
+      },
+      "_ts": 1717372800
+    }
+  ]
+}

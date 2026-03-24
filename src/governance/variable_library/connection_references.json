@@ -1,0 +1,104 @@
+{
+  "name": "Contoso Connection References",
+  "description": "Connection configurations referenced by notebooks, pipelines, and dataflows. Each connection maps to a Fabric Connection resource or external endpoint.",
+  "version": "1.0",
+  "connections": [
+    {
+      "name": "sql_database_connection",
+      "description": "Connection to the Fabric SQL Database (OLTP operational database)",
+      "type": "fabric_sql_database",
+      "connectivity_type": "ShareableCloud",
+      "target_workspace": "data-warehouse",
+      "parameters": {
+        "server": "{workspace_sql_endpoint}",
+        "database": "contoso_operational_db",
+        "authentication": "WorkspaceIdentity"
+      },
+      "privacy_level": "Organizational",
+      "credential_type": "WorkspaceIdentity",
+      "used_by": ["pipelines/ingest_pos_data", "notebooks/transform_sales", "notebooks/data_quality_checks"]
+    },
+    {
+      "name": "lakehouse_connection",
+      "description": "Connection to the gold-tier lakehouse via OneLake endpoint",
+      "type": "fabric_lakehouse",
+      "connectivity_type": "ShareableCloud",
+      "target_workspace": "data-engineering",
+      "parameters": {
+        "endpoint": "onelake.dfs.fabric.microsoft.com",
+        "lakehouse": "lh_gold",
+        "authentication": "WorkspaceIdentity"
+      },
+      "privacy_level": "Organizational",
+      "credential_type": "WorkspaceIdentity",
+      "used_by": ["semantic-models/contoso_sales", "semantic-models/contoso_operations", "notebooks/gold_layer_transforms"]
+    },
+    {
+      "name": "eventhouse_connection",
+      "description": "Connection to the Eventhouse for real-time KQL queries and streaming ingestion",
+      "type": "fabric_eventhouse",
+      "connectivity_type": "ShareableCloud",
+      "target_workspace": "real-time",
+      "parameters": {
+        "cluster_uri": "{eventhouse_query_endpoint}",
+        "database": "contoso_kqldb",
+        "authentication": "WorkspaceIdentity"
+      },
+      "privacy_level": "Organizational",
+      "credential_type": "WorkspaceIdentity",
+      "used_by": ["eventstreams/iot_sensor_stream", "notebooks/anomaly_detection", "reports/realtime_monitoring"]
+    },
+    {
+      "name": "external_weather_api",
+      "description": "REST API connection to weather data provider for demand forecasting models",
+      "type": "web_api",
+      "connectivity_type": "ShareableCloud",
+      "target_workspace": "data-science",
+      "parameters": {
+        "base_url": "https://api.weatherprovider.com/v2",
+        "authentication": "Key",
+        "rate_limit": "1000 requests/hour"
+      },
+      "privacy_level": "Public",
+      "credential_type": "Key",
+      "environment_overrides": {
+        "dev": {
+          "base_url": "https://sandbox.weatherprovider.com/v2",
+          "rate_limit": "100 requests/hour"
+        },
+        "prod": {
+          "base_url": "https://api.weatherprovider.com/v2",
+          "rate_limit": "1000 requests/hour"
+        }
+      },
+      "used_by": ["notebooks/demand_forecast_model", "pipelines/enrich_weather_data"]
+    },
+    {
+      "name": "erp_system_connection",
+      "description": "Connection to Contoso SAP ERP system for purchase orders, supplier data, and financial records",
+      "type": "odbc",
+      "connectivity_type": "VirtualNetworkGateway",
+      "target_workspace": "ingestion",
+      "parameters": {
+        "server": "erp.contoso.internal",
+        "port": 3306,
+        "database": "contoso_erp",
+        "authentication": "ServicePrincipal",
+        "gateway_name": "contoso-vnet-gateway"
+      },
+      "privacy_level": "Private",
+      "credential_type": "ServicePrincipal",
+      "environment_overrides": {
+        "dev": {
+          "server": "erp-sandbox.contoso.internal",
+          "database": "contoso_erp_sandbox"
+        },
+        "prod": {
+          "server": "erp.contoso.internal",
+          "database": "contoso_erp"
+        }
+      },
+      "used_by": ["pipelines/ingest_erp_financials", "pipelines/ingest_purchase_orders", "pipelines/ingest_supplier_master"]
+    }
+  ]
+}

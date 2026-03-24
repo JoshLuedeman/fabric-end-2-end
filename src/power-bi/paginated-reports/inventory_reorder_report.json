@@ -1,0 +1,203 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/report/1.0.0/schema.json",
+  "name": "Inventory Reorder Report",
+  "description": "Pixel-perfect paginated report listing all products below their reorder point with supplier contact information and suggested order quantities. Designed for procurement team daily review and automated purchase order generation.",
+  "report_type": "paginated",
+  "format": "PBIR-Legacy",
+  "datasetBinding": {
+    "datasetReference": {
+      "byPath": {
+        "path": "../../semantic-models/contoso_operations.bim"
+      }
+    }
+  },
+  "parameters": [
+    {
+      "name": "Region",
+      "type": "string",
+      "prompt": "Region",
+      "allow_multiple": true,
+      "available_values_query": "SELECT DISTINCT Region FROM DimStore WHERE IsActive = 1 ORDER BY Region",
+      "default_value": "All",
+      "required": false
+    },
+    {
+      "name": "Category",
+      "type": "string",
+      "prompt": "Product Category",
+      "allow_multiple": true,
+      "available_values_query": "SELECT DISTINCT CategoryName FROM DimProduct WHERE IsActive = 1 ORDER BY CategoryName",
+      "default_value": "All",
+      "required": false
+    },
+    {
+      "name": "PriorityFilter",
+      "type": "string",
+      "prompt": "Priority Level",
+      "allow_multiple": false,
+      "available_values": ["All", "Critical", "Urgent", "Normal"],
+      "default_value": "All",
+      "required": false
+    }
+  ],
+  "page_layout": {
+    "page_size": "A4",
+    "orientation": "Landscape",
+    "margins": {
+      "top": "0.4in",
+      "bottom": "0.4in",
+      "left": "0.5in",
+      "right": "0.5in"
+    }
+  },
+  "report_sections": [
+    {
+      "name": "Header",
+      "type": "page_header",
+      "height": "1.0in",
+      "items": [
+        {
+          "type": "image",
+          "description": "Contoso logo",
+          "position": { "left": "0in", "top": "0in", "width": "1.8in", "height": "0.7in" }
+        },
+        {
+          "type": "textbox",
+          "value": "='Inventory Reorder Report — ' & Format(Today(), 'MMMM d, yyyy')",
+          "position": { "left": "2in", "top": "0.1in", "width": "5in", "height": "0.4in" },
+          "style": { "font_size": "16pt", "font_weight": "bold", "color": "#1A1A2E" }
+        },
+        {
+          "type": "textbox",
+          "value": "='Filters: Region=' & Join(Parameters!Region.Value, ', ') & ' | Category=' & Join(Parameters!Category.Value, ', ') & ' | Priority=' & Parameters!PriorityFilter.Value",
+          "position": { "left": "2in", "top": "0.5in", "width": "6in", "height": "0.3in" },
+          "style": { "font_size": "9pt", "color": "#4A4A4A" }
+        },
+        {
+          "type": "textbox",
+          "value": "='Total Items Requiring Reorder: ' & CountRows()",
+          "position": { "left": "8.5in", "top": "0.1in", "width": "2in", "height": "0.3in" },
+          "style": { "font_size": "11pt", "font_weight": "bold", "color": "#D13438", "text_align": "right" }
+        }
+      ]
+    },
+    {
+      "name": "SummaryKPIs",
+      "type": "body",
+      "height": "1.0in",
+      "description": "Summary cards showing total items below reorder, critical items, estimated reorder cost, and affected stores",
+      "items": [
+        {
+          "type": "kpi_card",
+          "label": "Below Reorder Point",
+          "expression": "=CountRows()",
+          "format": "#,##0",
+          "position": { "left": "0in", "top": "0in", "width": "2.2in", "height": "0.8in" },
+          "background_color": "#FDE7E9"
+        },
+        {
+          "type": "kpi_card",
+          "label": "Critical (< 3 Days Supply)",
+          "expression": "=CountRows(Filter(Data, Fields!DaysOfSupply.Value < 3))",
+          "format": "#,##0",
+          "position": { "left": "2.4in", "top": "0in", "width": "2.2in", "height": "0.8in" },
+          "background_color": "#FDE7E9"
+        },
+        {
+          "type": "kpi_card",
+          "label": "Est. Reorder Cost",
+          "expression": "=Sum(Fields!SuggestedOrderQty.Value * Fields!UnitCost.Value)",
+          "format": "$#,##0",
+          "position": { "left": "4.8in", "top": "0in", "width": "2.2in", "height": "0.8in" },
+          "background_color": "#F3F2F1"
+        },
+        {
+          "type": "kpi_card",
+          "label": "Affected Stores",
+          "expression": "=CountDistinct(Fields!StoreID.Value)",
+          "format": "#,##0",
+          "position": { "left": "7.2in", "top": "0in", "width": "2.2in", "height": "0.8in" },
+          "background_color": "#F3F2F1"
+        }
+      ]
+    },
+    {
+      "name": "ReorderDetailTable",
+      "type": "body",
+      "height": "5.5in",
+      "description": "Grouped table of items below reorder point, grouped by supplier for efficient PO creation",
+      "items": [
+        {
+          "type": "table",
+          "title": "Reorder Detail — Grouped by Supplier",
+          "position": { "left": "0in", "top": "0in", "width": "10.5in", "height": "5.3in" },
+          "grouping": {
+            "field": "Fields!SupplierName.Value",
+            "header_expression": "=Fields!SupplierName.Value & ' — ' & Fields!SupplierContact.Value & ' | ' & Fields!SupplierEmail.Value & ' | Lead Time: ' & Fields!AvgLeadTimeDays.Value & ' days'",
+            "header_style": { "font_weight": "bold", "background_color": "#E1DFDD", "font_size": "9pt" }
+          },
+          "columns": [
+            { "field": "Fields!Priority.Value", "header": "Priority", "width": "0.7in",
+              "conditional_formatting": {
+                "rules": [
+                  { "value": "Critical", "background_color": "#D13438", "font_color": "#FFFFFF" },
+                  { "value": "Urgent", "background_color": "#FFB900", "font_color": "#1A1A2E" },
+                  { "value": "Normal", "background_color": "#F3F2F1", "font_color": "#1A1A2E" }
+                ]
+              }
+            },
+            { "field": "Fields!ProductSKU.Value", "header": "SKU", "width": "0.9in" },
+            { "field": "Fields!ProductName.Value", "header": "Product", "width": "2.0in" },
+            { "field": "Fields!CategoryName.Value", "header": "Category", "width": "1.0in" },
+            { "field": "Fields!StoreName.Value", "header": "Store", "width": "1.2in" },
+            { "field": "Fields!OnHandQty.Value", "header": "On Hand", "width": "0.7in", "format": "#,##0" },
+            { "field": "Fields!ReorderPoint.Value", "header": "Reorder Pt", "width": "0.7in", "format": "#,##0" },
+            { "field": "Fields!DaysOfSupply.Value", "header": "Days Supply", "width": "0.7in", "format": "#,##0" },
+            { "field": "Fields!SuggestedOrderQty.Value", "header": "Sug. Order", "width": "0.7in", "format": "#,##0" },
+            { "field": "Fields!UnitCost.Value", "header": "Unit Cost", "width": "0.7in", "format": "$#,##0.00" },
+            { "field": "=Fields!SuggestedOrderQty.Value * Fields!UnitCost.Value", "header": "Order Value", "width": "0.9in", "format": "$#,##0" }
+          ],
+          "sorting": [
+            { "field": "Fields!Priority.Value", "direction": "ascending", "custom_order": ["Critical", "Urgent", "Normal"] },
+            { "field": "Fields!DaysOfSupply.Value", "direction": "ascending" }
+          ],
+          "group_subtotals": {
+            "columns": ["SuggestedOrderQty", "OrderValue"],
+            "label": "Supplier Subtotal",
+            "style": { "font_weight": "bold", "font_style": "italic" }
+          },
+          "grand_totals": {
+            "columns": ["SuggestedOrderQty", "OrderValue"],
+            "label": "Grand Total",
+            "style": { "font_weight": "bold", "background_color": "#1A1A2E", "font_color": "#FFFFFF" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Footer",
+      "type": "page_footer",
+      "height": "0.5in",
+      "items": [
+        {
+          "type": "textbox",
+          "value": "='Priority: Critical = <3 days supply | Urgent = 3-7 days supply | Normal = below reorder point'",
+          "position": { "left": "0in", "top": "0in", "width": "6in", "height": "0.3in" },
+          "style": { "font_size": "7pt", "color": "#888888" }
+        },
+        {
+          "type": "textbox",
+          "value": "='Generated: ' & Format(Now(), 'yyyy-MM-dd HH:mm') & ' | Page ' & Globals!PageNumber & ' of ' & Globals!TotalPages",
+          "position": { "left": "7.5in", "top": "0in", "width": "3in", "height": "0.3in" },
+          "style": { "font_size": "7pt", "color": "#888888", "text_align": "right" }
+        }
+      ]
+    }
+  ],
+  "subscriptions": {
+    "schedule": "daily at 05:30 UTC",
+    "recipients": ["procurement-team@contoso.com", "inventory-ops@contoso.com"],
+    "format": "PDF",
+    "subject": "Inventory Reorder Report — {date} — {CountRows} items requiring reorder"
+  }
+}

@@ -1,0 +1,147 @@
+{
+  "name": "Digital Analytics Scorecard",
+  "description": "Executive KPI scorecard for Contoso digital commerce and marketing performance. Tracks website conversion, cart abandonment, engagement metrics, mobile adoption, and email marketing ROI.",
+  "version": "1.0",
+  "workspace": "contoso-analytics",
+  "semantic_model": "contoso_sales",
+  "update_frequency": "daily",
+  "fiscal_year_start": "February",
+  "goals": [
+    {
+      "name": "Website Conversion Rate",
+      "description": "Percentage of website sessions that result in a completed purchase (all devices)",
+      "current_value": 2.9,
+      "target_value": 3.2,
+      "unit": "percent",
+      "format": "0.0%",
+      "status_rules": {
+        "on_track": { "min_value": 3.0 },
+        "at_risk": { "min_value": 2.5 },
+        "behind": { "below_value": 2.5 }
+      },
+      "connected_metric": {
+        "semantic_model": "contoso_sales",
+        "measure": "Measures.WebConversionRate",
+        "filter": "FactSales.SalesChannel = 'Online'"
+      },
+      "trend": {
+        "direction": "up",
+        "sparkline_period": "last_90_days"
+      },
+      "owner": "VP of Digital Commerce",
+      "update_frequency": "daily",
+      "notes": "Desktop conversion at 3.8%, mobile at 2.1%, tablet at 3.0%. Checkout UX redesign in Q3 targeting +0.4pp lift."
+    },
+    {
+      "name": "Cart Abandonment Rate",
+      "description": "Percentage of shopping carts created that are not converted to completed orders",
+      "current_value": 68.5,
+      "target_value": 65.0,
+      "unit": "percent",
+      "format": "0.0%",
+      "status_rules": {
+        "on_track": { "max_value": 65.0 },
+        "at_risk": { "max_value": 72.0 },
+        "behind": { "above_value": 72.0 }
+      },
+      "connected_metric": {
+        "semantic_model": "contoso_sales",
+        "measure": "Measures.CartAbandonmentRate",
+        "filter": null
+      },
+      "trend": {
+        "direction": "down",
+        "sparkline_period": "last_90_days"
+      },
+      "owner": "Director of E-Commerce",
+      "update_frequency": "daily",
+      "notes": "Lower is better. Top abandonment reasons: unexpected shipping costs (35%), account creation required (25%), slow checkout (18%). Industry average is 70%."
+    },
+    {
+      "name": "Average Session Duration",
+      "description": "Mean time spent per website/app session across all digital properties",
+      "current_value": 4.1,
+      "target_value": 4.5,
+      "unit": "minutes",
+      "format": "0.0 min",
+      "status_rules": {
+        "on_track": { "min_value": 4.3 },
+        "at_risk": { "min_value": 3.5 },
+        "behind": { "below_value": 3.5 }
+      },
+      "connected_metric": {
+        "semantic_model": "contoso_sales",
+        "measure": "Measures.AvgSessionDuration",
+        "filter": null
+      },
+      "trend": {
+        "direction": "up",
+        "sparkline_period": "last_90_days"
+      },
+      "owner": "Director of Digital Experience",
+      "update_frequency": "daily",
+      "notes": "Engaged sessions (2+ page views) average 6.8 min. Bounce sessions pull average down. Product detail pages have highest dwell time."
+    },
+    {
+      "name": "Mobile Traffic Share",
+      "description": "Percentage of total website sessions originating from mobile devices (phone + tablet)",
+      "current_value": 57.0,
+      "target_value": 60.0,
+      "unit": "percent",
+      "format": "0%",
+      "status_rules": {
+        "on_track": { "min_value": 58 },
+        "at_risk": { "min_value": 52 },
+        "behind": { "below_value": 52 }
+      },
+      "connected_metric": {
+        "semantic_model": "contoso_sales",
+        "measure": "Measures.MobileTrafficShare",
+        "filter": null
+      },
+      "trend": {
+        "direction": "up",
+        "sparkline_period": "last_12_months"
+      },
+      "owner": "VP of Digital Commerce",
+      "update_frequency": "weekly",
+      "notes": "Phone: 48%, tablet: 9%, desktop: 43%. Mobile app users have 2.3x higher LTV than mobile web. App install campaign running in Q3."
+    },
+    {
+      "name": "Email Campaign ROI",
+      "description": "Return on investment for email marketing campaigns (revenue attributed / campaign cost)",
+      "current_value": 3.6,
+      "target_value": 4.0,
+      "unit": "ratio",
+      "format": "0.0x",
+      "status_rules": {
+        "on_track": { "min_value": 3.8 },
+        "at_risk": { "min_value": 3.0 },
+        "behind": { "below_value": 3.0 }
+      },
+      "connected_metric": {
+        "semantic_model": "contoso_sales",
+        "measure": "Measures.EmailCampaignROI",
+        "filter": "DimDate.IsCurrentQuarter = TRUE"
+      },
+      "trend": {
+        "direction": "up",
+        "sparkline_period": "last_4_quarters"
+      },
+      "owner": "Director of Digital Marketing",
+      "update_frequency": "weekly",
+      "notes": "ROI = attributed revenue / (platform cost + creative cost + list management). Personalized campaigns at 5.2x vs. batch sends at 2.8x. 2.1M active subscribers."
+    }
+  ],
+  "layout": {
+    "columns": 3,
+    "rows": 2,
+    "show_trend_sparklines": true,
+    "show_status_indicators": true,
+    "color_scheme": {
+      "on_track": "#107C10",
+      "at_risk": "#FFB900",
+      "behind": "#D13438"
+    }
+  }
+}

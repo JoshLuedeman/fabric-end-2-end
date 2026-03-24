@@ -1,0 +1,60 @@
+{
+  "$schema": "https://learn.microsoft.com/fabric/data-factory/what-is-copy-job",
+  "_comment": "Copy Job: Incremental CDC-based sync of CRM data to bronze lakehouse",
+  "properties": {
+    "displayName": "cj_incremental_crm_sync",
+    "description": "Incremental CDC-based copy of CRM data (Customers, Interactions, Campaigns, Leads) from the operational SQL database to the bronze lakehouse. Uses change tracking watermarks to capture only new/modified records.",
+    "source": {
+      "type": "SqlDatabase",
+      "workspaceId": "{{ .DATA_WAREHOUSE_WORKSPACE_ID }}",
+      "artifactId": "{{ .SQL_DATABASE_ID }}"
+    },
+    "destination": {
+      "type": "Lakehouse",
+      "workspaceId": "{{ .DATA_ENGINEERING_WORKSPACE_ID }}",
+      "artifactId": "{{ .BRONZE_LAKEHOUSE_ID }}"
+    },
+    "copyBehavior": {
+      "mode": "IncrementalCopy",
+      "incrementalSettings": {
+        "watermarkColumn": "modified_at",
+        "watermarkType": "DateTime"
+      },
+      "schedule": {
+        "frequency": "Hourly",
+        "intervalMinutes": 60,
+        "startTime": "00:00:00",
+        "timeZone": "UTC"
+      }
+    },
+    "tableMappings": [
+      {
+        "source": { "schema": "dbo", "table": "Customers" },
+        "destination": { "path": "Tables/crm_customers", "format": "Delta" },
+        "incrementalColumn": "modified_at"
+      },
+      {
+        "source": { "schema": "dbo", "table": "CustomerInteractions" },
+        "destination": { "path": "Tables/crm_interactions", "format": "Delta" },
+        "incrementalColumn": "modified_at"
+      },
+      {
+        "source": { "schema": "dbo", "table": "Campaigns" },
+        "destination": { "path": "Tables/crm_campaigns", "format": "Delta" },
+        "incrementalColumn": "modified_at"
+      },
+      {
+        "source": { "schema": "dbo", "table": "Leads" },
+        "destination": { "path": "Tables/crm_leads", "format": "Delta" },
+        "incrementalColumn": "modified_at"
+      }
+    ],
+    "monitoring": {
+      "alertOnFailure": true,
+      "retryPolicy": {
+        "maxRetries": 2,
+        "retryIntervalSeconds": 120
+      }
+    }
+  }
+}

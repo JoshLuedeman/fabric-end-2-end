@@ -1,0 +1,330 @@
+{
+  "schema_version": "1.0",
+  "api_name": "Contoso Retail GraphQL API",
+  "description": "Unified GraphQL API for querying Contoso Global Retail & Supply Chain data from the Fabric Warehouse and Lakehouse.",
+
+  "data_source_mapping": {
+    "description": "Maps GraphQL types to underlying Fabric Warehouse tables. The GraphQL API resolver layer translates GraphQL queries into T-SQL executed against the warehouse.",
+    "primary_data_source": {
+      "type": "warehouse",
+      "name": "contoso_warehouse",
+      "schema_files": ["../schema/retail_api.graphql", "../schema/mutations.graphql"]
+    },
+    "type_mappings": [
+      {
+        "graphql_type": "Product",
+        "source_table": "dims.dim_product",
+        "key_column": "product_sk",
+        "business_key_column": "product_id",
+        "column_mapping": {
+          "id": "product_sk",
+          "productId": "product_id",
+          "name": "product_name",
+          "category": "category",
+          "subcategory": "subcategory",
+          "brand": "brand",
+          "unitCost": "unit_cost",
+          "unitPrice": "unit_price",
+          "marginPct": "margin_pct",
+          "weightKg": "weight_kg",
+          "supplierId": "supplier_id",
+          "isActive": "is_active"
+        },
+        "default_filter": "is_current = 1"
+      },
+      {
+        "graphql_type": "Store",
+        "source_table": "dims.dim_store",
+        "key_column": "store_sk",
+        "business_key_column": "store_id",
+        "column_mapping": {
+          "id": "store_sk",
+          "storeId": "store_id",
+          "name": "store_name",
+          "storeType": "store_type",
+          "city": "city",
+          "state": "state",
+          "country": "country",
+          "region": "region",
+          "latitude": "latitude",
+          "longitude": "longitude",
+          "squareFootage": "square_footage",
+          "openingDate": "opening_date"
+        },
+        "default_filter": "is_current = 1"
+      },
+      {
+        "graphql_type": "Customer",
+        "source_table": "dims.dim_customer",
+        "key_column": "customer_sk",
+        "business_key_column": "customer_id",
+        "column_mapping": {
+          "id": "customer_sk",
+          "customerId": "customer_id",
+          "firstName": "first_name",
+          "lastName": "last_name",
+          "email": "email",
+          "phone": "phone",
+          "city": "city",
+          "state": "state",
+          "country": "country",
+          "postalCode": "postal_code",
+          "loyaltyTier": "loyalty_tier",
+          "segment": "customer_segment",
+          "lifetimeValue": "lifetime_value",
+          "isActive": "is_active",
+          "age": "customer_age"
+        },
+        "default_filter": "is_current = 1"
+      },
+      {
+        "graphql_type": "SalesTransaction / SalesSummary",
+        "source_table": "facts.fact_sales",
+        "key_column": "sale_sk",
+        "column_mapping": {
+          "transactionId": "transaction_id",
+          "quantity": "quantity",
+          "unitPrice": "unit_price",
+          "discountPct": "discount_pct",
+          "grossAmount": "gross_amount",
+          "netAmount": "net_amount",
+          "taxAmount": "tax_amount",
+          "totalAmount": "total_amount",
+          "paymentMethod": "payment_method",
+          "channel": "channel"
+        },
+        "joins": [
+          { "type": "INNER", "table": "dims.dim_date", "on": "fact_sales.date_key = dim_date.date_key" },
+          { "type": "INNER", "table": "dims.dim_customer", "on": "fact_sales.customer_sk = dim_customer.customer_sk" },
+          { "type": "INNER", "table": "dims.dim_product", "on": "fact_sales.product_sk = dim_product.product_sk" },
+          { "type": "INNER", "table": "dims.dim_store", "on": "fact_sales.store_sk = dim_store.store_sk" }
+        ]
+      },
+      {
+        "graphql_type": "InventoryItem / LowStockAlert",
+        "source_table": "facts.fact_inventory",
+        "key_column": "inventory_sk",
+        "column_mapping": {
+          "inventoryId": "inventory_id",
+          "movementType": "movement_type",
+          "quantity": "quantity",
+          "unitCost": "unit_cost",
+          "onHandAfter": "on_hand_after",
+          "reorderPoint": "reorder_point",
+          "isBelowReorder": "is_below_reorder"
+        },
+        "joins": [
+          { "type": "INNER", "table": "dims.dim_product", "on": "fact_inventory.product_sk = dim_product.product_sk" },
+          { "type": "INNER", "table": "dims.dim_store", "on": "fact_inventory.store_sk = dim_store.store_sk" }
+        ]
+      }
+    ]
+  },
+
+  "authentication": {
+    "primary": {
+      "type": "entra_id",
+      "description": "Microsoft Entra ID (Azure AD) OAuth 2.0 bearer tokens. All API consumers must authenticate via Entra ID.",
+      "authority": "https://login.microsoftonline.com/{tenant_id}",
+      "audience": "https://analysis.windows.net/powerbi/api",
+      "scopes": ["https://analysis.windows.net/powerbi/api/.default"],
+      "supported_flows": [
+        "authorization_code",
+        "client_credentials",
+        "on_behalf_of"
+      ]
+    },
+    "security_groups": {
+      "read_access": [
+        "contoso-data-readers",
+        "contoso-store-managers",
+        "contoso-regional-directors"
+      ],
+      "write_access": [
+        "contoso-order-managers",
+        "contoso-warehouse-ops",
+        "contoso-crm-operators"
+      ],
+      "admin_access": [
+        "contoso-fabric-admins"
+      ]
+    },
+    "row_level_security": {
+      "enabled": true,
+      "description": "RLS rules defined in the semantic model filter data based on the authenticated user's store/region assignment. GraphQL API inherits these rules when querying through the warehouse."
+    }
+  },
+
+  "rate_limiting": {
+    "enabled": true,
+    "description": "Rate limits protect the Fabric Warehouse from excessive query load. Limits are per-application (client_id).",
+    "tiers": {
+      "default": {
+        "requests_per_minute": 60,
+        "requests_per_hour": 1000,
+        "max_concurrent_queries": 5,
+        "max_query_depth": 10,
+        "max_query_complexity": 500
+      },
+      "premium": {
+        "requests_per_minute": 300,
+        "requests_per_hour": 10000,
+        "max_concurrent_queries": 20,
+        "max_query_depth": 15,
+        "max_query_complexity": 1000
+      }
+    },
+    "headers": {
+      "X-RateLimit-Limit": "Maximum requests allowed in the current window",
+      "X-RateLimit-Remaining": "Requests remaining in the current window",
+      "X-RateLimit-Reset": "UTC epoch timestamp when the window resets"
+    }
+  },
+
+  "cors": {
+    "enabled": true,
+    "description": "Cross-Origin Resource Sharing configuration for web applications consuming the GraphQL API.",
+    "allowed_origins": [
+      "https://contoso-retail.azurewebsites.net",
+      "https://contoso-admin.azurewebsites.net",
+      "https://app.fabric.microsoft.com",
+      "http://localhost:3000"
+    ],
+    "allowed_methods": ["GET", "POST", "OPTIONS"],
+    "allowed_headers": ["Authorization", "Content-Type", "X-Request-ID"],
+    "expose_headers": ["X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset"],
+    "max_age_seconds": 86400,
+    "allow_credentials": true
+  },
+
+  "caching": {
+    "enabled": true,
+    "description": "Response caching to reduce warehouse query load for frequently accessed data.",
+    "policies": [
+      {
+        "query_pattern": "products",
+        "ttl_seconds": 300,
+        "description": "Product catalog changes infrequently — 5 minute cache"
+      },
+      {
+        "query_pattern": "stores",
+        "ttl_seconds": 3600,
+        "description": "Store data is near-static — 1 hour cache"
+      },
+      {
+        "query_pattern": "salesSummary",
+        "ttl_seconds": 60,
+        "description": "Sales aggregations — 1 minute cache for near-real-time"
+      },
+      {
+        "query_pattern": "lowStockAlerts",
+        "ttl_seconds": 30,
+        "description": "Stock alerts are time-sensitive — 30 second cache"
+      },
+      {
+        "query_pattern": "inventoryLevels",
+        "ttl_seconds": 60,
+        "description": "Inventory levels — 1 minute cache"
+      }
+    ]
+  },
+
+  "example_queries": [
+    {
+      "name": "Get top 5 products by revenue this month",
+      "description": "Returns the top-selling products with revenue and quantity for the current month.",
+      "query": "query TopProducts {\n  topProducts(limit: 5, dateRange: { startDate: \"2025-07-01\", endDate: \"2025-07-31\" }) {\n    rank\n    product {\n      productId\n      name\n      category\n      brand\n      unitPrice\n    }\n    totalRevenue\n    totalQuantity\n    transactionCount\n  }\n}",
+      "expected_response": {
+        "data": {
+          "topProducts": [
+            {
+              "rank": 1,
+              "product": {
+                "productId": "PRD-00142",
+                "name": "Contoso Wireless Mouse Pro",
+                "category": "Electronics",
+                "brand": "Contoso",
+                "unitPrice": 49.99
+              },
+              "totalRevenue": 284943.00,
+              "totalQuantity": 5700,
+              "transactionCount": 4820
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Store performance with daily trend",
+      "description": "Gets aggregated metrics and a daily revenue trend for a specific store.",
+      "query": "query StorePerf {\n  storePerformance(storeId: \"STR-0042\", dateRange: { startDate: \"2025-07-01\", endDate: \"2025-07-15\" }) {\n    store {\n      name\n      region\n      city\n    }\n    totalRevenue\n    totalTransactions\n    averageOrderValue\n    uniqueCustomers\n    revenueByChannel {\n      channel\n      revenue\n    }\n    dailyTrend {\n      date\n      revenue\n      transactionCount\n    }\n  }\n}",
+      "expected_response": {
+        "data": {
+          "storePerformance": {
+            "store": {
+              "name": "Contoso Flagship Seattle",
+              "region": "West",
+              "city": "Seattle"
+            },
+            "totalRevenue": 125430.50,
+            "totalTransactions": 1842,
+            "averageOrderValue": 68.10,
+            "uniqueCustomers": 1204,
+            "revenueByChannel": [
+              { "channel": "In-Store", "revenue": 87801.35 },
+              { "channel": "Online", "revenue": 25086.10 },
+              { "channel": "Mobile", "revenue": 12543.05 }
+            ],
+            "dailyTrend": [
+              { "date": "2025-07-01", "revenue": 8362.03, "transactionCount": 123 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "Low stock alerts for a region",
+      "description": "Returns products below their reorder point in the West region, sorted by severity.",
+      "query": "query LowStock {\n  lowStockAlerts(region: \"West\") {\n    severity\n    product {\n      productId\n      name\n      category\n    }\n    store {\n      storeId\n      name\n      city\n    }\n    currentOnHand\n    reorderPoint\n    deficit\n    estimatedDaysToStockout\n  }\n}",
+      "expected_response": {
+        "data": {
+          "lowStockAlerts": [
+            {
+              "severity": "CRITICAL",
+              "product": {
+                "productId": "PRD-00087",
+                "name": "Contoso USB-C Hub",
+                "category": "Electronics"
+              },
+              "store": {
+                "storeId": "STR-0042",
+                "name": "Contoso Flagship Seattle",
+                "city": "Seattle"
+              },
+              "currentOnHand": 3,
+              "reorderPoint": 25,
+              "deficit": 22,
+              "estimatedDaysToStockout": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Create a new order (mutation)",
+      "description": "Creates a new in-store order for a customer with two line items.",
+      "query": "mutation CreateOrder {\n  createOrder(input: {\n    customerId: \"CUST-01234\"\n    storeId: \"STR-0042\"\n    channel: \"In-Store\"\n    paymentMethod: \"Credit Card\"\n    items: [\n      { productId: \"PRD-00142\", quantity: 2, discountPct: 0.10 },\n      { productId: \"PRD-00087\", quantity: 1, discountPct: 0.0 }\n    ]\n  }) {\n    success\n    transactionId\n    totalAmount\n    lineItemCount\n    errors {\n      code\n      message\n    }\n  }\n}",
+      "expected_response": {
+        "data": {
+          "createOrder": {
+            "success": true,
+            "transactionId": "TXN-20250715-00042",
+            "totalAmount": 139.97,
+            "lineItemCount": 2,
+            "errors": null
+          }
+        }
+      }
+    }
+  ]
+}

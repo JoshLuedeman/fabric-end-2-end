@@ -1,0 +1,9 @@
+{
+  "queries": [
+    {
+      "queryName": "CustomerCleansing",
+      "queryDescription": "Deduplicates customer records, standardizes addresses, and normalizes phone numbers from the bronze customer table.",
+      "loadEnabled": true
+    }
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "$schema": "https://learn.microsoft.com/fabric/database/mirrored-database/overview",
+  "_comment": "Mirroring configuration — Snowflake supply chain partner data into OneLake",
+  "_use_case": "Contoso receives supplier analytics from their Snowflake-based supply chain partners. This mirror brings partner-shared data into the Fabric Lakehouse for unified analytics alongside internal ERP, POS, and CRM data.",
+  "properties": {
+    "source": {
+      "type": "Snowflake",
+      "typeProperties": {
+        "connectionString": "{{ .SNOWFLAKE_CONNECTION_STRING }}",
+        "warehouse": "CONTOSO_PARTNER_WH",
+        "database": "SUPPLY_CHAIN_ANALYTICS",
+        "schema": "SHARED",
+        "role": "CONTOSO_READER",
+        "authentication": {
+          "type": "KeyPair",
+          "privateKeyPath": "{{ .SNOWFLAKE_PRIVATE_KEY_PATH }}",
+          "_comment": "Use Fabric Connection to securely store Snowflake credentials"
+        }
+      }
+    },
+    "defaultSchema": "SHARED",
+    "mirroringDescriptor": {
+      "replicationMode": "Continuous",
+      "tables": [
+        {
+          "sourceSchema": "SHARED",
+          "sourceTable": "SUPPLIER_PERFORMANCE_METRICS",
+          "enabled": true,
+          "description": "Quarterly supplier scorecards: on-time delivery %, defect rate, lead time, fill rate. Updated daily by supply chain partners.",
+          "columns": [
+            "supplier_id", "supplier_name", "region", "measurement_period",
+            "on_time_delivery_pct", "defect_rate_pct", "avg_lead_time_days",
+            "fill_rate_pct", "quality_score", "sustainability_rating",
+            "last_audit_date", "updated_at"
+          ]
+        },
+        {
+          "sourceSchema": "SHARED",
+          "sourceTable": "RAW_MATERIAL_PRICES",
+          "enabled": true,
+          "description": "Daily commodity and raw material price index for Contoso's key inputs: cotton, polyester, leather, electronics components, food ingredients.",
+          "columns": [
+            "material_id", "material_name", "category", "unit_of_measure",
+            "price_usd", "price_date", "exchange_rate_to_usd",
+            "source_currency", "market_index", "yoy_change_pct", "updated_at"
+          ]
+        },
+        {
+          "sourceSchema": "SHARED",
+          "sourceTable": "GLOBAL_SHIPPING_RATES",
+          "enabled": true,
+          "description": "Carrier shipping rates by lane (origin–destination), mode (ocean, air, ground), and container type. Updated weekly.",
+          "columns": [
+            "lane_id", "origin_port", "destination_port", "carrier_name",
+            "mode", "container_type", "rate_usd", "transit_days_avg",
+            "transit_days_p95", "fuel_surcharge_pct", "effective_date",
+            "expiry_date", "updated_at"
+          ]
+        },
+        {
+          "sourceSchema": "SHARED",
+          "sourceTable": "WEATHER_IMPACT_DATA",
+          "enabled": true,
+          "description": "Weather event impact on supply chain: port closures, road disruptions, demand shifts. Sourced from weather analytics partner.",
+          "columns": [
+            "event_id", "event_type", "severity", "affected_region",
+            "affected_ports", "start_date", "end_date", "estimated_delay_days",
+            "demand_impact_category", "demand_impact_pct", "confidence_score",
+            "source_provider", "updated_at"
+          ]
+        }
+      ]
+    },
+    "destination": {
+      "type": "Lakehouse",
+      "layer": "bronze",
+      "targetPrefix": "mirror_snowflake_",
+      "description": "Partner supply chain data lands in bronze lakehouse with 'mirror_snowflake_' prefix for downstream medallion processing"
+    }
+  }
+}

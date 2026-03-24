@@ -1,0 +1,172 @@
+{
+  "name": "Retail Operations Scorecard",
+  "description": "Executive KPI scorecard tracking core retail operations metrics for Contoso Global Retail. Covers daily revenue, same-store growth, transaction value, customer satisfaction, and inventory performance across 500 stores.",
+  "version": "1.0",
+  "workspace": "contoso-analytics",
+  "semantic_model": "contoso_sales",
+  "update_frequency": "daily",
+  "fiscal_year_start": "February",
+  "goals": [
+    {
+      "name": "Daily Revenue vs Target",
+      "description": "Total daily revenue across all 500 stores compared to $2.5M daily target (~$912M annual run rate)",
+      "current_value": 2370000,
+      "target_value": 2500000,
+      "unit": "USD",
+      "format": "$#,##0",
+      "status_rules": {
+        "on_track": { "min_pct_of_target": 95 },
+        "at_risk": { "min_pct_of_target": 85 },
+        "behind": { "below_pct_of_target": 85 }
+      },
+      "connected_metric": {
+        "semantic_model": "contoso_sales",
+        "measure": "Measures.TotalRevenue",
+        "filter": "DimDate.Date = TODAY()"
+      },
+      "trend": {
+        "direction": "up",
+        "sparkline_period": "last_30_days"
+      },
+      "owner": "VP of Retail Operations",
+      "update_frequency": "daily",
+      "notes": "Weekday average ~$2.1M; weekends ~$3.2M. Target is blended daily average."
+    },
+    {
+      "name": "Same-Store Sales Growth",
+      "description": "Year-over-year sales growth for stores open 12+ months, excluding new store openings",
+      "current_value": 2.8,
+      "target_value": 3.0,
+      "unit": "percent",
+      "format": "0.0%",
+      "status_rules": {
+        "on_track": { "min_pct_of_target": 90 },
+        "at_risk": { "min_pct_of_target": 70 },
+        "behind": { "below_pct_of_target": 70 }
+      },
+      "connected_metric": {
+        "semantic_model": "contoso_sales",
+        "measure": "Measures.YoYGrowth",
+        "filter": "DimStore.StoreAge >= 12"
+      },
+      "trend": {
+        "direction": "up",
+        "sparkline_period": "last_12_months"
+      },
+      "owner": "SVP of Sales",
+      "update_frequency": "monthly",
+      "notes": "Comp-store metric excludes 23 stores opened in last 12 months."
+    },
+    {
+      "name": "Average Transaction Value",
+      "description": "Average dollar amount per transaction across all channels (in-store, online, mobile)",
+      "current_value": 44.80,
+      "target_value": 47.00,
+      "unit": "USD",
+      "format": "$#,##0.00",
+      "status_rules": {
+        "on_track": { "min_pct_of_target": 95 },
+        "at_risk": { "min_pct_of_target": 90 },
+        "behind": { "below_pct_of_target": 90 }
+      },
+      "connected_metric": {
+        "semantic_model": "contoso_sales",
+        "measure": "Measures.AvgOrderValue",
+        "filter": null
+      },
+      "trend": {
+        "direction": "up",
+        "sparkline_period": "last_90_days"
+      },
+      "owner": "VP of Merchandising",
+      "update_frequency": "daily",
+      "notes": "ATV target reflects cross-sell initiative launched Q2. In-store ATV ($52) outperforms online ($38)."
+    },
+    {
+      "name": "Customer Satisfaction Score",
+      "description": "Average CSAT score from post-purchase surveys (1-5 scale) across all touchpoints",
+      "current_value": 4.1,
+      "target_value": 4.2,
+      "unit": "score",
+      "format": "0.0",
+      "status_rules": {
+        "on_track": { "min_value": 4.15 },
+        "at_risk": { "min_value": 3.9 },
+        "behind": { "below_value": 3.9 }
+      },
+      "connected_metric": {
+        "semantic_model": "contoso_operations",
+        "measure": "Measures.AvgCSAT",
+        "filter": "DimDate.IsCurrentQuarter = TRUE"
+      },
+      "trend": {
+        "direction": "up",
+        "sparkline_period": "last_6_months"
+      },
+      "owner": "VP of Customer Experience",
+      "update_frequency": "weekly",
+      "notes": "Survey response rate is 12%. Score weighted by channel volume."
+    },
+    {
+      "name": "Inventory Turnover Rate",
+      "description": "Annualized inventory turnover (COGS / Average Inventory) across all product categories",
+      "current_value": 11.2,
+      "target_value": 12.0,
+      "unit": "turns_per_year",
+      "format": "0.0x",
+      "status_rules": {
+        "on_track": { "min_pct_of_target": 90 },
+        "at_risk": { "min_pct_of_target": 80 },
+        "behind": { "below_pct_of_target": 80 }
+      },
+      "connected_metric": {
+        "semantic_model": "contoso_operations",
+        "measure": "Measures.InventoryTurnover",
+        "filter": null
+      },
+      "trend": {
+        "direction": "up",
+        "sparkline_period": "last_12_months"
+      },
+      "owner": "VP of Supply Chain",
+      "update_frequency": "monthly",
+      "notes": "Grocery/perishables turn at 24x; electronics at 6x. Blended target is 12x."
+    },
+    {
+      "name": "Out-of-Stock Rate",
+      "description": "Percentage of active SKUs with zero on-hand inventory at any store location",
+      "current_value": 2.4,
+      "target_value": 2.0,
+      "unit": "percent",
+      "format": "0.0%",
+      "status_rules": {
+        "on_track": { "max_value": 2.0 },
+        "at_risk": { "max_value": 3.0 },
+        "behind": { "above_value": 3.0 }
+      },
+      "connected_metric": {
+        "semantic_model": "contoso_operations",
+        "measure": "Measures.OutOfStockRate",
+        "filter": null
+      },
+      "trend": {
+        "direction": "down",
+        "sparkline_period": "last_90_days"
+      },
+      "owner": "Director of Inventory Management",
+      "update_frequency": "daily",
+      "notes": "Lower is better. Rate spikes during promotional events. Excludes seasonal/discontinued items."
+    }
+  ],
+  "layout": {
+    "columns": 3,
+    "rows": 2,
+    "show_trend_sparklines": true,
+    "show_status_indicators": true,
+    "color_scheme": {
+      "on_track": "#107C10",
+      "at_risk": "#FFB900",
+      "behind": "#D13438"
+    }
+  }
+}

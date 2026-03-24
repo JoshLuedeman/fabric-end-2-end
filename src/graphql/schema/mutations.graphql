@@ -1,0 +1,248 @@
+# =============================================================================
+# Contoso Global Retail & Supply Chain — GraphQL Mutations
+# =============================================================================
+#
+# Write operations for application integration. These mutations map to stored
+# procedures and DML operations against the Fabric Warehouse and SQL Database.
+#
+# Target data sources:
+#   - contoso_warehouse       (Fabric Warehouse — facts/dims)
+#   - contoso_operational_db  (Fabric SQL Database — OLTP tables)
+#
+# IMPORTANT: Mutations require appropriate Entra ID roles:
+#   - Order operations:     contoso-order-managers (Contributor on warehouse)
+#   - Inventory operations: contoso-warehouse-ops (Contributor on warehouse)
+#   - Customer operations:  contoso-crm-operators (Contributor on SQL database)
+# =============================================================================
+
+type Mutation {
+  # --- Order Management ---
+  """
+  Create a new sales order. Inserts into staging.stg_fact_sales and the
+  operational database's orders table. Returns the created order with a
+  generated transaction_id.
+  """
+  createOrder(input: CreateOrderInput!): CreateOrderPayload!
+
+  """
+  Update the status of an existing order (e.g., Pending → Shipped → Delivered).
+  Updates the operational database and queues a CDC event for warehouse sync.
+  """
+  updateOrderStatus(transactionId: ID!, status: OrderStatus!, notes: String): UpdateOrderPayload!
+
+  """
+  Cancel an existing order. Only allowed for orders in Pending or Processing status.
+  Triggers inventory restoration for allocated stock.
+  """
+  cancelOrder(transactionId: ID!, reason: String!): CancelOrderPayload!
+
+  # --- Inventory Management ---
+  """
+  Record an inventory adjustment (receipt, transfer, damage, correction).
+  Inserts into staging.stg_fact_inventory with the specified movement type.
+  Recalculates on_hand_after and is_below_reorder automatically.
+  """
+  adjustInventory(input: AdjustInventoryInput!): AdjustInventoryPayload!
+
+  """
+  Bulk update reorder points for multiple products at a store.
+  Used by inventory planners to adjust safety stock levels.
+  """
+  updateReorderPoints(input: [ReorderPointInput!]!): UpdateReorderPointsPayload!
+
+  # --- Customer Interactions ---
+  """
+  Record a customer interaction event (purchase, support call, loyalty redemption,
+  feedback). Feeds the customer 360° view and updates lifetime_value calculation.
+  """
+  recordCustomerInteraction(input: CustomerInteractionInput!): CustomerInteractionPayload!
+
+  """
+  Update customer profile information (address, phone, email, loyalty tier).
+  Triggers an SCD Type-2 update in dims.dim_customer (new row with is_current=1,
+  old row set to is_current=0).
+  """
+  updateCustomerProfile(customerId: ID!, input: UpdateCustomerInput!): UpdateCustomerPayload!
+}
+
+# ---------------------------------------------------------------------------
+# Order Inputs & Payloads
+# ---------------------------------------------------------------------------
+input CreateOrderInput {
+  """Customer business ID (e.g., 'CUST-01234')."""
+  customerId: String!
+  """Store business ID where the order is placed (e.g., 'STR-0042')."""
+  storeId: String!
+  """Sales channel: 'Online', 'In-Store', or 'Mobile'."""
+  channel: String!
+  """Payment method: 'Credit Card', 'Debit Card', 'Cash', 'Digital Wallet'."""
+  paymentMethod: String!
+  """Line items in the order."""
+  items: [OrderLineInput!]!
+}
+
+input OrderLineInput {
+  """Product business ID (e.g., 'PRD-00142')."""
+  productId: String!
+  """Quantity ordered."""
+  quantity: Int!
+  """Discount percentage applied to this line (0.00 – 1.00)."""
+  discountPct: Float = 0.0
+}
+
+type CreateOrderPayload {
+  success: Boolean!
+  """Generated transaction ID (e.g., 'TXN-20250715-00001')."""
+  transactionId: String
+  """Total order amount after discounts and tax."""
+  totalAmount: Float
+  """Number of line items created."""
+  lineItemCount: Int
+  errors: [ApiError!]
+}
+
+type UpdateOrderPayload {
+  success: Boolean!
+  transactionId: String!
+  previousStatus: OrderStatus
+  newStatus: OrderStatus
+  updatedAt: String
+  errors: [ApiError!]
+}
+
+type CancelOrderPayload {
+  success: Boolean!
+  transactionId: String!
+  refundAmount: Float
+  inventoryRestored: Boolean
+  errors: [ApiError!]
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  RETURNED
+}
+
+# ---------------------------------------------------------------------------
+# Inventory Inputs & Payloads
+# ---------------------------------------------------------------------------
+input AdjustInventoryInput {
+  """Product business ID (e.g., 'PRD-00142')."""
+  productId: String!
+  """Store business ID (e.g., 'STR-0042')."""
+  storeId: String!
+  """Type of inventory movement."""
+  movementType: InventoryMovementType!
+  """Quantity to adjust (positive for receipts, negative for removals)."""
+  quantity: Int!
+  """Reason for the adjustment."""
+  reason: String
+  """Reference document (e.g., PO number, transfer ID)."""
+  referenceId: String
+}
+
+enum InventoryMovementType {
+  RECEIPT
+  SALE
+  RETURN
+  TRANSFER_IN
+  TRANSFER_OUT
+  DAMAGE
+  CORRECTION
+}
+
+type AdjustInventoryPayload {
+  success: Boolean!
+  inventoryId: String
+  previousOnHand: Int
+  newOnHand: Int
+  isBelowReorder: Boolean
+  errors: [ApiError!]
+}
+
+input ReorderPointInput {
+  productId: String!
+  storeId: String!
+  newReorderPoint: Int!
+}
+
+type UpdateReorderPointsPayload {
+  success: Boolean!
+  updatedCount: Int!
+  errors: [ApiError!]
+}
+
+# ---------------------------------------------------------------------------
+# Customer Inputs & Payloads
+# ---------------------------------------------------------------------------
+input CustomerInteractionInput {
+  """Customer business ID (e.g., 'CUST-01234')."""
+  customerId: String!
+  """Type of interaction being recorded."""
+  interactionType: InteractionType!
+  """Interaction channel: 'In-Store', 'Online', 'Phone', 'Email', 'Mobile App'."""
+  channel: String!
+  """Optional store where the interaction occurred."""
+  storeId: String
+  """Free-text description of the interaction."""
+  description: String
+  """Monetary value associated with the interaction (purchase amount, refund, etc.)."""
+  monetaryValue: Float
+  """Satisfaction score if applicable (1–5 scale)."""
+  satisfactionScore: Int
+}
+
+enum InteractionType {
+  PURCHASE
+  RETURN
+  SUPPORT_CALL
+  LOYALTY_REDEMPTION
+  FEEDBACK
+  COMPLAINT
+  STORE_VISIT
+}
+
+type CustomerInteractionPayload {
+  success: Boolean!
+  interactionId: String
+  """Updated customer lifetime value after this interaction."""
+  updatedLifetimeValue: Float
+  errors: [ApiError!]
+}
+
+input UpdateCustomerInput {
+  firstName: String
+  lastName: String
+  email: String
+  phone: String
+  city: String
+  state: String
+  country: String
+  postalCode: String
+  loyaltyTier: String
+}
+
+type UpdateCustomerPayload {
+  success: Boolean!
+  customerId: String!
+  """New surrogate key created by the SCD Type-2 update."""
+  newSurrogateKey: Int
+  updatedFields: [String!]
+  errors: [ApiError!]
+}
+
+# ---------------------------------------------------------------------------
+# Shared Types
+# ---------------------------------------------------------------------------
+type ApiError {
+  """Machine-readable error code (e.g., 'INSUFFICIENT_STOCK', 'CUSTOMER_NOT_FOUND')."""
+  code: String!
+  """Human-readable error message."""
+  message: String!
+  """Field that caused the error, if applicable."""
+  field: String
+}

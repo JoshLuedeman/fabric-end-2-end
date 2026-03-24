@@ -1,0 +1,260 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "_comment": [
+    "Digital Twin Model — Supply Chain",
+    "Contoso Global Retail & Supply Chain",
+    "",
+    "Defines the entity types, relationships, properties, and telemetry",
+    "bindings for a digital twin of the Contoso supply chain network.",
+    "Models the flow: Supplier → Warehouse → DistributionCenter → Store.",
+    "",
+    "Backed by the Shipments, InventorySnapshot, and RealtimeSales tables",
+    "in contoso_kqldb."
+  ],
+
+  "modelId": "contoso:SupplyChain:1",
+  "modelVersion": "1.0.0",
+  "displayName": "Contoso Supply Chain Twin",
+  "description": "Digital twin model for the Contoso supply chain — suppliers, warehouses, distribution centers, transport routes, and fleet.",
+
+  "entityTypes": [
+    {
+      "id": "Supplier",
+      "displayName": "Supplier",
+      "description": "External supplier that provides products to Contoso warehouses.",
+      "properties": [
+        { "name": "SupplierId",        "type": "string",   "description": "Supplier identifier (SUP-0001 to SUP-NNNN)" },
+        { "name": "SupplierName",      "type": "string",   "description": "Supplier business name" },
+        { "name": "OperationalStatus", "type": "string",   "description": "Current state", "enum": ["active", "suspended", "onboarding"], "default": "active" },
+        { "name": "Capacity",          "type": "integer",  "description": "Monthly production capacity (units)" },
+        { "name": "Utilization",       "type": "double",   "description": "Current utilization percentage (0–100)", "unit": "%" },
+        { "name": "Throughput",        "type": "double",   "description": "Average units shipped per day", "unit": "units/day" },
+        { "name": "Latitude",          "type": "double",   "description": "Supplier facility latitude" },
+        { "name": "Longitude",         "type": "double",   "description": "Supplier facility longitude" },
+        { "name": "LeadTimeDays",      "type": "double",   "description": "Average lead time from order to shipment", "unit": "days" },
+        { "name": "ReliabilityScore",  "type": "double",   "description": "On-time delivery percentage (0–100)", "unit": "%" },
+        { "name": "ProductCategories", "type": "string[]",  "description": "Categories of products this supplier provides" }
+      ],
+      "telemetryBindings": [
+        {
+          "name": "ShipmentActivity",
+          "source": "contoso_kqldb.Shipments",
+          "filter": "SupplierId == '{SupplierId}'",
+          "valueColumn": "Quantity",
+          "timestampColumn": "ShipmentDate",
+          "refreshInterval": "5m",
+          "aggregation": "sum"
+        }
+      ]
+    },
+
+    {
+      "id": "Warehouse",
+      "displayName": "Warehouse",
+      "description": "Contoso warehouse that receives goods from suppliers and distributes to stores or distribution centers.",
+      "properties": [
+        { "name": "WarehouseId",       "type": "string",   "description": "Warehouse identifier (WH-0001 to WH-NNNN)" },
+        { "name": "WarehouseName",     "type": "string",   "description": "Warehouse display name" },
+        { "name": "OperationalStatus", "type": "string",   "description": "Current state", "enum": ["operational", "reduced_capacity", "maintenance", "offline"], "default": "operational" },
+        { "name": "Capacity",          "type": "integer",  "description": "Maximum storage capacity (pallet positions)" },
+        { "name": "Utilization",       "type": "double",   "description": "Current storage utilization percentage", "unit": "%" },
+        { "name": "Throughput",        "type": "double",   "description": "Average units processed per day", "unit": "units/day" },
+        { "name": "Latitude",          "type": "double",   "description": "Warehouse latitude" },
+        { "name": "Longitude",         "type": "double",   "description": "Warehouse longitude" },
+        { "name": "DockCount",         "type": "integer",  "description": "Number of loading/receiving docks" },
+        { "name": "AutomationLevel",   "type": "string",   "description": "Automation level", "enum": ["manual", "semi_automated", "fully_automated"] },
+        { "name": "LastMaintenanceDate", "type": "datetime", "description": "Last facility maintenance date" }
+      ],
+      "telemetryBindings": [
+        {
+          "name": "ReceivingRate",
+          "source": "contoso_kqldb.Shipments",
+          "filter": "WarehouseId == '{WarehouseId}' and DeliveryDate >= ago(24h)",
+          "valueColumn": "Quantity",
+          "timestampColumn": "DeliveryDate",
+          "refreshInterval": "5m",
+          "aggregation": "sum"
+        }
+      ]
+    },
+
+    {
+      "id": "DistributionCenter",
+      "displayName": "Distribution Center",
+      "description": "Regional distribution center that cross-docks and routes products from warehouses to retail stores.",
+      "properties": [
+        { "name": "CenterId",          "type": "string",   "description": "Distribution center identifier (DC-0001)" },
+        { "name": "CenterName",        "type": "string",   "description": "Distribution center display name" },
+        { "name": "OperationalStatus", "type": "string",   "description": "Current state", "enum": ["operational", "reduced_capacity", "maintenance", "offline"], "default": "operational" },
+        { "name": "Capacity",          "type": "integer",  "description": "Maximum throughput (units/day)" },
+        { "name": "Utilization",       "type": "double",   "description": "Current throughput utilization percentage", "unit": "%" },
+        { "name": "Throughput",        "type": "double",   "description": "Current units processed per day", "unit": "units/day" },
+        { "name": "Latitude",          "type": "double",   "description": "Center latitude" },
+        { "name": "Longitude",         "type": "double",   "description": "Center longitude" },
+        { "name": "ServiceRegion",     "type": "string",   "description": "Geographic region served (e.g., Northeast, Pacific)" },
+        { "name": "CrossDockEfficiency", "type": "double",  "description": "Percentage of goods cross-docked without storage", "unit": "%" }
+      ],
+      "telemetryBindings": []
+    },
+
+    {
+      "id": "TransportRoute",
+      "displayName": "Transport Route",
+      "description": "A logistics route connecting two nodes in the supply chain (supplier → warehouse, warehouse → DC, DC → store).",
+      "properties": [
+        { "name": "RouteId",           "type": "string",   "description": "Route identifier" },
+        { "name": "OriginId",          "type": "string",   "description": "Source node ID (Supplier, Warehouse, or DC)" },
+        { "name": "DestinationId",     "type": "string",   "description": "Destination node ID" },
+        { "name": "OperationalStatus", "type": "string",   "description": "Current state", "enum": ["active", "disrupted", "suspended"], "default": "active" },
+        { "name": "TransportMode",     "type": "string",   "description": "Transport method", "enum": ["truck", "rail", "air", "sea"] },
+        { "name": "DistanceKm",        "type": "double",   "description": "Route distance", "unit": "km" },
+        { "name": "AvgTransitDays",    "type": "double",   "description": "Average transit time", "unit": "days" },
+        { "name": "Throughput",        "type": "double",   "description": "Average shipments per week on this route", "unit": "shipments/week" },
+        { "name": "CostPerUnit",       "type": "double",   "description": "Average transport cost per unit", "unit": "USD" }
+      ],
+      "telemetryBindings": [
+        {
+          "name": "ActiveShipments",
+          "source": "contoso_kqldb.Shipments",
+          "filter": "ShipmentDate <= now() and DeliveryDate > now()",
+          "valueColumn": "Quantity",
+          "timestampColumn": "ShipmentDate",
+          "refreshInterval": "5m",
+          "aggregation": "count"
+        }
+      ]
+    },
+
+    {
+      "id": "Fleet",
+      "displayName": "Fleet",
+      "description": "A fleet of vehicles assigned to a transport route or region.",
+      "properties": [
+        { "name": "FleetId",           "type": "string",   "description": "Fleet identifier" },
+        { "name": "FleetName",         "type": "string",   "description": "Fleet display name" },
+        { "name": "OperationalStatus", "type": "string",   "description": "Current state", "enum": ["active", "partial", "grounded"], "default": "active" },
+        { "name": "VehicleCount",      "type": "integer",  "description": "Total vehicles in fleet" },
+        { "name": "ActiveVehicles",    "type": "integer",  "description": "Vehicles currently in use" },
+        { "name": "Capacity",          "type": "integer",  "description": "Total fleet capacity (units)" },
+        { "name": "Utilization",       "type": "double",   "description": "Fleet utilization percentage", "unit": "%" },
+        { "name": "Throughput",        "type": "double",   "description": "Average deliveries per day", "unit": "deliveries/day" },
+        { "name": "AvgFuelEfficiency", "type": "double",   "description": "Average fuel efficiency", "unit": "km/L" },
+        { "name": "ServiceRegion",     "type": "string",   "description": "Operating region" }
+      ],
+      "telemetryBindings": []
+    }
+  ],
+
+  "relationships": [
+    {
+      "name": "SupplierShipsToWarehouse",
+      "source": "Supplier",
+      "target": "Warehouse",
+      "type": "association",
+      "description": "Supplier ships products to one or more warehouses",
+      "properties": [
+        { "name": "ContractStart", "type": "datetime" },
+        { "name": "ContractEnd",   "type": "datetime" },
+        { "name": "Priority",      "type": "string",  "enum": ["primary", "secondary", "backup"] }
+      ]
+    },
+    {
+      "name": "WarehouseDistributesTo",
+      "source": "Warehouse",
+      "target": "DistributionCenter",
+      "type": "association",
+      "description": "Warehouse distributes products to regional distribution centers"
+    },
+    {
+      "name": "DistributionCenterServesStore",
+      "source": "DistributionCenter",
+      "target": "Store",
+      "type": "association",
+      "description": "Distribution center delivers products to retail stores",
+      "properties": [
+        { "name": "DeliveryFrequency", "type": "string", "enum": ["daily", "twice_weekly", "weekly"] },
+        { "name": "PriorityLevel",     "type": "string", "enum": ["standard", "priority", "express"] }
+      ],
+      "notes": "Store entity is defined in store_twin_model.json — linked via StoreId"
+    },
+    {
+      "name": "RouteConnects",
+      "source": "TransportRoute",
+      "target": "Warehouse",
+      "type": "association",
+      "description": "Transport route connects origin to destination nodes",
+      "notes": "RouteId maps to OriginId → DestinationId; the relationship is generic across all node types"
+    },
+    {
+      "name": "FleetServesRoute",
+      "source": "Fleet",
+      "target": "TransportRoute",
+      "type": "association",
+      "description": "Fleet assigned to operate on specific transport routes"
+    }
+  ],
+
+  "sampleInstance": {
+    "_comment": "Example twin instance for a supply chain segment",
+    "Supplier": {
+      "SupplierId": "SUP-0001",
+      "SupplierName": "Pacific Foods Corp",
+      "OperationalStatus": "active",
+      "Capacity": 500000,
+      "Utilization": 72.5,
+      "Throughput": 12000,
+      "Latitude": 45.5152,
+      "Longitude": -122.6784,
+      "LeadTimeDays": 5.2,
+      "ReliabilityScore": 94.3,
+      "ProductCategories": ["Grocery", "Beverages"]
+    },
+    "Warehouse": {
+      "WarehouseId": "WH-0001",
+      "WarehouseName": "West Coast Distribution Hub",
+      "OperationalStatus": "operational",
+      "Capacity": 50000,
+      "Utilization": 68.0,
+      "Throughput": 25000,
+      "Latitude": 47.2529,
+      "Longitude": -122.4443,
+      "DockCount": 24,
+      "AutomationLevel": "semi_automated"
+    },
+    "DistributionCenter": {
+      "CenterId": "DC-0001",
+      "CenterName": "Pacific Northwest DC",
+      "OperationalStatus": "operational",
+      "Capacity": 80000,
+      "Utilization": 55.0,
+      "Throughput": 44000,
+      "Latitude": 47.6062,
+      "Longitude": -122.3321,
+      "ServiceRegion": "Pacific Northwest",
+      "CrossDockEfficiency": 78.5
+    },
+    "TransportRoute": {
+      "RouteId": "RT-SUP0001-WH0001",
+      "OriginId": "SUP-0001",
+      "DestinationId": "WH-0001",
+      "OperationalStatus": "active",
+      "TransportMode": "truck",
+      "DistanceKm": 280,
+      "AvgTransitDays": 1.5,
+      "Throughput": 12,
+      "CostPerUnit": 0.85
+    },
+    "Fleet": {
+      "FleetId": "FLT-PNW-01",
+      "FleetName": "Pacific NW Ground Fleet",
+      "OperationalStatus": "active",
+      "VehicleCount": 35,
+      "ActiveVehicles": 28,
+      "Capacity": 175000,
+      "Utilization": 80.0,
+      "Throughput": 42,
+      "AvgFuelEfficiency": 4.2,
+      "ServiceRegion": "Pacific Northwest"
+    }
+  }
+}

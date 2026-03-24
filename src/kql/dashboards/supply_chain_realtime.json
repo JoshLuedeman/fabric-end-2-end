@@ -1,0 +1,114 @@
+{
+  "_comment": [
+    "KQL Real-Time Dashboard — Supply Chain Real-Time",
+    "Contoso Global Retail — contoso_kqldb",
+    "",
+    "Import this definition into a Fabric Real-Time Dashboard.",
+    "Queries reference the Shipments, InventorySnapshot, and",
+    "RealtimeSales tables in contoso_kqldb.  The Shipments table",
+    "is populated from the supply chain data generator and synced",
+    "to Eventhouse via Lakehouse shortcut or Data Pipeline."
+  ],
+
+  "name": "Supply Chain Real-Time",
+  "workspace": "contoso-real-time-${environment}",
+  "database": "contoso_kqldb",
+  "auto_refresh_seconds": 60,
+  "time_range_default": "Last 24 hours",
+
+  "tiles": [
+    {
+      "title": "Shipments In Transit",
+      "kql_query": "Shipments\n| where ShipmentDate <= now() and DeliveryDate > now()\n| summarize\n    InTransitCount = count(),\n    TotalUnits = sum(Quantity),\n    TotalValue = round(sum(Quantity * CostPerUnit), 2)\n| project InTransitCount, TotalUnits, TotalValue",
+      "visualization": {
+        "type": "stat",
+        "primary_value": "InTransitCount",
+        "format": "#,##0",
+        "subtitle": "Active shipments in transit",
+        "secondary_values": [
+          { "column": "TotalUnits", "label": "Units", "format": "#,##0" },
+          { "column": "TotalValue", "label": "Value", "format": "$#,##0" }
+        ]
+      },
+      "position": { "row": 0, "col": 0, "width": 4, "height": 4 },
+      "refresh_interval_seconds": 60
+    },
+
+    {
+      "title": "Delivery ETA Distribution",
+      "kql_query": "Shipments\n| where ShipmentDate <= now() and DeliveryDate > now()\n| extend DaysUntilDelivery = round(toreal(DeliveryDate - now()) / 1d, 1)\n| extend ETABucket = case(\n    DaysUntilDelivery <= 1,  \"0-1 days\",\n    DaysUntilDelivery <= 3,  \"1-3 days\",\n    DaysUntilDelivery <= 7,  \"3-7 days\",\n    DaysUntilDelivery <= 14, \"7-14 days\",\n    \"14+ days\"\n  )\n| summarize ShipmentCount = count() by ETABucket\n| order by case(\n    ETABucket == \"0-1 days\",  1,\n    ETABucket == \"1-3 days\",  2,\n    ETABucket == \"3-7 days\",  3,\n    ETABucket == \"7-14 days\", 4,\n    5\n  ) asc",
+      "visualization": {
+        "type": "barchart",
+        "x_column": "ETABucket",
+        "y_columns": ["ShipmentCount"],
+        "orientation": "vertical",
+        "y_axis_label": "Number of Shipments",
+        "color": "#1565C0"
+      },
+      "position": { "row": 0, "col": 4, "width": 4, "height": 4 },
+      "refresh_interval_seconds": 120
+    },
+
+    {
+      "title": "Warehouse Receiving Rate",
+      "kql_query": "let lookback = 24h;\nShipments\n| where DeliveryDate > ago(lookback) and DeliveryDate <= now()\n| summarize\n    ShipmentsReceived = count(),\n    UnitsReceived = sum(Quantity)\n    by WarehouseId, bin(DeliveryDate, 1h)\n| order by DeliveryDate asc, WarehouseId asc",
+      "visualization": {
+        "type": "timechart",
+        "x_column": "DeliveryDate",
+        "y_columns": ["UnitsReceived"],
+        "legend": "WarehouseId",
+        "y_axis_label": "Units Received / hour",
+        "color_palette": "categorical"
+      },
+      "position": { "row": 0, "col": 8, "width": 4, "height": 4 },
+      "refresh_interval_seconds": 120
+    },
+
+    {
+      "title": "Supplier Lead Time Trend",
+      "kql_query": "let lookback = 30d;\nlet top_suppliers =\n    Shipments\n    | where ShipmentDate > ago(lookback)\n    | summarize ShipmentCount = count() by SupplierId\n    | top 5 by ShipmentCount desc\n    | project SupplierId;\nShipments\n| where ShipmentDate > ago(lookback)\n| join kind=inner top_suppliers on SupplierId\n| extend LeadTimeDays = round(toreal(DeliveryDate - ShipmentDate) / 1d, 1)\n| summarize\n    AvgLeadTime = round(avg(LeadTimeDays), 1),\n    P95LeadTime = round(percentile(LeadTimeDays, 95), 1)\n    by SupplierId, bin(ShipmentDate, 1d)\n| order by ShipmentDate asc, SupplierId asc",
+      "visualization": {
+        "type": "linechart",
+        "x_column": "ShipmentDate",
+        "y_columns": ["AvgLeadTime"],
+        "legend": "SupplierId",
+        "y_axis_label": "Lead Time (days)",
+        "color_palette": "categorical"
+      },
+      "position": { "row": 4, "col": 0, "width": 6, "height": 4 },
+      "refresh_interval_seconds": 300
+    },
+
+    {
+      "title": "Cross-Dock Efficiency",
+      "kql_query": "let lookback = 7d;\nShipments\n| where DeliveryDate > ago(lookback) and DeliveryDate <= now()\n| extend LeadTimeDays = round(toreal(DeliveryDate - ShipmentDate) / 1d, 1)\n| extend TransportCategory = case(\n    TransportMode == \"truck\",  \"Ground\",\n    TransportMode == \"rail\",   \"Rail\",\n    TransportMode == \"air\",    \"Air\",\n    TransportMode == \"sea\",    \"Ocean\",\n    \"Other\"\n  )\n| summarize\n    ShipmentCount = count(),\n    AvgLeadTime = round(avg(LeadTimeDays), 1),\n    TotalUnits = sum(Quantity),\n    AvgCostPerUnit = round(avg(CostPerUnit), 2)\n    by TransportCategory\n| extend Efficiency = round(toreal(TotalUnits) / toreal(ShipmentCount), 1)\n| order by Efficiency desc",
+      "visualization": {
+        "type": "barchart",
+        "x_column": "TransportCategory",
+        "y_columns": ["Efficiency"],
+        "orientation": "horizontal",
+        "y_axis_label": "Units per Shipment",
+        "color": "#2E7D32",
+        "data_labels": true
+      },
+      "position": { "row": 4, "col": 6, "width": 6, "height": 4 },
+      "refresh_interval_seconds": 300
+    },
+
+    {
+      "title": "Late Shipment Alerts",
+      "kql_query": "let expected_lead_time_buffer = 2d;\nShipments\n| where ShipmentDate <= now() and DeliveryDate > now()\n| extend\n    ExpectedLeadTime = toreal(DeliveryDate - ShipmentDate) / 1d,\n    ElapsedDays = round(toreal(now() - ShipmentDate) / 1d, 1)\n| extend OriginalETA = ShipmentDate + totimespan(strcat(tostring(toint(ExpectedLeadTime)), \"d\"))\n| extend IsLate = ElapsedDays > (ExpectedLeadTime + toreal(expected_lead_time_buffer / 1d))\n| where IsLate == true or (toreal(DeliveryDate - now()) / 1d) < 1.0\n| extend Urgency = case(\n    IsLate == true, \"overdue\",\n    toreal(DeliveryDate - now()) / 1d < 0.5, \"critical\",\n    \"at_risk\"\n  )\n| project\n    SupplierId,\n    WarehouseId,\n    ProductId,\n    Quantity,\n    ShipmentDate,\n    DeliveryDate,\n    ElapsedDays,\n    Urgency\n| order by case(\n    Urgency == \"overdue\",  1,\n    Urgency == \"critical\", 2,\n    Urgency == \"at_risk\",  3,\n    4\n  ) asc, ElapsedDays desc\n| take 50",
+      "visualization": {
+        "type": "table",
+        "columns": ["SupplierId", "WarehouseId", "ProductId", "Quantity", "ShipmentDate", "DeliveryDate", "ElapsedDays", "Urgency"],
+        "conditional_formatting": [
+          { "column": "Urgency", "value": "overdue", "background_color": "#FFCDD2" },
+          { "column": "Urgency", "value": "critical", "background_color": "#FFF9C4" },
+          { "column": "Urgency", "value": "at_risk", "background_color": "#BBDEFB" }
+        ]
+      },
+      "position": { "row": 8, "col": 0, "width": 12, "height": 4 },
+      "refresh_interval_seconds": 120
+    }
+  ]
+}

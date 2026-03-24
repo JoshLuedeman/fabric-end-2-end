@@ -1,0 +1,188 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/report/1.0.0/schema.json",
+  "name": "Monthly Financial Statement",
+  "description": "Pixel-perfect paginated report for P&L (profit and loss) and balance sheet presentation. Formatted for executive review and board distribution. Includes month-over-month and year-over-year comparisons with variance analysis.",
+  "report_type": "paginated",
+  "format": "PBIR-Legacy",
+  "datasetBinding": {
+    "datasetReference": {
+      "byPath": {
+        "path": "../../semantic-models/contoso_sales.bim"
+      }
+    }
+  },
+  "parameters": [
+    {
+      "name": "FiscalMonth",
+      "type": "integer",
+      "prompt": "Fiscal Month (1-12)",
+      "allow_multiple": false,
+      "available_values": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      "default_value": "=Month(Today())-1",
+      "required": true
+    },
+    {
+      "name": "FiscalYear",
+      "type": "integer",
+      "prompt": "Fiscal Year",
+      "allow_multiple": false,
+      "default_value": "=Year(Today())",
+      "required": true
+    },
+    {
+      "name": "Region",
+      "type": "string",
+      "prompt": "Region (All or specific)",
+      "allow_multiple": false,
+      "available_values_query": "SELECT 'All' AS Region UNION SELECT DISTINCT Region FROM DimStore ORDER BY Region",
+      "default_value": "All",
+      "required": false
+    }
+  ],
+  "page_layout": {
+    "page_size": "Letter",
+    "orientation": "Landscape",
+    "margins": {
+      "top": "0.5in",
+      "bottom": "0.5in",
+      "left": "0.75in",
+      "right": "0.75in"
+    }
+  },
+  "report_sections": [
+    {
+      "name": "Header",
+      "type": "page_header",
+      "height": "1.0in",
+      "items": [
+        {
+          "type": "image",
+          "description": "Contoso logo",
+          "position": { "left": "0in", "top": "0in", "width": "2in", "height": "0.7in" }
+        },
+        {
+          "type": "textbox",
+          "value": "='Monthly Financial Statement — FY' & Parameters!FiscalYear.Value & ' M' & Parameters!FiscalMonth.Value",
+          "position": { "left": "2.5in", "top": "0.1in", "width": "5in", "height": "0.4in" },
+          "style": { "font_size": "16pt", "font_weight": "bold", "color": "#1A1A2E" }
+        },
+        {
+          "type": "textbox",
+          "value": "='Contoso Global Retail, Inc. | Region: ' & Parameters!Region.Value & ' | Prepared: ' & Format(Now(), 'MMMM d, yyyy')",
+          "position": { "left": "2.5in", "top": "0.5in", "width": "5in", "height": "0.3in" },
+          "style": { "font_size": "9pt", "color": "#4A4A4A" }
+        }
+      ]
+    },
+    {
+      "name": "ProfitAndLoss",
+      "type": "body",
+      "height": "5.0in",
+      "description": "Full P&L statement with current month, YTD, prior year comparison, and variance columns",
+      "items": [
+        {
+          "type": "textbox",
+          "value": "Consolidated Profit & Loss Statement",
+          "position": { "left": "0in", "top": "0in", "width": "9.5in", "height": "0.3in" },
+          "style": { "font_size": "13pt", "font_weight": "bold", "border_bottom": "2px solid #1A1A2E" }
+        },
+        {
+          "type": "matrix",
+          "title": "P&L",
+          "position": { "left": "0in", "top": "0.4in", "width": "9.5in", "height": "4.4in" },
+          "rows": [
+            { "group": "Revenue", "items": ["Gross Sales", "Returns & Allowances", "Net Revenue"] },
+            { "group": "Cost of Goods Sold", "items": ["Product Costs", "Freight & Logistics", "Inventory Adjustments", "Total COGS"] },
+            { "group": "Gross Profit", "items": ["Gross Profit", "Gross Margin %"] },
+            { "group": "Operating Expenses", "items": ["Store Operations", "Marketing & Advertising", "Technology & Data", "General & Administrative", "Depreciation & Amortization", "Total OpEx"] },
+            { "group": "Operating Income", "items": ["EBITDA", "Operating Income", "Operating Margin %"] }
+          ],
+          "columns": [
+            { "header": "Current Month", "format": "$#,##0", "width": "1.3in" },
+            { "header": "Budget", "format": "$#,##0", "width": "1.1in" },
+            { "header": "Variance $", "format": "$#,##0;($#,##0)", "width": "1.0in" },
+            { "header": "Variance %", "format": "0.0%", "width": "0.8in" },
+            { "header": "YTD Actual", "format": "$#,##0", "width": "1.3in" },
+            { "header": "YTD Budget", "format": "$#,##0", "width": "1.3in" },
+            { "header": "Prior Year", "format": "$#,##0", "width": "1.3in" },
+            { "header": "YoY Change %", "format": "0.0%", "width": "0.9in" }
+          ],
+          "conditional_formatting": {
+            "variance_columns": {
+              "positive": { "font_color": "#107C10" },
+              "negative": { "font_color": "#D13438" }
+            },
+            "subtotal_rows": {
+              "font_weight": "bold",
+              "background_color": "#F3F2F1"
+            }
+          },
+          "sample_values": {
+            "net_revenue_monthly": 41700000,
+            "cogs_monthly": 25020000,
+            "gross_profit_monthly": 16680000,
+            "gross_margin_pct": 40.0,
+            "opex_monthly": 11260000,
+            "operating_income_monthly": 5420000,
+            "operating_margin_pct": 13.0
+          }
+        }
+      ]
+    },
+    {
+      "name": "RegionalBreakdown",
+      "type": "body",
+      "height": "3.0in",
+      "description": "Revenue and operating income breakdown by region",
+      "items": [
+        {
+          "type": "textbox",
+          "value": "Regional Performance Summary",
+          "position": { "left": "0in", "top": "0in", "width": "9.5in", "height": "0.3in" },
+          "style": { "font_size": "13pt", "font_weight": "bold", "border_bottom": "2px solid #1A1A2E" }
+        },
+        {
+          "type": "table",
+          "position": { "left": "0in", "top": "0.4in", "width": "9.5in", "height": "2.4in" },
+          "columns": [
+            { "field": "Fields!Region.Value", "header": "Region", "width": "1.5in" },
+            { "field": "Fields!StoreCount.Value", "header": "Stores", "width": "0.7in", "format": "#,##0" },
+            { "field": "Sum(Fields!Revenue.Value)", "header": "Revenue", "width": "1.2in", "format": "$#,##0" },
+            { "field": "Fields!RevenuePctOfTotal.Value", "header": "% of Total", "width": "0.8in", "format": "0.0%" },
+            { "field": "Sum(Fields!OperatingIncome.Value)", "header": "Op. Income", "width": "1.2in", "format": "$#,##0" },
+            { "field": "Fields!OperatingMargin.Value", "header": "Op. Margin", "width": "0.8in", "format": "0.0%" },
+            { "field": "Fields!YoYRevGrowth.Value", "header": "YoY Growth", "width": "0.8in", "format": "0.0%" },
+            { "field": "Fields!ComparableStoreSalesGrowth.Value", "header": "Comp Sales", "width": "0.8in", "format": "0.0%" }
+          ],
+          "sorting": { "field": "Sum(Fields!Revenue.Value)", "direction": "descending" },
+          "include_totals_row": true
+        }
+      ]
+    },
+    {
+      "name": "Footer",
+      "type": "page_footer",
+      "height": "0.5in",
+      "items": [
+        {
+          "type": "textbox",
+          "value": "='Confidential — For Internal Use Only | Generated: ' & Format(Now(), 'MMMM d, yyyy h:mm tt')",
+          "position": { "left": "0in", "top": "0in", "width": "6in", "height": "0.3in" },
+          "style": { "font_size": "8pt", "color": "#888888" }
+        },
+        {
+          "type": "textbox",
+          "value": "='Page ' & Globals!PageNumber & ' of ' & Globals!TotalPages",
+          "position": { "left": "8in", "top": "0in", "width": "1.5in", "height": "0.3in" },
+          "style": { "font_size": "8pt", "color": "#888888", "text_align": "right" }
+        }
+      ]
+    }
+  ],
+  "subscriptions": {
+    "schedule": "monthly, 3rd business day after month-end close",
+    "recipients": ["cfo@contoso.com", "vp-finance@contoso.com", "board-distribution@contoso.com"],
+    "format": "PDF",
+    "subject": "Contoso Monthly Financial Statement — FY{FiscalYear} M{FiscalMonth}"
+  }
+}

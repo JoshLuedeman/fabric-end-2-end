@@ -1,0 +1,211 @@
+{
+  "schema_version": "1.0",
+  "app_type": "power_bi_app",
+
+  "metadata": {
+    "name": "Contoso Executive Suite",
+    "description": "Strategic intelligence for Contoso's C-suite leadership. Curated views of financial performance, business KPIs, AI-driven predictions, and cross-functional analytics for informed decision-making.",
+    "contact_email": "executive-analytics@contoso.com",
+    "support_url": "https://contoso.sharepoint.com/sites/executive-office/analytics-support",
+    "publisher": "Contoso Global Retail — Enterprise Analytics",
+    "version": "1.2.0"
+  },
+
+  "branding": {
+    "logo_path": "assets/contoso_executive_logo.png",
+    "theme_colors": {
+      "primary": "#0078D4",
+      "secondary": "#243A5E",
+      "background": "#FFFFFF",
+      "text": "#323130",
+      "accent": "#FFB900"
+    },
+    "landing_page": {
+      "type": "specific_content",
+      "content_reference": "sections[0].items[0]",
+      "description": "Executive KPI Scorecard is the default landing page for C-suite users."
+    }
+  },
+
+  "audience": {
+    "description": "C-suite executives (CEO, CFO, COO, CTO) and their direct reports. Limited distribution with highest security classification.",
+    "security_groups": [
+      {
+        "entra_group_name": "contoso-c-suite",
+        "entra_group_id": "{c-suite-group-id}",
+        "permissions": "Viewer",
+        "members_description": "CEO, CFO, COO, CTO"
+      },
+      {
+        "entra_group_name": "contoso-svp-leadership",
+        "entra_group_id": "{svp-leadership-group-id}",
+        "permissions": "Viewer",
+        "members_description": "SVPs who report directly to C-suite"
+      },
+      {
+        "entra_group_name": "contoso-executive-analytics-team",
+        "entra_group_id": "{exec-analytics-group-id}",
+        "permissions": "Member",
+        "members_description": "Analytics team members who maintain this app"
+      }
+    ],
+    "auto_install": {
+      "enabled": true,
+      "target_groups": ["contoso-c-suite", "contoso-svp-leadership"]
+    }
+  },
+
+  "update_policy": {
+    "type": "automatic",
+    "description": "Executives always see the latest data. Updates are published by the executive analytics team after validation.",
+    "allow_user_personalization": false,
+    "notify_on_update": false
+  },
+
+  "sections": [
+    {
+      "name": "Business Overview",
+      "icon": "Globe",
+      "description": "Company-wide KPIs and business health at a glance.",
+      "items": [
+        {
+          "type": "scorecard",
+          "source_scorecard": "retail_operations_scorecard",
+          "source_workspace": "contoso-analytics-{env}",
+          "display_name": "Executive KPI Scorecard",
+          "description": "Real-time scorecard with goals for revenue, customer acquisition, operational efficiency, and NPS. Updated daily at 06:00 UTC.",
+          "source_path": "src/power-bi/scorecards/retail_operations_scorecard.json"
+        },
+        {
+          "type": "report",
+          "source_report": "executive_dashboard",
+          "source_workspace": "contoso-analytics-{env}",
+          "display_name": "Business Performance Dashboard",
+          "description": "Interactive dashboard with revenue trends, regional performance, product mix, and year-over-year comparisons.",
+          "source_path": "src/power-bi/reports/executive_dashboard.pbip",
+          "semantic_model": "contoso_sales"
+        }
+      ]
+    },
+    {
+      "name": "Financial Performance",
+      "icon": "Money",
+      "description": "Financial statements, revenue analysis, and cost management.",
+      "items": [
+        {
+          "type": "paginated_report",
+          "source_report": "monthly_financial_statement",
+          "source_workspace": "contoso-analytics-{env}",
+          "display_name": "Monthly Financial Statement",
+          "description": "Pixel-perfect paginated report for monthly financial review. Designed for print and PDF export with formal formatting.",
+          "source_path": "src/power-bi/paginated-reports/monthly_financial_statement.json",
+          "export_formats": ["PDF", "Excel", "Word"],
+          "parameters": {
+            "fiscal_year": "FY2026",
+            "fiscal_quarter": "FQ1"
+          }
+        },
+        {
+          "type": "report",
+          "source_report": "sales_analytics",
+          "source_workspace": "contoso-analytics-{env}",
+          "display_name": "Revenue Deep-Dive",
+          "description": "Detailed revenue analysis by channel, geography, product category, and customer segment.",
+          "source_path": "src/power-bi/reports/sales_analytics.pbip",
+          "semantic_model": "contoso_sales"
+        }
+      ]
+    },
+    {
+      "name": "Strategic Analytics",
+      "icon": "Trending",
+      "description": "Cross-functional analytics for strategic planning.",
+      "items": [
+        {
+          "type": "report",
+          "source_report": "realtime_monitoring",
+          "source_workspace": "contoso-analytics-{env}",
+          "display_name": "Customer Intelligence",
+          "description": "Customer segmentation, churn risk analysis, lifetime value distribution, and acquisition funnel metrics.",
+          "source_path": "src/power-bi/reports/realtime_monitoring.pbip",
+          "semantic_model": "contoso_sales"
+        },
+        {
+          "type": "report",
+          "source_report": "inventory_operations",
+          "source_workspace": "contoso-analytics-{env}",
+          "display_name": "Supply Chain Analytics",
+          "description": "End-to-end supply chain visibility: supplier performance, logistics efficiency, inventory optimization, and demand forecasting.",
+          "source_path": "src/power-bi/reports/inventory_operations.pbip",
+          "semantic_model": "contoso_operations"
+        },
+        {
+          "type": "scorecard",
+          "source_scorecard": "supply_chain_scorecard",
+          "source_workspace": "contoso-analytics-{env}",
+          "display_name": "Supply Chain Health",
+          "description": "Goal-based scorecard tracking on-time delivery, fill rates, and logistics costs against quarterly targets.",
+          "source_path": "src/power-bi/scorecards/supply_chain_scorecard.json"
+        }
+      ]
+    },
+    {
+      "name": "AI Insights",
+      "icon": "Robot",
+      "description": "Machine learning predictions and AI-driven recommendations.",
+      "items": [
+        {
+          "type": "report",
+          "source_report": "realtime_monitoring",
+          "source_workspace": "contoso-analytics-{env}",
+          "display_name": "ML Model Predictions",
+          "description": "Dashboard displaying active ML model predictions: demand forecasting, churn probability, inventory optimization recommendations, and anomaly detection results.",
+          "source_path": "src/power-bi/reports/realtime_monitoring.pbip",
+          "semantic_model": "contoso_sales",
+          "report_page_filter": "ReportSection_AIInsights"
+        },
+        {
+          "type": "scorecard",
+          "source_scorecard": "digital_analytics_scorecard",
+          "source_workspace": "contoso-analytics-{env}",
+          "display_name": "Digital & AI Scorecard",
+          "description": "Tracks AI model accuracy, prediction adoption rates, and automated decision outcomes.",
+          "source_path": "src/power-bi/scorecards/digital_analytics_scorecard.json"
+        }
+      ]
+    }
+  ],
+
+  "navigation": {
+    "type": "custom",
+    "show_section_headers": true,
+    "show_item_descriptions": true,
+    "default_section": "Business Overview",
+    "footer_links": [
+      {
+        "label": "Analytics Team",
+        "url": "mailto:executive-analytics@contoso.com"
+      },
+      {
+        "label": "Data Glossary",
+        "url": "https://contoso.sharepoint.com/sites/data-governance/glossary"
+      }
+    ]
+  },
+
+  "row_level_security": {
+    "enabled": false,
+    "description": "C-suite executives have full unrestricted access to all data across all regions, stores, and customers."
+  },
+
+  "sensitivity_label": "Highly Confidential",
+  "data_classification": "Highly Confidential — Executive Only",
+  "information_protection": {
+    "encryption": true,
+    "watermark": true,
+    "watermark_text": "CONTOSO CONFIDENTIAL",
+    "prevent_copy_paste": false,
+    "prevent_print": false,
+    "prevent_export": false
+  }
+}

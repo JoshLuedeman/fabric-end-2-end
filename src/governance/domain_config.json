@@ -1,0 +1,158 @@
+{
+  "name": "Contoso Global Retail — Fabric Domain Configuration",
+  "description": "Defines the business domain hierarchy, workspace assignments, and endorsement policies for the Contoso Fabric tenant. Domains provide logical grouping of workspaces by business function to enable decentralized data governance.",
+  "version": "1.0",
+  "tenant": "contoso.onmicrosoft.com",
+  "domains": [
+    {
+      "id": "retail-operations",
+      "name": "Retail Operations",
+      "description": "Core retail data platform covering ingestion, transformation, and warehousing for point-of-sale, inventory, and store operations data across 500 stores.",
+      "parent_domain": null,
+      "admins_group": "sg-fabric-retail-ops-admins",
+      "contributors_group": "sg-fabric-retail-ops-contributors",
+      "viewers_group": "sg-fabric-retail-ops-viewers",
+      "workspace_assignments": [
+        {
+          "workspace_pattern": "contoso-ingestion-{env}",
+          "role": "Data ingestion pipelines (ELT from POS, ERP, CRM)",
+          "data_classification": "internal"
+        },
+        {
+          "workspace_pattern": "contoso-data-engineering-{env}",
+          "role": "Medallion lakehouse (bronze/silver/gold) transformations",
+          "data_classification": "internal"
+        },
+        {
+          "workspace_pattern": "contoso-data-warehouse-{env}",
+          "role": "Central warehouse and OLTP operational database",
+          "data_classification": "confidential"
+        }
+      ],
+      "endorsement_policy": {
+        "allow_promotion": true,
+        "allow_certification": true,
+        "certification_approvers": ["sg-fabric-retail-ops-admins"],
+        "require_description": true,
+        "require_sensitivity_label": true
+      },
+      "data_products": [
+        "Sales fact tables (gold lakehouse)",
+        "Inventory snapshots (warehouse)",
+        "Store master data (warehouse)"
+      ]
+    },
+    {
+      "id": "customer-intelligence",
+      "name": "Customer Intelligence",
+      "description": "Advanced analytics, machine learning, and business intelligence for customer segmentation, predictive modeling, and executive reporting.",
+      "parent_domain": null,
+      "admins_group": "sg-fabric-customer-intel-admins",
+      "contributors_group": "sg-fabric-customer-intel-contributors",
+      "viewers_group": "sg-fabric-customer-intel-viewers",
+      "workspace_assignments": [
+        {
+          "workspace_pattern": "contoso-data-science-{env}",
+          "role": "ML models, experiments, and predictive analytics",
+          "data_classification": "confidential"
+        },
+        {
+          "workspace_pattern": "contoso-analytics-{env}",
+          "role": "Power BI reports, semantic models, and dashboards",
+          "data_classification": "internal"
+        }
+      ],
+      "endorsement_policy": {
+        "allow_promotion": true,
+        "allow_certification": true,
+        "certification_approvers": ["sg-fabric-customer-intel-admins", "sg-fabric-data-governance"],
+        "require_description": true,
+        "require_sensitivity_label": true
+      },
+      "data_products": [
+        "Customer 360 semantic model",
+        "Sales analytics reports",
+        "Churn prediction model",
+        "Executive dashboard"
+      ]
+    },
+    {
+      "id": "supply-chain-logistics",
+      "name": "Supply Chain & Logistics",
+      "description": "Real-time streaming analytics for IoT sensor data, fleet tracking, warehouse monitoring, and supply chain event processing.",
+      "parent_domain": null,
+      "admins_group": "sg-fabric-supply-chain-admins",
+      "contributors_group": "sg-fabric-supply-chain-contributors",
+      "viewers_group": "sg-fabric-supply-chain-viewers",
+      "workspace_assignments": [
+        {
+          "workspace_pattern": "contoso-real-time-{env}",
+          "role": "Eventhouse, KQL databases, eventstreams for IoT and logistics data",
+          "data_classification": "internal"
+        }
+      ],
+      "endorsement_policy": {
+        "allow_promotion": true,
+        "allow_certification": true,
+        "certification_approvers": ["sg-fabric-supply-chain-admins"],
+        "require_description": true,
+        "require_sensitivity_label": false
+      },
+      "data_products": [
+        "Real-time sensor telemetry (Eventhouse)",
+        "Fleet tracking events (KQL DB)",
+        "Anomaly detection alerts"
+      ]
+    },
+    {
+      "id": "corporate-governance",
+      "name": "Corporate Governance",
+      "description": "Data governance, compliance monitoring, AI agent orchestration, and platform administration. Houses governance policies, audit logs, and AI-powered data agents.",
+      "parent_domain": null,
+      "admins_group": "sg-fabric-governance-admins",
+      "contributors_group": "sg-fabric-governance-contributors",
+      "viewers_group": "sg-fabric-governance-viewers",
+      "workspace_assignments": [
+        {
+          "workspace_pattern": "contoso-governance-{env}",
+          "role": "Data governance policies, lineage tracking, and compliance monitoring",
+          "data_classification": "highly_confidential"
+        },
+        {
+          "workspace_pattern": "contoso-ai-agents-{env}",
+          "role": "AI agents for data Q&A, automated insights, and copilot experiences",
+          "data_classification": "confidential"
+        }
+      ],
+      "endorsement_policy": {
+        "allow_promotion": true,
+        "allow_certification": true,
+        "certification_approvers": ["sg-fabric-governance-admins"],
+        "require_description": true,
+        "require_sensitivity_label": true
+      },
+      "data_products": [
+        "Data quality scorecard",
+        "Platform usage analytics",
+        "Contoso Data Agent (AI Q&A)"
+      ]
+    }
+  ],
+  "global_policies": {
+    "default_endorsement_level": "none",
+    "promotion_requires_approval": false,
+    "certification_requires_approval": true,
+    "sensitivity_labels": [
+      { "name": "Public", "description": "Non-sensitive, externally shareable data" },
+      { "name": "Internal", "description": "Internal business data, not for external sharing" },
+      { "name": "Confidential", "description": "Sensitive business data with restricted access" },
+      { "name": "Highly Confidential", "description": "PII, financial, or regulated data with strict controls" }
+    ],
+    "data_classification_mapping": {
+      "public": "Public",
+      "internal": "Internal",
+      "confidential": "Confidential",
+      "highly_confidential": "Highly Confidential"
+    }
+  }
+}

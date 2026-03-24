@@ -1,0 +1,108 @@
+{
+  "_comment": [
+    "KQL Real-Time Dashboard — Store Operations Live",
+    "Contoso Global Retail — contoso_kqldb",
+    "",
+    "Import this definition into a Fabric Real-Time Dashboard.",
+    "Each tile contains a standalone KQL query designed for the",
+    "RealtimeSales table in the contoso_eventhouse / contoso_kqldb."
+  ],
+
+  "name": "Store Operations Live",
+  "workspace": "contoso-real-time-${environment}",
+  "database": "contoso_kqldb",
+  "auto_refresh_seconds": 30,
+  "time_range_default": "Last 1 hour",
+
+  "tiles": [
+    {
+      "title": "Transactions Per Minute",
+      "kql_query": "let lookback = 60m;\nRealtimeSales\n| where Timestamp > ago(lookback)\n| summarize\n    TransactionCount = count(),\n    Revenue = round(sum(TotalAmount), 2)\n    by StoreRegion = substring(StoreId, 0, 4), bin(Timestamp, 1m)\n| order by Timestamp asc, StoreRegion asc",
+      "visualization": {
+        "type": "timechart",
+        "x_column": "Timestamp",
+        "y_columns": ["TransactionCount"],
+        "legend": "StoreRegion",
+        "y_axis_label": "Transactions / min",
+        "color_palette": "categorical"
+      },
+      "position": { "row": 0, "col": 0, "width": 8, "height": 4 },
+      "refresh_interval_seconds": 30
+    },
+
+    {
+      "title": "Revenue Rolling 24h",
+      "kql_query": "RealtimeSales\n| where Timestamp > ago(24h)\n| summarize\n    TotalRevenue = round(sum(TotalAmount), 2),\n    TransactionCount = count()\n| extend AvgOrderValue = round(TotalRevenue / TransactionCount, 2)\n;\nRealtimeSales\n| where Timestamp > ago(24h)\n| summarize HourlyRevenue = round(sum(TotalAmount), 2) by bin(Timestamp, 1h)\n| order by Timestamp asc",
+      "visualization": {
+        "type": "stat_with_sparkline",
+        "primary_value": "TotalRevenue",
+        "sparkline_query": "RealtimeSales\n| where Timestamp > ago(24h)\n| summarize HourlyRevenue = round(sum(TotalAmount), 2) by bin(Timestamp, 1h)\n| order by Timestamp asc",
+        "sparkline_x_column": "Timestamp",
+        "sparkline_y_column": "HourlyRevenue",
+        "format": "$#,##0",
+        "subtitle": "24h rolling revenue"
+      },
+      "position": { "row": 0, "col": 8, "width": 4, "height": 4 },
+      "refresh_interval_seconds": 60
+    },
+
+    {
+      "title": "Top 10 Products Now",
+      "kql_query": "RealtimeSales\n| where Timestamp > ago(1h)\n| summarize\n    TotalRevenue = round(sum(TotalAmount), 2),\n    TotalQuantity = sum(Quantity),\n    TransactionCount = count()\n    by ProductId, ProductName, Category\n| top 10 by TotalRevenue desc\n| project ProductName, Category, TotalRevenue, TotalQuantity, TransactionCount",
+      "visualization": {
+        "type": "barchart",
+        "x_column": "ProductName",
+        "y_columns": ["TotalRevenue"],
+        "legend": "Category",
+        "orientation": "horizontal",
+        "y_axis_label": "Revenue ($)"
+      },
+      "position": { "row": 4, "col": 0, "width": 6, "height": 4 },
+      "refresh_interval_seconds": 30
+    },
+
+    {
+      "title": "Store Heatmap",
+      "kql_query": "RealtimeSales\n| where Timestamp > ago(1h)\n| summarize\n    TransactionCount = count(),\n    Revenue = round(sum(TotalAmount), 2)\n    by StoreId, StoreName\n| extend TransactionIntensity = case(\n    TransactionCount > 50, \"high\",\n    TransactionCount > 20, \"medium\",\n    \"low\"\n  )\n| project StoreId, StoreName, TransactionCount, Revenue, TransactionIntensity\n| order by TransactionCount desc",
+      "visualization": {
+        "type": "map",
+        "location_column": "StoreId",
+        "size_column": "TransactionCount",
+        "color_column": "TransactionIntensity",
+        "tooltip_columns": ["StoreName", "Revenue", "TransactionCount"],
+        "notes": "Map visualization requires store latitude/longitude in a lookup table. Fall back to a treemap if geo-coordinates are unavailable."
+      },
+      "position": { "row": 4, "col": 6, "width": 6, "height": 4 },
+      "refresh_interval_seconds": 60
+    },
+
+    {
+      "title": "Payment Method Distribution",
+      "kql_query": "RealtimeSales\n| where Timestamp > ago(4h)\n| summarize\n    Revenue = round(sum(TotalAmount), 2),\n    TransactionCount = count()\n    by PaymentMethod\n| extend RevenueShare = round(100.0 * Revenue / toscalar(\n    RealtimeSales\n    | where Timestamp > ago(4h)\n    | summarize sum(TotalAmount)\n  ), 1)\n| order by Revenue desc",
+      "visualization": {
+        "type": "piechart",
+        "category_column": "PaymentMethod",
+        "value_column": "Revenue",
+        "show_legend": true,
+        "show_percentage": true
+      },
+      "position": { "row": 8, "col": 0, "width": 4, "height": 4 },
+      "refresh_interval_seconds": 60
+    },
+
+    {
+      "title": "Anomaly Alerts",
+      "kql_query": "let lookback = 7d;\nlet bin_size = 1h;\nlet anomaly_threshold = 1.5;\nlet recent_window = 24h;\nRealtimeSales\n| where Timestamp > ago(lookback)\n| summarize SalesCount = count() by StoreId, bin(Timestamp, bin_size)\n| make-series\n    SalesCountSeries = sum(SalesCount) default=0\n    on Timestamp\n    from ago(lookback) to now()\n    step bin_size\n    by StoreId\n| extend (AnomalyFlags, AnomalyScore, ExpectedSales) =\n    series_decompose_anomalies(SalesCountSeries, anomaly_threshold)\n| mv-expand\n    Timestamp to typeof(datetime),\n    SalesCountSeries to typeof(long),\n    AnomalyFlags to typeof(int),\n    AnomalyScore to typeof(real),\n    ExpectedSales to typeof(real)\n| where AnomalyFlags != 0 and Timestamp > ago(recent_window)\n| extend AnomalyType = iff(AnomalyFlags == 1, \"spike\", \"dip\")\n| project\n    StoreId,\n    Timestamp,\n    SalesCount = SalesCountSeries,\n    ExpectedSales = round(ExpectedSales, 1),\n    AnomalyScore = round(AnomalyScore, 2),\n    AnomalyType\n| order by abs(AnomalyScore) desc",
+      "visualization": {
+        "type": "table",
+        "columns": ["StoreId", "Timestamp", "SalesCount", "ExpectedSales", "AnomalyScore", "AnomalyType"],
+        "conditional_formatting": [
+          { "column": "AnomalyType", "value": "spike", "color": "#D32F2F" },
+          { "column": "AnomalyType", "value": "dip", "color": "#1565C0" }
+        ]
+      },
+      "position": { "row": 8, "col": 4, "width": 8, "height": 4 },
+      "refresh_interval_seconds": 60
+    }
+  ]
+}

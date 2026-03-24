@@ -1,0 +1,9 @@
+{
+  "queries": [
+    {
+      "queryName": "ProductEnrichment",
+      "queryDescription": "Enriches product catalog with computed margin percentage, category rollup hierarchy, and seasonal flags.",
+      "loadEnabled": true
+    }
+  ]
+}

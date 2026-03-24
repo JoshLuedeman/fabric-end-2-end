@@ -69,3 +69,39 @@ output "capacity_id" {
   description = "The ID of the Fabric Capacity."
   value       = module.fabric_capacity.capacity_id
 }
+
+# Cosmos DB (placeholder — uncomment when provider adds native support)
+# output "cosmos_db_id" {
+#   description = "The ID of the Contoso Cosmos DB in Fabric."
+#   value       = module.cosmos_db.id
+# }
+
+# output "cosmos_db_endpoint" {
+#   description = "The Cosmos DB endpoint URI."
+#   value       = module.cosmos_db.endpoint
+#   sensitive   = true
+# }
+
+# PostgreSQL (placeholder — uncomment when provider adds native support)
+# output "postgresql_marketing_id" {
+#   description = "The ID of the marketing analytics PostgreSQL database."
+#   value       = module.postgresql_marketing.id
+# }
+
+# output "postgresql_marketing_connection_string" {
+#   description = "The PostgreSQL connection string for the marketing analytics database."
+#   value       = module.postgresql_marketing.connection_string
+#   sensitive   = true
+# }
+
+# Mirrored Databases — Snowflake
+output "snowflake_mirror_id" {
+  description = "The ID of the Snowflake supply chain Mirrored Database."
+  value       = module.snowflake_mirror.mirrored_database_id
+}
+
+# Mirrored Databases — Cosmos DB
+output "cosmos_mirror_id" {
+  description = "The ID of the Cosmos DB Mirrored Database."
+  value       = module.cosmos_mirror.mirrored_database_id
+}

@@ -1,0 +1,55 @@
+{
+  "$schema": "https://learn.microsoft.com/fabric/data-factory/what-is-copy-job",
+  "_comment": "Copy Job: Daily bulk extract from ERP mirrored database to staging lakehouse",
+  "properties": {
+    "displayName": "cj_daily_erp_extract",
+    "description": "Daily bulk copy of ERP data (Suppliers, PurchaseOrders, PurchaseOrderLines, GLJournalEntries, ChartOfAccounts) from the mirrored database to the bronze staging lakehouse for medallion processing.",
+    "source": {
+      "type": "MirroredDatabase",
+      "workspaceId": "{{ .INGESTION_WORKSPACE_ID }}",
+      "artifactId": "{{ .MIRRORED_DB_ID }}"
+    },
+    "destination": {
+      "type": "Lakehouse",
+      "workspaceId": "{{ .DATA_ENGINEERING_WORKSPACE_ID }}",
+      "artifactId": "{{ .BRONZE_LAKEHOUSE_ID }}"
+    },
+    "copyBehavior": {
+      "mode": "FullLoad",
+      "schedule": {
+        "frequency": "Daily",
+        "startTime": "02:00:00",
+        "timeZone": "UTC"
+      }
+    },
+    "tableMappings": [
+      {
+        "source": { "schema": "dbo", "table": "Suppliers" },
+        "destination": { "path": "Tables/erp_suppliers", "format": "Delta" }
+      },
+      {
+        "source": { "schema": "dbo", "table": "PurchaseOrders" },
+        "destination": { "path": "Tables/erp_purchase_orders", "format": "Delta" }
+      },
+      {
+        "source": { "schema": "dbo", "table": "PurchaseOrderLines" },
+        "destination": { "path": "Tables/erp_purchase_order_lines", "format": "Delta" }
+      },
+      {
+        "source": { "schema": "dbo", "table": "GLJournalEntries" },
+        "destination": { "path": "Tables/erp_gl_journal_entries", "format": "Delta" }
+      },
+      {
+        "source": { "schema": "dbo", "table": "ChartOfAccounts" },
+        "destination": { "path": "Tables/erp_chart_of_accounts", "format": "Delta" }
+      }
+    ],
+    "monitoring": {
+      "alertOnFailure": true,
+      "retryPolicy": {
+        "maxRetries": 3,
+        "retryIntervalSeconds": 300
+      }
+    }
+  }
+}
