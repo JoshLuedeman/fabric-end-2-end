@@ -3,6 +3,12 @@ Shared configuration for Contoso Global Retail & Supply Chain data generators.
 
 All generators import from this module to ensure consistent entity counts,
 date ranges, and cross-referenced IDs.
+
+Scale profiles
+--------------
+* ``small``  – ~865K rows (~43 MB) — fast CI / smoke-test runs
+* ``medium`` – ~10M rows — integration testing
+* ``full``   – 200M+ fact rows (GB-scale) — realistic demo dataset
 """
 
 import os
@@ -19,26 +25,45 @@ SEED = 42
 OUTPUT_DIR = os.environ.get("DATAGEN_OUTPUT_DIR", "./output")
 
 # ---------------------------------------------------------------------------
-# Entity counts
+# Chunk size for fact table writers (rows per parquet part file)
 # ---------------------------------------------------------------------------
-NUM_CUSTOMERS = 50_000
-NUM_PRODUCTS = 2_000
-NUM_STORES = 150
-NUM_EMPLOYEES = 3_000
-NUM_SUPPLIERS = 200
-NUM_WAREHOUSES = 30
+CHUNK_SIZE = 1_000_000
 
 # ---------------------------------------------------------------------------
-# Volume targets
+# Scale profile – set via generate_all.py --scale flag or env var
 # ---------------------------------------------------------------------------
-NUM_SALES_TRANSACTIONS = 500_000
-NUM_INVENTORY_RECORDS = 100_000
-NUM_IOT_READINGS = 200_000
+SCALE = os.environ.get("DATAGEN_SCALE", "full")  # small | medium | full
 
 # ---------------------------------------------------------------------------
-# Date range
+# Entity counts  (dimension tables)
 # ---------------------------------------------------------------------------
-START_DATE = date(2023, 1, 1)
+NUM_CUSTOMERS = 2_000_000
+NUM_PRODUCTS = 25_000
+NUM_STORES = 500
+NUM_EMPLOYEES = 15_000
+NUM_SUPPLIERS = 1_000
+NUM_WAREHOUSES = 75
+
+# ---------------------------------------------------------------------------
+# Volume targets  (fact tables)
+# ---------------------------------------------------------------------------
+NUM_SALES_TRANSACTIONS = 200_000_000
+NUM_INVENTORY_RECORDS = 50_000_000
+NUM_IOT_READINGS = 100_000_000
+NUM_SHIPMENTS = 2_000_000
+
+# ---------------------------------------------------------------------------
+# New dataset targets
+# ---------------------------------------------------------------------------
+NUM_WEB_CLICKSTREAM = 150_000_000
+NUM_CUSTOMER_INTERACTIONS = 10_000_000
+NUM_PROMOTIONS = 5_000
+NUM_PROMOTION_RESULTS = 20_000_000
+
+# ---------------------------------------------------------------------------
+# Date range  (4 years of history)
+# ---------------------------------------------------------------------------
+START_DATE = date(2022, 1, 1)
 END_DATE = date(2025, 12, 31)
 
 # ---------------------------------------------------------------------------
@@ -50,12 +75,64 @@ IOT_DAYS = 30
 # Country mix (weights for address generation)
 # ---------------------------------------------------------------------------
 COUNTRIES = {
-    "US": 0.40,
-    "UK": 0.20,
-    "DE": 0.15,
-    "JP": 0.10,
-    "AU": 0.15,
+    "US": 0.30,
+    "UK": 0.12,
+    "DE": 0.10,
+    "JP": 0.08,
+    "AU": 0.08,
+    "BR": 0.10,
+    "IN": 0.12,
+    "FR": 0.10,
 }
+
+# ---------------------------------------------------------------------------
+# Scale profiles — override counts for smaller runs
+# ---------------------------------------------------------------------------
+_SCALE_PROFILES = {
+    "small": {
+        "NUM_CUSTOMERS": 50_000,
+        "NUM_PRODUCTS": 2_000,
+        "NUM_STORES": 150,
+        "NUM_EMPLOYEES": 3_000,
+        "NUM_SUPPLIERS": 200,
+        "NUM_WAREHOUSES": 30,
+        "NUM_SALES_TRANSACTIONS": 500_000,
+        "NUM_INVENTORY_RECORDS": 100_000,
+        "NUM_IOT_READINGS": 200_000,
+        "NUM_SHIPMENTS": 3_000,
+        "NUM_WEB_CLICKSTREAM": 50_000,
+        "NUM_CUSTOMER_INTERACTIONS": 10_000,
+        "NUM_PROMOTIONS": 100,
+        "NUM_PROMOTION_RESULTS": 5_000,
+    },
+    "medium": {
+        "NUM_CUSTOMERS": 200_000,
+        "NUM_PRODUCTS": 5_000,
+        "NUM_STORES": 250,
+        "NUM_EMPLOYEES": 5_000,
+        "NUM_SUPPLIERS": 400,
+        "NUM_WAREHOUSES": 40,
+        "NUM_SALES_TRANSACTIONS": 5_000_000,
+        "NUM_INVENTORY_RECORDS": 1_000_000,
+        "NUM_IOT_READINGS": 2_000_000,
+        "NUM_SHIPMENTS": 100_000,
+        "NUM_WEB_CLICKSTREAM": 2_000_000,
+        "NUM_CUSTOMER_INTERACTIONS": 200_000,
+        "NUM_PROMOTIONS": 500,
+        "NUM_PROMOTION_RESULTS": 500_000,
+    },
+    # "full" is the default — values already set above
+}
+
+
+def apply_scale(profile: str) -> None:
+    """Override module-level counts with a named scale profile."""
+    global SCALE
+    SCALE = profile
+    if profile in _SCALE_PROFILES:
+        g = globals()
+        for key, value in _SCALE_PROFILES[profile].items():
+            g[key] = value
 
 # ---------------------------------------------------------------------------
 # Product categories and subcategories
@@ -102,7 +179,7 @@ SEGMENT_WEIGHTS = [0.30, 0.35, 0.25, 0.10]
 STORE_TYPES = ["Flagship", "Standard", "Express", "Outlet", "Online"]
 STORE_TYPE_WEIGHTS = [0.05, 0.45, 0.25, 0.15, 0.10]
 
-REGIONS = ["North", "South", "East", "West", "International"]
+REGIONS = ["North", "South", "East", "West", "International", "LATAM", "APAC", "EMEA"]
 
 # ---------------------------------------------------------------------------
 # Payment & channel
@@ -140,19 +217,28 @@ SENSOR_TYPES = ["Temperature", "Humidity", "Foot Traffic", "Energy", "Door Count
 # ---------------------------------------------------------------------------
 
 def customer_id(n: int) -> str:
-    return f"C-{n:06d}"
+    return f"C-{n:07d}"
+
 
 def product_id(n: int) -> str:
     return f"P-{n:06d}"
 
+
 def store_id(n: int) -> str:
-    return f"S-{n:03d}"
+    return f"S-{n:04d}"
+
 
 def employee_id(n: int) -> str:
-    return f"E-{n:05d}"
+    return f"E-{n:06d}"
+
 
 def supplier_id(n: int) -> str:
-    return f"SUP-{n:03d}"
+    return f"SUP-{n:04d}"
+
 
 def warehouse_id(n: int) -> str:
-    return f"W-{n:02d}"
+    return f"W-{n:03d}"
+
+
+def promo_id(n: int) -> str:
+    return f"PROMO-{n:05d}"

@@ -1,0 +1,150 @@
+{
+    "name": "pl_cdc_incremental",
+    "properties": {
+        "description": "CDC-specific pipeline for OLTP → Lakehouse near-real-time sync. Runs the existing ingest_from_sqldb notebook for CDC extraction, then silver transforms that depend on OLTP data, then updates watermarks. Scheduled hourly.",
+        "activities": [
+            {
+                "name": "CDC Extract from OLTP",
+                "type": "TridentNotebook",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "0.01:00:00",
+                    "retry": 3,
+                    "retryIntervalInSeconds": 60
+                },
+                "typeProperties": {
+                    "notebookId": "ingest_from_sqldb",
+                    "workspaceId": {
+                        "value": "@pipeline().parameters.workspace_id",
+                        "type": "Expression"
+                    }
+                }
+            },
+            {
+                "name": "Transform Sales (Silver)",
+                "type": "TridentNotebook",
+                "dependsOn": [
+                    {
+                        "activity": "CDC Extract from OLTP",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.02:00:00",
+                    "retry": 1,
+                    "retryIntervalInSeconds": 60
+                },
+                "typeProperties": {
+                    "notebookId": "transform_sales",
+                    "workspaceId": {
+                        "value": "@pipeline().parameters.workspace_id",
+                        "type": "Expression"
+                    }
+                }
+            },
+            {
+                "name": "Transform Customers (Silver)",
+                "type": "TridentNotebook",
+                "dependsOn": [
+                    {
+                        "activity": "CDC Extract from OLTP",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.02:00:00",
+                    "retry": 1,
+                    "retryIntervalInSeconds": 60
+                },
+                "typeProperties": {
+                    "notebookId": "transform_customers",
+                    "workspaceId": {
+                        "value": "@pipeline().parameters.workspace_id",
+                        "type": "Expression"
+                    }
+                }
+            },
+            {
+                "name": "Transform Supply Chain (Silver)",
+                "type": "TridentNotebook",
+                "dependsOn": [
+                    {
+                        "activity": "CDC Extract from OLTP",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.02:00:00",
+                    "retry": 1,
+                    "retryIntervalInSeconds": 60
+                },
+                "typeProperties": {
+                    "notebookId": "transform_supply_chain",
+                    "workspaceId": {
+                        "value": "@pipeline().parameters.workspace_id",
+                        "type": "Expression"
+                    }
+                }
+            },
+            {
+                "name": "Update CDC Watermarks",
+                "type": "SqlServerStoredProcedure",
+                "dependsOn": [
+                    {
+                        "activity": "Transform Sales (Silver)",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    },
+                    {
+                        "activity": "Transform Customers (Silver)",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    },
+                    {
+                        "activity": "Transform Supply Chain (Silver)",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.00:15:00",
+                    "retry": 2,
+                    "retryIntervalInSeconds": 30
+                },
+                "typeProperties": {
+                    "storedProcedureName": "dbo.sp_update_cdc_watermarks",
+                    "connectionId": {
+                        "value": "@pipeline().parameters.sqldb_connection_id",
+                        "type": "Expression"
+                    }
+                }
+            }
+        ],
+        "parameters": {
+            "workspace_id": {
+                "type": "string",
+                "defaultValue": ""
+            },
+            "sqldb_connection_id": {
+                "type": "string",
+                "defaultValue": ""
+            }
+        },
+        "annotations": [
+            "bronze",
+            "silver",
+            "cdc",
+            "incremental",
+            "hourly"
+        ]
+    }
+}

@@ -1,0 +1,206 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/fabric-samples/main/docs-samples/eventstream-schema.json",
+  "_comment": [
+    "Fabric Eventstream configuration for routing SQL Database change events.",
+    "",
+    "This file documents (not deploys) the Eventstream topology that connects",
+    "the OLTP simulator's writes to real-time analytics.  The actual Eventstream",
+    "is created via Terraform (infra/modules/fabric-eventstream/) and configured",
+    "manually in the Fabric portal or via REST API.",
+    "",
+    "Data flow:",
+    "  OLTP Simulator → Fabric SQL Database → Change Event Streaming → Eventstream",
+    "    ├─→ Eventhouse (contoso_kqldb)   — real-time analytics / KQL dashboards",
+    "    └─→ Lakehouse (bronze layer)     — near-real-time CDC for batch analytics",
+    "",
+    "The IoT sensor telemetry follows a separate path:",
+    "  IoT Simulator (streaming/) → Event Hub → Eventstream → Eventhouse"
+  ],
+
+  "displayName": "contoso-change-events",
+  "description": "Routes SQL Database CDC change events to Eventhouse and Lakehouse for real-time and batch analytics",
+
+  "sources": [
+    {
+      "name": "contoso-sql-db-changes",
+      "type": "FabricSQLDatabaseChangeEventStreaming",
+      "description": "Change events from the Contoso OLTP database (Fabric SQL Database)",
+      "config": {
+        "workspaceName": "contoso-fabric-workspace",
+        "sqlDatabaseName": "contoso_operational_db",
+        "tables": [
+          {
+            "schema": "dbo",
+            "table": "Transactions",
+            "description": "POS transaction headers — new sales created by the OLTP simulator"
+          },
+          {
+            "schema": "dbo",
+            "table": "TransactionItems",
+            "description": "Line items for each POS transaction"
+          },
+          {
+            "schema": "dbo",
+            "table": "Inventory",
+            "description": "Stock-level changes from sales and replenishment"
+          },
+          {
+            "schema": "dbo",
+            "table": "CustomerInteractions",
+            "description": "CRM interactions (calls, emails, chats, returns, etc.)"
+          }
+        ],
+        "captureMode": "Incremental",
+        "_note": "Change Event Streaming captures inserts and updates automatically. Deletes are not expected in this OLTP workload."
+      }
+    },
+    {
+      "name": "contoso-iot-events",
+      "type": "AzureEventHub",
+      "description": "IoT sensor telemetry from the streaming container (separate data path)",
+      "config": {
+        "eventHubNamespace": "contoso-eventhub-ns",
+        "eventHubName": "contoso-events",
+        "consumerGroup": "$Default",
+        "dataFormat": "JSON"
+      }
+    }
+  ],
+
+  "transformations": [
+    {
+      "name": "enrich-transactions",
+      "description": "Add processing timestamp and source tag to transaction events",
+      "inputStream": "contoso-sql-db-changes",
+      "filterTables": ["Transactions", "TransactionItems"],
+      "operations": [
+        {
+          "type": "addColumn",
+          "column": "_eventstream_processed_at",
+          "expression": "SYSTEM.Timestamp()"
+        },
+        {
+          "type": "addColumn",
+          "column": "_source",
+          "expression": "'oltp-simulator-cdc'"
+        }
+      ]
+    },
+    {
+      "name": "enrich-inventory",
+      "description": "Add processing metadata to inventory change events",
+      "inputStream": "contoso-sql-db-changes",
+      "filterTables": ["Inventory"],
+      "operations": [
+        {
+          "type": "addColumn",
+          "column": "_eventstream_processed_at",
+          "expression": "SYSTEM.Timestamp()"
+        },
+        {
+          "type": "addColumn",
+          "column": "_source",
+          "expression": "'oltp-simulator-cdc'"
+        }
+      ]
+    }
+  ],
+
+  "destinations": [
+    {
+      "name": "eventhouse-realtime",
+      "type": "FabricEventhouse",
+      "description": "Real-time analytics — powers KQL dashboards and Reflex triggers",
+      "config": {
+        "workspaceName": "contoso-fabric-workspace",
+        "eventhouseName": "contoso_eventhouse",
+        "kqlDatabaseName": "contoso_kqldb",
+        "tableMappings": [
+          {
+            "sourceTable": "Transactions",
+            "destinationTable": "transactions_realtime",
+            "ingestionMode": "Streaming",
+            "dataFormat": "JSON"
+          },
+          {
+            "sourceTable": "TransactionItems",
+            "destinationTable": "transaction_items_realtime",
+            "ingestionMode": "Streaming",
+            "dataFormat": "JSON"
+          },
+          {
+            "sourceTable": "Inventory",
+            "destinationTable": "inventory_changes",
+            "ingestionMode": "Streaming",
+            "dataFormat": "JSON"
+          },
+          {
+            "sourceTable": "CustomerInteractions",
+            "destinationTable": "customer_interactions_realtime",
+            "ingestionMode": "Streaming",
+            "dataFormat": "JSON"
+          }
+        ]
+      }
+    },
+    {
+      "name": "lakehouse-bronze",
+      "type": "FabricLakehouse",
+      "description": "Near-real-time CDC landing zone — feeds the medallion architecture",
+      "config": {
+        "workspaceName": "contoso-fabric-workspace",
+        "lakehouseName": "contoso_lakehouse",
+        "tableMappings": [
+          {
+            "sourceTable": "Transactions",
+            "destinationPath": "Tables/bronze_transactions_cdc",
+            "dataFormat": "Delta",
+            "partitionBy": ["transaction_date"]
+          },
+          {
+            "sourceTable": "TransactionItems",
+            "destinationPath": "Tables/bronze_transaction_items_cdc",
+            "dataFormat": "Delta"
+          },
+          {
+            "sourceTable": "Inventory",
+            "destinationPath": "Tables/bronze_inventory_cdc",
+            "dataFormat": "Delta",
+            "partitionBy": ["store_id"]
+          },
+          {
+            "sourceTable": "CustomerInteractions",
+            "destinationPath": "Tables/bronze_interactions_cdc",
+            "dataFormat": "Delta"
+          }
+        ]
+      }
+    }
+  ],
+
+  "setupInstructions": {
+    "step1_enableChangeEventStreaming": [
+      "1. Open the Fabric portal → navigate to contoso_operational_db",
+      "2. Click 'Change Event Streaming' in the database settings",
+      "3. Select the tables: Transactions, TransactionItems, Inventory, CustomerInteractions",
+      "4. Choose the target Eventstream: contoso-change-events",
+      "5. Set capture mode to 'Incremental'",
+      "6. Click 'Enable' to start streaming changes"
+    ],
+    "step2_configureEventstream": [
+      "1. Open the Eventstream 'contoso-change-events' in the Fabric portal",
+      "2. Verify the SQL Database source appears with 4 tables",
+      "3. Add destination: Eventhouse → contoso_eventhouse → contoso_kqldb",
+      "4. Map each source table to its destination table (see tableMappings above)",
+      "5. Add destination: Lakehouse → contoso_lakehouse",
+      "6. Map each source table to its bronze Delta path",
+      "7. Activate the Eventstream"
+    ],
+    "step3_verifyDataFlow": [
+      "1. Run the OLTP simulator: cd simulator && python oltp_simulator.py --dry-run",
+      "2. Switch to live mode with a real SQL connection string",
+      "3. Open KQL Database → query transactions_realtime to see events arriving",
+      "4. Check Lakehouse bronze tables for Delta files landing"
+    ]
+  }
+}

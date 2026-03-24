@@ -1,0 +1,46 @@
+{
+  "name": "Low Inventory Alert",
+  "description": "Triggers when any product at any store falls below reorder point for 2+ consecutive hours",
+  "dataSource": {
+    "type": "KQLDatabase",
+    "database": "contoso_kqldb",
+    "query": "Inventory | where quantity_on_hand < reorder_point | summarize ConsecutiveHours=dcount(bin(timestamp, 1h)) by store_id, product_id | where ConsecutiveHours >= 2"
+  },
+  "trigger": {
+    "condition": {
+      "type": "threshold",
+      "field": "quantity_on_hand",
+      "operator": "lessThan",
+      "value": "reorder_point",
+      "sustainedMinutes": 120
+    },
+    "groupBy": ["store_id", "product_id"]
+  },
+  "actions": [
+    {
+      "type": "email",
+      "recipients": ["inventory-team@contoso.com"],
+      "subject": "🚨 Low Stock Alert: {{product_id}} at {{store_id}}",
+      "body": "Product {{product_id}} at store {{store_id}} has been below reorder point ({{reorder_point}}) for {{ConsecutiveHours}} hours. Current stock: {{quantity_on_hand}}."
+    },
+    {
+      "type": "teamsMessage",
+      "channel": "Supply Chain Ops",
+      "message": "Low stock alert for {{product_id}} at {{store_id}}. Quantity: {{quantity_on_hand}}/{{reorder_point}}"
+    },
+    {
+      "type": "powerAutomate",
+      "flowName": "Create Reorder PO",
+      "parameters": {
+        "product_id": "{{product_id}}",
+        "store_id": "{{store_id}}",
+        "reorder_quantity": "{{reorder_quantity}}"
+      }
+    }
+  ],
+  "schedule": {
+    "frequency": "continuous",
+    "evaluationInterval": "PT5M"
+  },
+  "severity": "high"
+}

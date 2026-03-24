@@ -2,6 +2,10 @@
 
 > **🚧 Work in Progress** — This project is under active development. Infrastructure modules, data generators, notebooks, and deployment workflows are being built out incrementally. Expect breaking changes, incomplete features, and rough edges. Contributions and feedback are welcome!
 
+## Business Story
+
+This demo simulates **Contoso Global Retail** — a multinational retailer with 500 stores across 8 countries. The environment runs an operational POS database, ingests data through a metadata-driven pipeline, transforms it through a medallion lakehouse, serves analytics via a star schema warehouse and Power BI, monitors operations in real-time, and uses ML to predict demand, segment customers, and detect anomalies. Every component is automated and deployed from code.
+
 End-to-end Microsoft Fabric demo showcasing all platform capabilities including features announced at FabCon/SQLCon 2026 in Atlanta.
 
 ## Scenario
@@ -10,13 +14,19 @@ End-to-end Microsoft Fabric demo showcasing all platform capabilities including 
 
 ## Architecture
 
+- **Fabric SQL Database (OLTP)**: Operational POS system with CDC extraction
 - **Medallion Lakehouse**: Bronze → Silver → Gold with PySpark notebooks
 - **Data Warehouse**: Star schema (dimensions + facts) with T-SQL
 - **Real-Time Intelligence**: Eventhouse + KQL for streaming analytics
 - **Power BI**: Semantic models, reports, dashboards, translytical task flows
+- **Data Science (MLflow)**: Demand forecasting, segmentation, churn, anomaly detection
+- **Data Activator (Reflex)**: Automated alerts for inventory, sales, IoT, and churn
+- **Apache Airflow**: DAG-based orchestration (daily ETL, hourly quality, weekly maintenance)
 - **Graph in Fabric**: Supply chain relationship modeling (GQL)
 - **Data Agents**: AI-powered virtual analysts (sales + supply chain)
 - **Automated Deployment**: Terraform + Fabric CLI + GitHub Actions
+
+> **Data scale**: 532M+ rows, ~40GB at full scale — including 200M sales transactions, 150M clickstream events, 100M IoT telemetry readings, and more.
 
 ## Quick Start
 

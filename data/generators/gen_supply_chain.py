@@ -1,21 +1,31 @@
 """
-Generate supply-chain graph data for Contoso Global Retail.
+Generate supply-chain graph data for Contoso Global Retail  (GB-scale).
 
-Outputs:
-  - suppliers.parquet       (nodes)
-  - warehouses.parquet      (nodes)
-  - supply_relationships.parquet  (edges: Supplier → Warehouse with Product)
-  - shipments.parquet       (edges: Supplier → Warehouse → Store)
+Dimension tables (small, single-DataFrame):
+  - suppliers.parquet
+  - warehouses.parquet
+  - supply_relationships.parquet
+
+Fact table (large, chunked writes):
+  - shipments/part_NNNNNNNNNN.parquet   (partitioned parquet)
 """
 
+from __future__ import annotations
+
+import math
 import os
 import uuid
 
 import numpy as np
 import pandas as pd
 from faker import Faker
+from tqdm import tqdm
 
 import config as cfg
+
+# ---------------------------------------------------------------------------
+# Constants
+# ---------------------------------------------------------------------------
 
 SUPPLIER_COUNTRIES = [
     "China", "India", "Vietnam", "Mexico", "Germany",
@@ -23,17 +33,45 @@ SUPPLIER_COUNTRIES = [
 ]
 
 WAREHOUSE_CITIES = [
+    # North America
     ("Chicago", "US"), ("Los Angeles", "US"), ("Houston", "US"),
+    # Europe
     ("London", "UK"), ("Manchester", "UK"),
     ("Frankfurt", "DE"), ("Hamburg", "DE"),
+    ("Paris", "FR"), ("Lyon", "FR"), ("Marseille", "FR"),
+    # Asia-Pacific
     ("Tokyo", "JP"), ("Osaka", "JP"),
     ("Sydney", "AU"), ("Melbourne", "AU"),
-    ("Shanghai", "China"), ("Mumbai", "India"),
-    ("Mexico City", "Mexico"), ("São Paulo", "Brazil"),
+    ("Shanghai", "China"),
+    ("Mumbai", "IN"), ("Delhi", "IN"), ("Bangalore", "IN"),
+    # Latin America
+    ("Mexico City", "Mexico"),
+    ("São Paulo", "BR"), ("Rio de Janeiro", "BR"),
 ]
 
+_PARQUET_OPTS: dict = dict(
+    index=False,
+    engine="pyarrow",
+    compression="snappy",
+)
 
-# ---- Suppliers ----
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+def _uuid_batch(rng: np.random.Generator, n: int) -> list[str]:
+    """Generate *n* UUID-v4 strings from *rng* in one go."""
+    raw = rng.bytes(16 * n)
+    return [
+        str(uuid.UUID(bytes=raw[i * 16 : (i + 1) * 16]))
+        for i in range(n)
+    ]
+
+
+# ---------------------------------------------------------------------------
+# Suppliers  (dimension — small)
+# ---------------------------------------------------------------------------
 
 def generate_suppliers() -> pd.DataFrame:
     rng = np.random.default_rng(cfg.SEED)
@@ -55,7 +93,9 @@ def generate_suppliers() -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-# ---- Warehouses ----
+# ---------------------------------------------------------------------------
+# Warehouses  (dimension — small)
+# ---------------------------------------------------------------------------
 
 def generate_warehouses() -> pd.DataFrame:
     rng = np.random.default_rng(cfg.SEED + 1)
@@ -76,12 +116,13 @@ def generate_warehouses() -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-# ---- Supply Relationships (Supplier → Warehouse for a Product) ----
+# ---------------------------------------------------------------------------
+# Supply Relationships  (dimension — small)
+# ---------------------------------------------------------------------------
 
 def generate_supply_relationships() -> pd.DataFrame:
     rng = np.random.default_rng(cfg.SEED + 2)
 
-    # Each product has 1-3 supplier→warehouse paths
     rows: list[dict] = []
     rel_id = 0
     for p in range(1, cfg.NUM_PRODUCTS + 1):
@@ -113,60 +154,101 @@ def generate_supply_relationships() -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-# ---- Shipments (Supplier → Warehouse → Store) ----
+# ---------------------------------------------------------------------------
+# Shipments  (fact — GB-scale, chunked writes)
+# ---------------------------------------------------------------------------
 
-def generate_shipments() -> pd.DataFrame:
+# Pre-built lookup arrays so we don't call cfg.*_id() millions of times.
+_SUPPLIER_IDS = np.array([cfg.supplier_id(i) for i in range(1, cfg.NUM_SUPPLIERS + 1)])
+_WAREHOUSE_IDS = np.array([cfg.warehouse_id(i) for i in range(1, cfg.NUM_WAREHOUSES + 1)])
+_STORE_IDS = np.array([cfg.store_id(i) for i in range(1, cfg.NUM_STORES + 1)])
+_STATUSES = np.array(cfg.SHIPMENT_STATUSES)
+_STATUS_WEIGHTS = np.array(cfg.SHIPMENT_STATUS_WEIGHTS, dtype=np.float64)
+
+
+def generate_shipments(output_dir: str) -> None:
+    """Write shipments as partitioned parquet files into *output_dir*/shipments/.
+
+    Files are named ``part_NNNNNNNNNN.parquet`` (one per chunk).
+    Nothing is returned — data is streamed straight to disk.
+    """
+    shipments_dir = os.path.join(output_dir, "shipments")
+    os.makedirs(shipments_dir, exist_ok=True)
+
     rng = np.random.default_rng(cfg.SEED + 3)
-
-    # ~2-3x the number of stores × some repeat shipments
-    n_shipments = cfg.NUM_STORES * 20  # ~3 000
     total_days = (cfg.END_DATE - cfg.START_DATE).days
+    origin = pd.Timestamp(cfg.START_DATE)
 
-    rows: list[dict] = []
-    for _ in range(n_shipments):
-        sup = int(rng.integers(1, cfg.NUM_SUPPLIERS + 1))
-        wh = int(rng.integers(1, cfg.NUM_WAREHOUSES + 1))
-        st = int(rng.integers(1, cfg.NUM_STORES + 1))
+    n_total = cfg.NUM_SHIPMENTS
+    chunk_size = cfg.CHUNK_SIZE
+    n_chunks = math.ceil(n_total / chunk_size)
+    rows_written = 0
 
-        ship_offset = int(rng.integers(0, total_days))
-        ship_date = cfg.START_DATE + pd.Timedelta(days=ship_offset)
-        transit = int(rng.integers(1, 30))
-        arrival_date = ship_date + pd.Timedelta(days=transit)
+    for chunk_idx in tqdm(range(n_chunks), desc="shipments", unit="chunk"):
+        n = min(chunk_size, n_total - rows_written)
 
-        status = rng.choice(cfg.SHIPMENT_STATUSES, p=cfg.SHIPMENT_STATUS_WEIGHTS)
-        qty = int(rng.integers(10, 1000))
-        cost = round(float(rng.uniform(50, 5000)), 2)
+        # -- vectorised random draws ----------------------------------------
+        sup_idx = rng.integers(0, cfg.NUM_SUPPLIERS, size=n)
+        wh_idx = rng.integers(0, cfg.NUM_WAREHOUSES, size=n)
+        st_idx = rng.integers(0, cfg.NUM_STORES, size=n)
 
-        rows.append(
+        ship_offsets = rng.integers(0, total_days, size=n)
+        transit_days = rng.integers(1, 30, size=n)
+
+        status_idx = rng.choice(len(_STATUSES), size=n, p=_STATUS_WEIGHTS)
+        quantities = rng.integers(10, 1000, size=n)
+        costs = np.round(rng.uniform(50.0, 5000.0, size=n), 2)
+
+        # -- build DataFrame in one shot ------------------------------------
+        ship_dates = origin + pd.to_timedelta(ship_offsets, unit="D")
+        arrival_dates = ship_dates + pd.to_timedelta(transit_days, unit="D")
+
+        df = pd.DataFrame(
             {
-                "shipment_id": str(uuid.UUID(bytes=rng.bytes(16))),
-                "supplier_id": cfg.supplier_id(sup),
-                "warehouse_id": cfg.warehouse_id(wh),
-                "store_id": cfg.store_id(st),
-                "ship_date": ship_date,
-                "arrival_date": arrival_date,
-                "status": status,
-                "quantity": qty,
-                "shipping_cost": cost,
+                "shipment_id": _uuid_batch(rng, n),
+                "supplier_id": _SUPPLIER_IDS[sup_idx],
+                "warehouse_id": _WAREHOUSE_IDS[wh_idx],
+                "store_id": _STORE_IDS[st_idx],
+                "ship_date": ship_dates,
+                "arrival_date": arrival_dates,
+                "status": _STATUSES[status_idx],
+                "quantity": quantities,
+                "shipping_cost": costs,
             }
         )
-    return pd.DataFrame(rows)
 
+        part_path = os.path.join(
+            shipments_dir, f"part_{chunk_idx:010d}.parquet"
+        )
+        df.to_parquet(part_path, **_PARQUET_OPTS)
+        rows_written += n
+
+    print(f"  ✓ {rows_written:,} rows → {shipments_dir}/ ({n_chunks} parts)")
+
+
+# ---------------------------------------------------------------------------
+# Entrypoint
+# ---------------------------------------------------------------------------
 
 def main() -> None:
     os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
 
+    # -- dimension tables (single DataFrame each) ---------------------------
     for name, gen_fn in [
         ("suppliers", generate_suppliers),
         ("warehouses", generate_warehouses),
         ("supply_relationships", generate_supply_relationships),
-        ("shipments", generate_shipments),
     ]:
         print(f"Generating {name} …")
         df = gen_fn()
         path = os.path.join(cfg.OUTPUT_DIR, f"{name}.parquet")
-        df.to_parquet(path, index=False, engine="pyarrow")
+        df.to_parquet(path, **_PARQUET_OPTS)
         print(f"  ✓ {len(df):,} rows → {path}")
+
+    # -- fact table (chunked, writes directly to disk) ----------------------
+    print(f"Generating shipments ({cfg.NUM_SHIPMENTS:,} rows, "
+          f"chunk_size={cfg.CHUNK_SIZE:,}) …")
+    generate_shipments(cfg.OUTPUT_DIR)
 
 
 if __name__ == "__main__":

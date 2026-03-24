@@ -1,0 +1,51 @@
+{
+  "name": "Promotion Performance Alert",
+  "description": "Monitors active promotion performance: flags underperforming promotions (<5% redemption after 3 days) and overperforming/budget-risk promotions (>50% budget consumed in first 25% of duration)",
+  "dataSource": {
+    "type": "Lakehouse",
+    "lakehouse": "lh_gold",
+    "table": "active_promotions_performance",
+    "query": "SELECT p.promotion_id, p.promotion_name, p.start_date, p.end_date, p.total_budget, p.budget_consumed, p.redemption_count, p.eligible_customers, ROUND(p.redemption_count * 100.0 / NULLIF(p.eligible_customers, 0), 2) AS redemption_rate_pct, ROUND(p.budget_consumed * 100.0 / NULLIF(p.total_budget, 0), 2) AS budget_consumed_pct, DATEDIFF(day, p.start_date, CURRENT_DATE()) AS days_active, DATEDIFF(day, p.start_date, p.end_date) AS total_duration_days, ROUND(DATEDIFF(day, p.start_date, CURRENT_DATE()) * 100.0 / NULLIF(DATEDIFF(day, p.start_date, p.end_date), 0), 2) AS duration_elapsed_pct FROM active_promotions_performance p WHERE p.end_date > CURRENT_DATE() AND (   (DATEDIFF(day, p.start_date, CURRENT_DATE()) >= 3 AND (p.redemption_count * 100.0 / NULLIF(p.eligible_customers, 0)) < 5.0)   OR   ((p.budget_consumed * 100.0 / NULLIF(p.total_budget, 0)) > 50.0 AND (DATEDIFF(day, p.start_date, CURRENT_DATE()) * 100.0 / NULLIF(DATEDIFF(day, p.start_date, p.end_date), 0)) < 25.0) )"
+  },
+  "trigger": {
+    "conditions": [
+      {
+        "name": "underperforming",
+        "type": "compound",
+        "all": [
+          { "field": "days_active", "operator": "greaterThanOrEqual", "value": 3 },
+          { "field": "redemption_rate_pct", "operator": "lessThan", "value": 5.0 }
+        ]
+      },
+      {
+        "name": "budget_risk",
+        "type": "compound",
+        "all": [
+          { "field": "budget_consumed_pct", "operator": "greaterThan", "value": 50.0 },
+          { "field": "duration_elapsed_pct", "operator": "lessThan", "value": 25.0 }
+        ]
+      }
+    ],
+    "groupBy": ["promotion_id"]
+  },
+  "actions": [
+    {
+      "type": "email",
+      "recipients": ["marketing-team@contoso.com"],
+      "subject": "📊 Promotion Alert: {{promotion_name}} ({{promotion_id}}) — {{#if (lt redemption_rate_pct 5)}}Underperforming{{else}}Budget Risk{{/if}}",
+      "body": "A running promotion requires attention.\n\nPromotion: {{promotion_name}} (ID: {{promotion_id}})\nDuration: {{start_date}} to {{end_date}} ({{days_active}}/{{total_duration_days}} days elapsed)\n\nPerformance Metrics:\n  • Redemption Rate: {{redemption_rate_pct}}% ({{redemption_count}}/{{eligible_customers}} customers)\n  • Budget Consumed: {{budget_consumed_pct}}% (${{budget_consumed}}/${{total_budget}})\n  • Duration Elapsed: {{duration_elapsed_pct}}%\n\n{{#if (lt redemption_rate_pct 5)}}⚠️ UNDERPERFORMING: Redemption rate is below 5% after {{days_active}} days.\nRecommendation: Consider increasing visibility (featured placement), adjusting discount amount, or extending the promotion with revised targeting.{{/if}}{{#if (and (gt budget_consumed_pct 50) (lt duration_elapsed_pct 25))}}🚨 BUDGET RISK: Over 50% of budget consumed in first 25% of promotion duration.\nRecommendation: Consider pausing the promotion, reducing per-redemption value, or requesting additional budget if ROI is positive.{{/if}}"
+    },
+    {
+      "type": "teamsMessage",
+      "channel": "Marketing Analytics",
+      "message": "📊 Promo Alert | {{promotion_name}} | {{#if (lt redemption_rate_pct 5)}}Underperforming: {{redemption_rate_pct}}% redemption after {{days_active}} days{{else}}Budget Risk: {{budget_consumed_pct}}% budget used at {{duration_elapsed_pct}}% duration{{/if}}"
+    }
+  ],
+  "schedule": {
+    "frequency": "recurring",
+    "evaluationInterval": "PT6H",
+    "startTime": "08:00",
+    "timezone": "UTC"
+  },
+  "severity": "medium"
+}

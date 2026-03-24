@@ -81,6 +81,17 @@ module "warehouse" {
 }
 
 # ---------------------------------------------------------------------------
+# SQL Database (OLTP operational database) in data-warehouse workspace
+# ---------------------------------------------------------------------------
+module "sql_database" {
+  source = "../../modules/fabric-sql-database"
+
+  display_name = "${var.project_prefix}_operational_db"
+  description  = "OLTP operational database for POS, inventory, and CRM (${var.environment})"
+  workspace_id = module.fabric_workspaces["data-warehouse"].workspace_id
+}
+
+# ---------------------------------------------------------------------------
 # Eventhouse + KQL Database in real-time workspace
 # ---------------------------------------------------------------------------
 module "eventhouse" {

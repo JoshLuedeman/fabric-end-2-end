@@ -10,6 +10,7 @@
 ENVIRONMENT ?= dev
 
 .PHONY: help setup clean generate-data stream-build stream-run \
+        sim-build sim-run sim-run-live \
         tf-init tf-plan tf-apply tf-destroy \
         deploy-content upload-notebooks upload-reports seed-data \
         lint plan review
@@ -56,6 +57,17 @@ stream-run: ## Run the streaming event generator locally (DRY_RUN=true)
 
 stream-docker: ## Build streaming Docker image
 	docker build -t contoso-event-generator ./streaming
+
+# --- OLTP Simulator ---
+
+sim-build: ## Build the OLTP simulator Docker image
+	docker build -t contoso-oltp-simulator ./simulator
+
+sim-run: ## Run the OLTP simulator locally (DRY_RUN mode, no DB required)
+	cd simulator && python oltp_simulator.py --dry-run
+
+sim-run-live: ## Run the OLTP simulator against a real database
+	cd simulator && python oltp_simulator.py
 
 # --- Terraform ---
 

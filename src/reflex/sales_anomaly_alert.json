@@ -1,0 +1,41 @@
+{
+  "name": "Sales Anomaly Alert",
+  "description": "Triggers when hourly revenue at a store deviates >3 standard deviations from rolling 4-week average for that hour/day-of-week",
+  "dataSource": {
+    "type": "Eventhouse",
+    "database": "contoso_kqldb",
+    "query": "let lookback = 28d; let current_hour = bin(now(), 1h); let day_of_week = dayofweek(now()); RealtimeSales | where Timestamp > ago(lookback) | extend HourOfDay = hourofday(Timestamp), DayOfWeek = dayofweek(Timestamp) | summarize HourlyRevenue = sum(TotalAmount) by StoreId, HourOfDay, DayOfWeek, DayBin = bin(Timestamp, 1d) | summarize AvgRevenue = avg(HourlyRevenue), StdDevRevenue = stdev(HourlyRevenue) by StoreId, HourOfDay, DayOfWeek | join kind=inner ( RealtimeSales | where Timestamp between (current_hour .. current_hour + 1h) | summarize CurrentRevenue = sum(TotalAmount) by StoreId | extend HourOfDay = hourofday(current_hour), DayOfWeek = day_of_week ) on StoreId, HourOfDay, DayOfWeek | extend ZScore = iff(StdDevRevenue > 0, (CurrentRevenue - AvgRevenue) / StdDevRevenue, 0.0) | where abs(ZScore) > 3.0 | project StoreId, CurrentRevenue, AvgRevenue, StdDevRevenue, ZScore, AnomalyType = iff(ZScore > 0, 'spike', 'drop')"
+  },
+  "trigger": {
+    "condition": {
+      "type": "threshold",
+      "field": "ZScore",
+      "operator": "absoluteGreaterThan",
+      "value": 3.0
+    },
+    "groupBy": ["StoreId"]
+  },
+  "actions": [
+    {
+      "type": "email",
+      "recipients": ["store-{{StoreId}}-manager@contoso.com"],
+      "subject": "⚠️ Sales Anomaly Detected: Store {{StoreId}} — {{AnomalyType}}",
+      "body": "An unusual sales pattern has been detected at store {{StoreId}}.\n\nAnomaly Type: {{AnomalyType}}\nCurrent Hourly Revenue: ${{CurrentRevenue}}\nExpected Revenue: ${{AvgRevenue}} (±${{StdDevRevenue}})\nZ-Score: {{ZScore}}\n\nPlease investigate for potential fraud, system errors, or unexpected demand shifts."
+    },
+    {
+      "type": "teamsMessage",
+      "channel": "Fraud & Risk Team",
+      "message": "🔍 Sales anomaly at Store {{StoreId}}: {{AnomalyType}} detected. Current=${{CurrentRevenue}}, Expected=${{AvgRevenue}}, Z-Score={{ZScore}}. Investigate immediately."
+    },
+    {
+      "type": "kqlCommand",
+      "database": "contoso_kqldb",
+      "command": ".ingest inline into table SalesAnomalyIncidents <| {{StoreId}},{{CurrentRevenue}},{{AvgRevenue}},{{ZScore}},{{AnomalyType}},now()"
+    }
+  ],
+  "schedule": {
+    "frequency": "continuous",
+    "evaluationInterval": "PT15M"
+  },
+  "severity": "high"
+}

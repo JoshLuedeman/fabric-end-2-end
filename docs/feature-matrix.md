@@ -24,7 +24,7 @@ This document tracks which Microsoft Fabric features are demonstrated in this en
 | Lakehouse | ✅ | Bronze/Silver/Gold medallion | Terraform + Fabric CLI |
 | Notebooks (PySpark) | ✅ | 10+ transformation notebooks | Fabric CLI |
 | Spark Autoscale | ✅ | Dynamic compute scaling | Terraform config |
-| Apache Airflow Jobs | 📋 | Advanced scheduling | Terraform |
+| Apache Airflow Jobs | ✅ | 3 DAGs: daily ETL, hourly quality, weekly maintenance | Terraform |
 
 ## Data Integration
 
@@ -32,6 +32,8 @@ This document tracks which Microsoft Fabric features are demonstrated in this en
 |---------|--------|----------------|------------|
 | Data Factory Pipelines | ✅ | 3 orchestration pipelines | Terraform + Fabric CLI |
 | Connections | ✅ | Storage, SQL connections | Terraform |
+| CDC from OLTP | ✅ | Fabric SQL Database → Lakehouse via CDC | Notebooks + Pipelines |
+| Metadata-Driven Pipelines | ✅ | Config-table-driven dynamic ingestion | Pipelines + Notebooks |
 | Database Mirroring | 📋 | SQL/Cosmos mirroring | Terraform |
 | SharePoint List Mirroring | ⚠️ | Operational data sync | Manual |
 
@@ -73,6 +75,35 @@ This document tracks which Microsoft Fabric features are demonstrated in this en
 | Fabric MCP AI Code Assistants | ⚠️ | Developer tooling | Enabled |
 | Remote MCP Server | ⚠️ | AI agent execution | Config |
 
+## Data Science & ML
+
+| Feature | Status | Demo Component | Automation |
+|---------|--------|----------------|------------|
+| MLflow Experiments | ✅ | 5 tracked experiments | Notebooks |
+| Demand Forecasting | ✅ | Prophet time-series per store×category | MLflow |
+| Customer Segmentation | ✅ | RFM + K-Means clustering | MLflow |
+| Churn Prediction | ✅ | LightGBM classifier | MLflow |
+| Promotion Effectiveness | ✅ | Propensity score matching / causal inference | MLflow |
+| Anomaly Detection (ML) | ✅ | Isolation Forest on sales + inventory | MLflow |
+
+## Data Activator / Reflex
+
+| Feature | Status | Demo Component | Automation |
+|---------|--------|----------------|------------|
+| Inventory Alerts | ✅ | Low stock sustained trigger | Reflex + Power Automate |
+| Sales Anomaly Alerts | ✅ | 3σ deviation detection | Reflex + Teams |
+| IoT Failure Alerts | ✅ | Sensor silence + temperature | Reflex + Power Automate |
+| Churn Risk Alerts | ✅ | VIP churn probability trigger | Reflex + Email |
+| Promotion Performance | ✅ | Under/over-performing promos | Reflex + Email |
+
+## Operational Database
+
+| Feature | Status | Demo Component | Automation |
+|---------|--------|----------------|------------|
+| Fabric SQL Database | ✅ | OLTP POS system (normalized 3NF) | Terraform |
+| CDC Extraction | ✅ | Change Data Capture → Lakehouse | Notebooks + Pipelines |
+| POS Simulation | ✅ | sp_process_sale stored procedure | SQL |
+
 ## FabCon/SQLCon 2026 Features
 
 | Feature | Status | Demo Component | Automation |
@@ -103,16 +134,20 @@ This document tracks which Microsoft Fabric features are demonstrated in this en
 
 | Dataset | Records | Format | Generator |
 |---------|---------|--------|-----------|
-| Customers | 50,000 | Parquet | gen_customers.py |
-| Products | 2,000 | Parquet | gen_products.py |
-| Stores | 150 | Parquet | gen_stores.py |
-| Employees | 3,000 | Parquet | gen_hr_employees.py |
+| Customers | 2,000,000 | Parquet | gen_customers.py |
+| Products | 25,000 | Parquet | gen_products.py |
+| Stores | 500 | Parquet | gen_stores.py |
+| Employees | 15,000 | Parquet | gen_hr_employees.py |
 | Suppliers | 200 | Parquet | gen_supply_chain.py |
 | Warehouses | ~20 | Parquet | gen_supply_chain.py |
-| Sales Transactions | ~500,000 | Parquet | gen_sales_transactions.py |
-| Inventory Movements | ~100,000 | Parquet | gen_inventory.py |
-| Shipments | ~10,000 | Parquet | gen_supply_chain.py |
-| IoT Telemetry | ~200,000 | Parquet | gen_iot_telemetry.py |
+| Sales Transactions | 200,000,000 | Parquet | gen_sales_transactions.py |
+| Inventory Movements | 50,000,000 | Parquet | gen_inventory.py |
+| Shipments | 2,000,000 | Parquet | gen_supply_chain.py |
+| IoT Telemetry | 100,000,000 | Parquet | gen_iot_telemetry.py |
+| Web Clickstream | 150,000,000 | Parquet | gen_clickstream.py |
+| Customer Interactions | 10,000,000 | Parquet | gen_interactions.py |
+| Promotions | 5,000 | Parquet | gen_promotions.py |
+| Promotion Results | 20,000,000 | Parquet | gen_promotions.py |
 
 ## Real-Time Streams
 

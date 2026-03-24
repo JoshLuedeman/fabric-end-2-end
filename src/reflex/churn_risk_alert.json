@@ -1,0 +1,59 @@
+{
+  "name": "VIP Customer Churn Risk Alert",
+  "description": "Triggers when a VIP or Platinum customer's churn probability exceeds 0.7 based on ML churn prediction model output",
+  "dataSource": {
+    "type": "Lakehouse",
+    "lakehouse": "lh_gold",
+    "table": "ml_churn_predictions",
+    "query": "SELECT customer_id, customer_name, loyalty_tier, churn_probability, last_purchase_date, lifetime_value, top_churn_factors FROM ml_churn_predictions WHERE loyalty_tier IN ('VIP', 'Platinum') AND churn_probability > 0.7 AND prediction_date = CURRENT_DATE()"
+  },
+  "trigger": {
+    "condition": {
+      "type": "threshold",
+      "field": "churn_probability",
+      "operator": "greaterThan",
+      "value": 0.7
+    },
+    "filter": {
+      "field": "loyalty_tier",
+      "operator": "in",
+      "values": ["VIP", "Platinum"]
+    },
+    "groupBy": ["customer_id"]
+  },
+  "actions": [
+    {
+      "type": "email",
+      "recipients": ["customer-success@contoso.com"],
+      "subject": "🔔 Churn Risk: {{loyalty_tier}} Customer {{customer_name}} ({{customer_id}})",
+      "body": "A high-value customer has been flagged as at-risk for churn.\n\nCustomer: {{customer_name}} (ID: {{customer_id}})\nLoyalty Tier: {{loyalty_tier}}\nChurn Probability: {{churn_probability}}\nLifetime Value: ${{lifetime_value}}\nLast Purchase: {{last_purchase_date}}\n\nTop Contributing Factors:\n{{top_churn_factors}}\n\nRecommended Action: Initiate personalized retention outreach within 48 hours."
+    },
+    {
+      "type": "powerAutomate",
+      "flowName": "Create Retention Campaign Task",
+      "parameters": {
+        "customer_id": "{{customer_id}}",
+        "customer_name": "{{customer_name}}",
+        "loyalty_tier": "{{loyalty_tier}}",
+        "churn_probability": "{{churn_probability}}",
+        "lifetime_value": "{{lifetime_value}}",
+        "task_type": "retention_outreach",
+        "priority": "high",
+        "due_date_offset_days": 2
+      }
+    },
+    {
+      "type": "teamsMessage",
+      "channel": "Customer Success",
+      "message": "🔔 Churn Risk Alert | {{loyalty_tier}} customer {{customer_name}} ({{customer_id}}) | Probability: {{churn_probability}} | LTV: ${{lifetime_value}} | Last purchase: {{last_purchase_date}}"
+    }
+  ],
+  "schedule": {
+    "frequency": "daily",
+    "evaluationInterval": "P1D",
+    "startTime": "06:00",
+    "timezone": "UTC",
+    "dependsOn": "nb_churn_prediction"
+  },
+  "severity": "high"
+}

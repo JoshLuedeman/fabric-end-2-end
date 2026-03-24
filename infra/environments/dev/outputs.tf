@@ -30,6 +30,18 @@ output "warehouse_connection_string" {
   sensitive   = true
 }
 
+# SQL Database (OLTP)
+output "sql_database_id" {
+  description = "The ID of the Contoso OLTP operational SQL Database."
+  value       = module.sql_database.id
+}
+
+output "sql_database_connection_string" {
+  description = "The SQL connection string for the Contoso OLTP operational database."
+  value       = module.sql_database.connection_string
+  sensitive   = true
+}
+
 # Eventhouse
 output "eventhouse_id" {
   description = "The ID of the Contoso real-time eventhouse."

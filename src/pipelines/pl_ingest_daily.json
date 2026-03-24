@@ -1,7 +1,7 @@
 {
     "name": "pl_ingest_daily",
     "properties": {
-        "description": "Daily ingestion pipeline — runs bronze layer notebooks in parallel to ingest raw data from source systems into the Lakehouse bronze layer.",
+        "description": "Daily ingestion pipeline (simple pattern) — runs bronze layer notebooks in parallel to ingest raw data from source systems into the Lakehouse bronze layer. For the production metadata-driven pattern, see pl_metadata_ingest.",
         "activities": [
             {
                 "name": "Ingest Dimensions",
@@ -86,7 +86,8 @@
         "annotations": [
             "bronze",
             "ingestion",
-            "daily"
+            "daily",
+            "simple"
         ]
     }
 }

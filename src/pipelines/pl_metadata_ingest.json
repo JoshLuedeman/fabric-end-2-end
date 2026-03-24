@@ -1,0 +1,97 @@
+{
+    "name": "pl_metadata_ingest",
+    "properties": {
+        "description": "Metadata-driven ingestion pipeline — reads active sources from the PipelineMetadata table and dynamically runs the ingest_metadata_driven notebook for each source. This is the production pattern; see pl_ingest_daily for the simpler hard-coded approach.",
+        "activities": [
+            {
+                "name": "Lookup Active Sources",
+                "type": "Lookup",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "0.00:10:00",
+                    "retry": 2,
+                    "retryIntervalInSeconds": 30
+                },
+                "typeProperties": {
+                    "source": {
+                        "type": "SqlSource",
+                        "sqlReaderQuery": {
+                            "value": "SELECT source_name, source_type, source_object, target_lakehouse, target_table, load_type, watermark_column, priority FROM dbo.PipelineMetadata WHERE is_active = 1 AND schedule = '@{pipeline().parameters.schedule_filter}' ORDER BY priority ASC",
+                            "type": "Expression"
+                        }
+                    },
+                    "firstRowOnly": false,
+                    "connectionId": {
+                        "value": "@pipeline().parameters.sqldb_connection_id",
+                        "type": "Expression"
+                    }
+                }
+            },
+            {
+                "name": "ForEach Active Source",
+                "type": "ForEach",
+                "dependsOn": [
+                    {
+                        "activity": "Lookup Active Sources",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "typeProperties": {
+                    "isSequential": false,
+                    "batchCount": 10,
+                    "items": {
+                        "value": "@activity('Lookup Active Sources').output.value",
+                        "type": "Expression"
+                    },
+                    "activities": [
+                        {
+                            "name": "Run Metadata Ingest Notebook",
+                            "type": "TridentNotebook",
+                            "dependsOn": [],
+                            "policy": {
+                                "timeout": "0.02:00:00",
+                                "retry": 2,
+                                "retryIntervalInSeconds": 60
+                            },
+                            "typeProperties": {
+                                "notebookId": "ingest_metadata_driven",
+                                "workspaceId": {
+                                    "value": "@pipeline().parameters.workspace_id",
+                                    "type": "Expression"
+                                },
+                                "parameters": {
+                                    "schedule_filter": {
+                                        "value": "@pipeline().parameters.schedule_filter",
+                                        "type": "Expression"
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "parameters": {
+            "workspace_id": {
+                "type": "string",
+                "defaultValue": ""
+            },
+            "schedule_filter": {
+                "type": "string",
+                "defaultValue": "daily"
+            },
+            "sqldb_connection_id": {
+                "type": "string",
+                "defaultValue": ""
+            }
+        },
+        "annotations": [
+            "bronze",
+            "ingestion",
+            "metadata-driven",
+            "production"
+        ]
+    }
+}

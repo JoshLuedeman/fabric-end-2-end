@@ -1,7 +1,10 @@
 """
 Generate store dimension data for Contoso Global Retail.
 
-Output: stores.parquet
+Output: stores.parquet (snappy-compressed)
+
+Vectorised where possible — Faker is only used once per locale to build
+city / address / name pools, then NumPy samples from those pools.
 """
 
 import os
@@ -12,81 +15,206 @@ from faker import Faker
 
 import config as cfg
 
-# Approximate lat/lon centres per country for realistic coordinates
-_GEO_CENTRES = {
+# ---------------------------------------------------------------------------
+# Approximate lat/lon centres per country  (lat, lon, lat_spread, lon_spread)
+# ---------------------------------------------------------------------------
+_GEO_CENTRES: dict[str, tuple[float, float, float, float]] = {
     "US": (39.8, -98.5, 10, 25),
     "UK": (53.0, -1.5, 3, 3),
     "DE": (51.0, 10.0, 3, 4),
     "JP": (36.2, 138.3, 4, 4),
     "AU": (-25.3, 133.8, 10, 15),
+    "BR": (-14.2, -51.9, 10, 15),
+    "IN": (20.6, 78.9, 8, 10),
+    "FR": (46.6, 2.2, 3, 4),
 }
 
-LOCALE_MAP = {
+# ---------------------------------------------------------------------------
+# Faker locale per country code
+# ---------------------------------------------------------------------------
+LOCALE_MAP: dict[str, str] = {
     "US": "en_US",
     "UK": "en_GB",
     "DE": "de_DE",
     "JP": "ja_JP",
     "AU": "en_AU",
+    "BR": "pt_BR",
+    "IN": "en_IN",
+    "FR": "fr_FR",
+}
+
+# ---------------------------------------------------------------------------
+# Region mapping
+# ---------------------------------------------------------------------------
+_DIRECTIONAL = np.array(["North", "South", "East", "West"])
+
+_COUNTRY_REGION: dict[str, str] = {
+    "UK": "EMEA",
+    "DE": "EMEA",
+    "FR": "EMEA",
+    "JP": "APAC",
+    "AU": "APAC",
+    "IN": "APAC",
+    "BR": "LATAM",
 }
 
 
+def _region(country: np.ndarray, index: np.ndarray) -> np.ndarray:
+    """Vectorised region assignment.
+
+    US stores cycle through North / South / East / West based on their
+    1-based index.  All other countries map to a fixed macro-region.
+    """
+    regions = np.where(
+        country == "US",
+        _DIRECTIONAL[index % 4],
+        np.array([_COUNTRY_REGION.get(c, "International") for c in country]),
+    )
+    return regions
+
+
+# ---------------------------------------------------------------------------
+# Pool size for pre-generated Faker values  (> NUM_STORES to avoid repeats)
+# ---------------------------------------------------------------------------
+_POOL_SIZE = 800
+
+
+def _build_pools(
+    fakers: dict[str, Faker],
+) -> dict[str, dict[str, np.ndarray]]:
+    """Pre-generate pools of city, address, state, postcode, and name per locale.
+
+    Returns ``{country_code: {"city": array, "address": array, ...}}``.
+    """
+    pools: dict[str, dict[str, np.ndarray]] = {}
+    for cc, fake in fakers.items():
+        cities = np.array([fake.city() for _ in range(_POOL_SIZE)])
+        addresses = np.array([fake.street_address() for _ in range(_POOL_SIZE)])
+        postcodes = np.array([fake.postcode() for _ in range(_POOL_SIZE)])
+        names = np.array([fake.name() for _ in range(_POOL_SIZE)])
+
+        # state() only makes sense for US / AU / BR / IN; others get city()
+        if cc in ("US", "AU", "BR", "IN"):
+            states = np.array([fake.state() for _ in range(_POOL_SIZE)])
+        else:
+            states = cities.copy()
+
+        pools[cc] = {
+            "city": cities,
+            "address": addresses,
+            "state": states,
+            "postcode": postcodes,
+            "name": names,
+        }
+    return pools
+
+
+# ---------------------------------------------------------------------------
+# Public API
+# ---------------------------------------------------------------------------
+
+
 def generate_stores() -> pd.DataFrame:
+    """Create the stores dimension table."""
+    n = cfg.NUM_STORES
     rng = np.random.default_rng(cfg.SEED)
-    fakers = {cc: Faker(loc) for cc, loc in LOCALE_MAP.items()}
-    for f in fakers.values():
+
+    # --- Faker instances & pools -----------------------------------------
+    fakers: dict[str, Faker] = {}
+    for cc, loc in LOCALE_MAP.items():
+        f = Faker(loc)
         f.seed_instance(cfg.SEED)
+        fakers[cc] = f
 
-    countries = list(cfg.COUNTRIES.keys())
-    weights = list(cfg.COUNTRIES.values())
-    country_assignments = rng.choice(countries, size=cfg.NUM_STORES, p=weights)
+    pools = _build_pools(fakers)
 
-    # Assign regions based on country
-    def _region(cc: str, idx: int) -> str:
-        if cc in ("UK", "DE", "JP", "AU"):
-            return "International"
-        quadrant = idx % 4
-        return ["North", "South", "East", "West"][quadrant]
+    # --- Country assignments (vectorised) --------------------------------
+    countries_list = list(cfg.COUNTRIES.keys())
+    weights = np.array(list(cfg.COUNTRIES.values()))
+    country = rng.choice(countries_list, size=n, p=weights)
 
-    rows: list[dict] = []
-    for i in range(1, cfg.NUM_STORES + 1):
-        cc = country_assignments[i - 1]
-        fake = fakers[cc]
+    # --- Store type (vectorised) -----------------------------------------
+    store_type = rng.choice(
+        cfg.STORE_TYPES, size=n, p=cfg.STORE_TYPE_WEIGHTS,
+    )
 
-        store_type = rng.choice(cfg.STORE_TYPES, p=cfg.STORE_TYPE_WEIGHTS)
+    # --- 1-based index array ---------------------------------------------
+    idx = np.arange(1, n + 1)
 
-        # Lat/lon with jitter
-        lat_c, lon_c, lat_spread, lon_spread = _GEO_CENTRES[cc]
-        lat = round(lat_c + float(rng.normal(0, lat_spread)), 6)
-        lon = round(lon_c + float(rng.normal(0, lon_spread)), 6)
+    # --- Store IDs (vectorised via list comprehension on ints) -----------
+    store_id = np.array([cfg.store_id(i) for i in idx])
 
-        sqft = int(rng.integers(1_000, 80_000)) if store_type != "Online" else 0
-        opening_date = cfg.START_DATE - pd.Timedelta(
-            days=int(rng.integers(0, 3650))  # up to 10 years before start
-        )
+    # --- Regions (vectorised) --------------------------------------------
+    region = _region(country, idx)
 
-        city = fake.city()
-        store_name = f"Contoso {city} {store_type}"
+    # --- Geo coordinates (vectorised per country) ------------------------
+    lat = np.empty(n)
+    lon = np.empty(n)
+    for cc, (lat_c, lon_c, lat_sp, lon_sp) in _GEO_CENTRES.items():
+        mask = country == cc
+        count = int(mask.sum())
+        if count == 0:
+            continue
+        lat[mask] = lat_c + rng.normal(0, lat_sp, size=count)
+        lon[mask] = lon_c + rng.normal(0, lon_sp, size=count)
+    lat = np.round(lat, 6)
+    lon = np.round(lon, 6)
 
-        rows.append(
-            {
-                "store_id": cfg.store_id(i),
-                "store_name": store_name,
-                "store_type": store_type,
-                "address": fake.street_address(),
-                "city": city,
-                "state": fake.state() if cc in ("US", "AU") else fake.city(),
-                "country": cc,
-                "postal_code": fake.postcode(),
-                "latitude": lat,
-                "longitude": lon,
-                "square_footage": sqft,
-                "opening_date": opening_date,
-                "manager_name": fake.name(),
-                "region": _region(cc, i),
-            }
-        )
+    # --- Square footage (vectorised) -------------------------------------
+    sqft = rng.integers(1_000, 80_000, size=n)
+    sqft = np.where(store_type == "Online", 0, sqft)
 
-    return pd.DataFrame(rows)
+    # --- Opening date (vectorised) ---------------------------------------
+    days_back = rng.integers(0, 3650, size=n)
+    base = np.datetime64(cfg.START_DATE, "D")
+    opening_date = base - days_back.astype("timedelta64[D]")
+
+    # --- Faker-sourced fields: sample from pre-built pools ---------------
+    city = np.empty(n, dtype=object)
+    address = np.empty(n, dtype=object)
+    state = np.empty(n, dtype=object)
+    postcode = np.empty(n, dtype=object)
+    manager = np.empty(n, dtype=object)
+
+    for cc in pools:
+        mask = country == cc
+        count = int(mask.sum())
+        if count == 0:
+            continue
+        p = pools[cc]
+        pick = lambda arr: arr[rng.integers(0, len(arr), size=count)]  # noqa: E731
+        city[mask] = pick(p["city"])
+        address[mask] = pick(p["address"])
+        state[mask] = pick(p["state"])
+        postcode[mask] = pick(p["postcode"])
+        manager[mask] = pick(p["name"])
+
+    # --- Store name (vectorised string concat) ---------------------------
+    store_name = np.char.add(
+        np.char.add("Contoso ", city.astype(str)),
+        np.char.add(" ", store_type.astype(str)),
+    )
+
+    # --- Assemble DataFrame ----------------------------------------------
+    df = pd.DataFrame(
+        {
+            "store_id": store_id,
+            "store_name": store_name,
+            "store_type": store_type,
+            "address": address,
+            "city": city,
+            "state": state,
+            "country": country,
+            "postal_code": postcode,
+            "latitude": lat,
+            "longitude": lon,
+            "square_footage": sqft,
+            "opening_date": pd.to_datetime(opening_date),
+            "manager_name": manager,
+            "region": region,
+        }
+    )
+    return df
 
 
 def main() -> None:
@@ -94,7 +222,7 @@ def main() -> None:
     print("Generating stores …")
     df = generate_stores()
     path = os.path.join(cfg.OUTPUT_DIR, "stores.parquet")
-    df.to_parquet(path, index=False, engine="pyarrow")
+    df.to_parquet(path, index=False, engine="pyarrow", compression="snappy")
     print(f"  ✓ {len(df):,} stores → {path}")
 
 
