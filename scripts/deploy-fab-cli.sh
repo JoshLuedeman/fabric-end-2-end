@@ -184,8 +184,129 @@ for pipeline_file in "$REPO_ROOT"/src/pipelines/*.json; do
 done
 
 # ---------------------------------------------------------------------------
+# Step 10 — Deploy Eventstreams (Change Event Streaming + IoT)
+# ---------------------------------------------------------------------------
+log "Deploying Eventstreams"
+EVENTSTREAM_DIR="$REPO_ROOT/src/eventstream"
+if [ -f "$EVENTSTREAM_DIR/change_event_config.json" ]; then
+  log "  Deploying Change Event Streaming eventstream"
+  fab item create-or-update \
+    --workspace "$FABRIC_WORKSPACE" \
+    --name "contoso-change-events" \
+    --type Eventstream \
+    --path "$EVENTSTREAM_DIR/change_event_config.json"
+fi
+
+# ---------------------------------------------------------------------------
+# Step 11 — Deploy KQL Dashboards
+# ---------------------------------------------------------------------------
+log "Deploying KQL Dashboards"
+for dashboard_file in "$REPO_ROOT"/src/kql/dashboards/*.json; do
+  [ -f "$dashboard_file" ] || continue
+  dashboard_name="$(basename "$dashboard_file" .json)"
+  log "  Deploying KQL dashboard: ${dashboard_name}"
+  fab item create-or-update \
+    --workspace "$FABRIC_WORKSPACE" \
+    --name "$dashboard_name" \
+    --type RealTimeDashboard \
+    --path "$dashboard_file"
+done
+
+# ---------------------------------------------------------------------------
+# Step 12 — Deploy Dataflows Gen2
+# ---------------------------------------------------------------------------
+log "Deploying Dataflows Gen2"
+for pq_file in "$REPO_ROOT"/src/dataflows/*.pq; do
+  [ -f "$pq_file" ] || continue
+  df_name="$(basename "$pq_file" .pq)"
+  metadata_file="${pq_file%.pq}_metadata.json"
+  log "  Deploying dataflow: ${df_name}"
+  fab item create-or-update \
+    --workspace "$FABRIC_WORKSPACE" \
+    --name "$df_name" \
+    --type DataflowGen2 \
+    --path "$pq_file"
+done
+
+# ---------------------------------------------------------------------------
+# Step 13 — Deploy GraphQL API
+# ---------------------------------------------------------------------------
+log "Deploying GraphQL API"
+GRAPHQL_SCHEMA="$REPO_ROOT/src/graphql/schema/retail_api.graphql"
+if [ -f "$GRAPHQL_SCHEMA" ]; then
+  fab item create-or-update \
+    --workspace "$FABRIC_WORKSPACE" \
+    --name "contoso-retail-api" \
+    --type GraphQLApi \
+    --path "$REPO_ROOT/src/graphql/"
+fi
+
+# ---------------------------------------------------------------------------
+# Step 14 — Deploy Reflex / Data Activator alerts
+# ---------------------------------------------------------------------------
+log "Deploying Data Activator (Reflex) triggers"
+for reflex_file in "$REPO_ROOT"/src/reflex/*.json; do
+  [ -f "$reflex_file" ] || continue
+  reflex_name="$(basename "$reflex_file" .json)"
+  log "  Deploying reflex trigger: ${reflex_name}"
+  fab item create-or-update \
+    --workspace "$FABRIC_WORKSPACE" \
+    --name "$reflex_name" \
+    --type Reflex \
+    --path "$reflex_file"
+done
+
+# ---------------------------------------------------------------------------
+# Step 15 — Deploy Digital Twin models (Preview)
+# ---------------------------------------------------------------------------
+log "Deploying Digital Twin Builder models"
+for twin_file in "$REPO_ROOT"/src/digital-twins/*_model.json; do
+  [ -f "$twin_file" ] || continue
+  twin_name="$(basename "$twin_file" _model.json)-digital-twin"
+  log "  Deploying digital twin: ${twin_name}"
+  fab item create-or-update \
+    --workspace "$FABRIC_WORKSPACE" \
+    --name "$twin_name" \
+    --type DigitalTwinBuilder \
+    --path "$twin_file"
+done
+
+# ---------------------------------------------------------------------------
+# Step 16 — Deploy Copy Jobs
+# ---------------------------------------------------------------------------
+log "Deploying Copy Jobs"
+for copyjob_file in "$REPO_ROOT"/src/copy-jobs/*.json; do
+  [ -f "$copyjob_file" ] || continue
+  copyjob_name="$(basename "$copyjob_file" .json)"
+  log "  Deploying copy job: ${copyjob_name}"
+  fab item create-or-update \
+    --workspace "$FABRIC_WORKSPACE" \
+    --name "$copyjob_name" \
+    --type CopyJob \
+    --path "$copyjob_file"
+done
+
+# ---------------------------------------------------------------------------
+# Step 17 — Deploy Scorecards
+# ---------------------------------------------------------------------------
+log "Deploying Power BI Scorecards"
+for scorecard_file in "$REPO_ROOT"/src/power-bi/scorecards/*.json; do
+  [ -f "$scorecard_file" ] || continue
+  scorecard_name="$(basename "$scorecard_file" .json)"
+  log "  Deploying scorecard: ${scorecard_name}"
+  fab item create-or-update \
+    --workspace "$FABRIC_WORKSPACE" \
+    --name "$scorecard_name" \
+    --type Scorecard \
+    --path "$scorecard_file"
+done
+
+# ---------------------------------------------------------------------------
 # Done
 # ---------------------------------------------------------------------------
 log "Deployment complete!"
 log "Workspace: ${FABRIC_WORKSPACE}"
-log "Items deployed: Lakehouses, Warehouse, Notebooks, Semantic Models, AI Agents, User Data Functions, Pipelines"
+log "Items deployed: Lakehouses, Warehouse, Notebooks, Semantic Models,"
+log "  AI Agents, User Data Functions, Pipelines, Eventstreams,"
+log "  KQL Dashboards, Dataflows Gen2, GraphQL API, Reflex triggers,"
+log "  Digital Twin models, Copy Jobs, Scorecards"
