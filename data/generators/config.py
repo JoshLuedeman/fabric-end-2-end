@@ -4,11 +4,14 @@ Shared configuration for Contoso Global Retail & Supply Chain data generators.
 All generators import from this module to ensure consistent entity counts,
 date ranges, and cross-referenced IDs.
 
-Scale profiles
---------------
-* ``small``  – ~865K rows (~43 MB) — fast CI / smoke-test runs
-* ``medium`` – ~10M rows — integration testing
-* ``full``   – 200M+ fact rows (GB-scale) — realistic demo dataset
+Scale profiles (named by recommended Fabric capacity SKU)
+---------------------------------------------------------
+* ``f2``  – ~10M rows (~1 GB) — CI / smoke tests
+* ``f4``  – ~50M rows (~4 GB) — integration testing
+* ``f8``  – ~532M rows (~40 GB) — standard demo
+* ``f16`` – ~1B rows (~80 GB) — large-scale demo
+* ``f32`` – ~3B rows (~225 GB) — enterprise-scale
+* ``f64`` – ~5B rows (~375 GB) — stress-test / max scale
 """
 
 import os
@@ -32,33 +35,33 @@ CHUNK_SIZE = 1_000_000
 # ---------------------------------------------------------------------------
 # Scale profile – set via generate_all.py --scale flag or env var
 # ---------------------------------------------------------------------------
-SCALE = os.environ.get("DATAGEN_SCALE", "full")  # small | medium | full
+SCALE = os.environ.get("DATAGEN_SCALE", "f8")  # f2 | f4 | f8 | f16 | f32 | f64
 
 # ---------------------------------------------------------------------------
-# Entity counts  (dimension tables)
+# Entity counts  (dimension tables) — these are the "f64" defaults
 # ---------------------------------------------------------------------------
-NUM_CUSTOMERS = 2_000_000
-NUM_PRODUCTS = 25_000
-NUM_STORES = 500
-NUM_EMPLOYEES = 15_000
-NUM_SUPPLIERS = 1_000
-NUM_WAREHOUSES = 75
+NUM_CUSTOMERS = 10_000_000
+NUM_PRODUCTS = 100_000
+NUM_STORES = 1_500
+NUM_EMPLOYEES = 50_000
+NUM_SUPPLIERS = 5_000
+NUM_WAREHOUSES = 200
 
 # ---------------------------------------------------------------------------
 # Volume targets  (fact tables)
 # ---------------------------------------------------------------------------
-NUM_SALES_TRANSACTIONS = 200_000_000
-NUM_INVENTORY_RECORDS = 50_000_000
-NUM_IOT_READINGS = 100_000_000
-NUM_SHIPMENTS = 2_000_000
+NUM_SALES_TRANSACTIONS = 2_000_000_000
+NUM_INVENTORY_RECORDS = 500_000_000
+NUM_IOT_READINGS = 1_000_000_000
+NUM_SHIPMENTS = 25_000_000
 
 # ---------------------------------------------------------------------------
 # New dataset targets
 # ---------------------------------------------------------------------------
-NUM_WEB_CLICKSTREAM = 150_000_000
-NUM_CUSTOMER_INTERACTIONS = 10_000_000
-NUM_PROMOTIONS = 5_000
-NUM_PROMOTION_RESULTS = 20_000_000
+NUM_WEB_CLICKSTREAM = 1_000_000_000
+NUM_CUSTOMER_INTERACTIONS = 100_000_000
+NUM_PROMOTIONS = 25_000
+NUM_PROMOTION_RESULTS = 200_000_000
 
 # ---------------------------------------------------------------------------
 # Date range  (4 years of history)
@@ -89,23 +92,8 @@ COUNTRIES = {
 # Scale profiles — override counts for smaller runs
 # ---------------------------------------------------------------------------
 _SCALE_PROFILES = {
-    "small": {
-        "NUM_CUSTOMERS": 50_000,
-        "NUM_PRODUCTS": 2_000,
-        "NUM_STORES": 150,
-        "NUM_EMPLOYEES": 3_000,
-        "NUM_SUPPLIERS": 200,
-        "NUM_WAREHOUSES": 30,
-        "NUM_SALES_TRANSACTIONS": 500_000,
-        "NUM_INVENTORY_RECORDS": 100_000,
-        "NUM_IOT_READINGS": 200_000,
-        "NUM_SHIPMENTS": 3_000,
-        "NUM_WEB_CLICKSTREAM": 50_000,
-        "NUM_CUSTOMER_INTERACTIONS": 10_000,
-        "NUM_PROMOTIONS": 100,
-        "NUM_PROMOTION_RESULTS": 5_000,
-    },
-    "medium": {
+    "f2": {
+        # ~10M rows, ~1 GB — CI / smoke tests
         "NUM_CUSTOMERS": 200_000,
         "NUM_PRODUCTS": 5_000,
         "NUM_STORES": 250,
@@ -121,7 +109,75 @@ _SCALE_PROFILES = {
         "NUM_PROMOTIONS": 500,
         "NUM_PROMOTION_RESULTS": 500_000,
     },
-    # "full" is the default — values already set above
+    "f4": {
+        # ~50M rows, ~4 GB — integration testing
+        "NUM_CUSTOMERS": 350_000,
+        "NUM_PRODUCTS": 8_000,
+        "NUM_STORES": 300,
+        "NUM_EMPLOYEES": 6_500,
+        "NUM_SUPPLIERS": 500,
+        "NUM_WAREHOUSES": 45,
+        "NUM_SALES_TRANSACTIONS": 25_000_000,
+        "NUM_INVENTORY_RECORDS": 5_000_000,
+        "NUM_IOT_READINGS": 10_000_000,
+        "NUM_SHIPMENTS": 300_000,
+        "NUM_WEB_CLICKSTREAM": 10_000_000,
+        "NUM_CUSTOMER_INTERACTIONS": 1_000_000,
+        "NUM_PROMOTIONS": 1_000,
+        "NUM_PROMOTION_RESULTS": 2_500_000,
+    },
+    "f8": {
+        # ~532M rows, ~40 GB — standard demo
+        "NUM_CUSTOMERS": 2_000_000,
+        "NUM_PRODUCTS": 25_000,
+        "NUM_STORES": 500,
+        "NUM_EMPLOYEES": 15_000,
+        "NUM_SUPPLIERS": 1_000,
+        "NUM_WAREHOUSES": 75,
+        "NUM_SALES_TRANSACTIONS": 200_000_000,
+        "NUM_INVENTORY_RECORDS": 50_000_000,
+        "NUM_IOT_READINGS": 100_000_000,
+        "NUM_SHIPMENTS": 2_000_000,
+        "NUM_WEB_CLICKSTREAM": 150_000_000,
+        "NUM_CUSTOMER_INTERACTIONS": 10_000_000,
+        "NUM_PROMOTIONS": 5_000,
+        "NUM_PROMOTION_RESULTS": 20_000_000,
+    },
+    "f16": {
+        # ~1B rows, ~80 GB — large-scale demo
+        "NUM_CUSTOMERS": 5_000_000,
+        "NUM_PRODUCTS": 50_000,
+        "NUM_STORES": 800,
+        "NUM_EMPLOYEES": 25_000,
+        "NUM_SUPPLIERS": 2_000,
+        "NUM_WAREHOUSES": 120,
+        "NUM_SALES_TRANSACTIONS": 400_000_000,
+        "NUM_INVENTORY_RECORDS": 100_000_000,
+        "NUM_IOT_READINGS": 200_000_000,
+        "NUM_SHIPMENTS": 5_000_000,
+        "NUM_WEB_CLICKSTREAM": 300_000_000,
+        "NUM_CUSTOMER_INTERACTIONS": 25_000_000,
+        "NUM_PROMOTIONS": 10_000,
+        "NUM_PROMOTION_RESULTS": 50_000_000,
+    },
+    "f32": {
+        # ~3B rows, ~225 GB — enterprise-scale
+        "NUM_CUSTOMERS": 8_000_000,
+        "NUM_PRODUCTS": 75_000,
+        "NUM_STORES": 1_200,
+        "NUM_EMPLOYEES": 40_000,
+        "NUM_SUPPLIERS": 3_500,
+        "NUM_WAREHOUSES": 160,
+        "NUM_SALES_TRANSACTIONS": 1_000_000_000,
+        "NUM_INVENTORY_RECORDS": 250_000_000,
+        "NUM_IOT_READINGS": 500_000_000,
+        "NUM_SHIPMENTS": 15_000_000,
+        "NUM_WEB_CLICKSTREAM": 750_000_000,
+        "NUM_CUSTOMER_INTERACTIONS": 50_000_000,
+        "NUM_PROMOTIONS": 15_000,
+        "NUM_PROMOTION_RESULTS": 100_000_000,
+    },
+    # "f64" is the default — values already set at module level (~5B rows, ~375 GB)
 }
 
 

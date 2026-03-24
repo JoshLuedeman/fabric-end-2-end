@@ -29,7 +29,7 @@ Once setup is complete, see the [Demo Guide](docs/demo-guide.md) for presenting 
 | Requirement | Minimum | Recommended | Install Link |
 |-------------|---------|-------------|--------------|
 | Azure subscription | Permissions to create App Registrations and Fabric capacity | Owner or Global Admin for bootstrap | [Azure Portal](https://portal.azure.com) |
-| Microsoft Fabric capacity | F2 | F8 (for full demo at 532M+ rows) | [Fabric pricing](https://www.microsoft.com/microsoft-fabric/pricing) |
+| Microsoft Fabric capacity | F2 | F8+ (profile scales to F64) | [Fabric pricing](https://www.microsoft.com/microsoft-fabric/pricing) |
 | Terraform | >= 1.9 | Latest | [terraform.io/downloads](https://www.terraform.io/downloads) |
 | Python | >= 3.12 with pip | Latest | [python.org](https://www.python.org/downloads/) |
 | Node.js | >= 22 with npm | LTS | [nodejs.org](https://nodejs.org/) |
@@ -535,23 +535,29 @@ make preflight ENVIRONMENT=dev
 
 ## 8. Data Scale Options
 
-The data generators support a `--scale` flag to control output size. Choose based on your capacity and demo needs:
+The data generators support a `--scale` flag named after the Fabric capacity SKU they target. Choose the profile matching your provisioned capacity:
 
-| Profile | Approximate Rows | Parquet Size | Generation Time | Recommended Capacity |
-|---------|-----------------|-------------|-----------------|---------------------|
-| `small` | ~5M | ~400 MB | ~5 min | F2 |
-| `medium` | ~50M | ~4 GB | ~30 min | F4 |
-| `full` | ~532M | ~40 GB | ~3 hours | F8 |
+| Profile | Approximate Rows | Parquet Size | Generation Time | Target Capacity |
+|---------|-----------------|-------------|-----------------|-----------------|
+| `f2` | ~10M | ~1 GB | ~5 min | F2 |
+| `f4` | ~50M | ~4 GB | ~20 min | F4 |
+| `f8` | ~532M | ~40 GB | ~3 hours | F8 |
+| `f16` | ~1B | ~80 GB | ~6 hours | F16 |
+| `f32` | ~3B | ~225 GB | ~16 hours | F32 |
+| `f64` | ~5B | ~375 GB | ~24+ hours | F64 |
 
 ```bash
-# Local — generate small dataset
-python data/generators/generate_all.py --output-dir data/generators/output --scale small
+# Local — generate small dataset for CI
+python data/generators/generate_all.py --output-dir data/generators/output --scale f2
 
-# Local — generate and upload at full scale
-make seed-data ENVIRONMENT=dev   # defaults to full scale
+# Local — generate standard demo data (default)
+make seed-data ENVIRONMENT=dev                    # defaults to f8
+
+# Local — generate enterprise-scale data
+make generate-data SCALE=f32
 ```
 
-> **Out of memory?** Use `--scale small` or `--scale medium`. The `full` profile generates 200M sales transactions and requires ~16 GB RAM.
+> **Out of memory?** Use `--scale f2` or `--scale f4`. Profiles `f16` and above generate billions of rows and require 32+ GB RAM. Consider generating on a VM with matching resources.
 
 ---
 

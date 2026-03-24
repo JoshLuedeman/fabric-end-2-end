@@ -1,12 +1,18 @@
 """
-Orchestrator – run all Contoso data generators in the correct order.
+Orchestrator – run all Contoso Global Retail data generators in the correct order.
 
 Usage:
-    python generate_all.py                          # full scale (200M+ rows)
-    python generate_all.py --scale small            # quick smoke test (~865K)
-    python generate_all.py --scale medium           # integration test (~10M)
+    python generate_all.py                          # f8 (default, ~532M rows)
+    python generate_all.py --scale f2               # CI / smoke test (~10M)
+    python generate_all.py --scale f4               # integration test (~50M)
+    python generate_all.py --scale f8               # standard demo (~532M)
+    python generate_all.py --scale f16              # large-scale demo (~1B)
+    python generate_all.py --scale f32              # enterprise-scale (~3B)
+    python generate_all.py --scale f64              # stress-test (~5B)
     python generate_all.py --output-dir /data/demo  # custom output dir
     DATAGEN_OUTPUT_DIR=/data python generate_all.py
+
+Scale profiles are named after the Fabric capacity SKU they target.
 """
 
 import argparse
@@ -156,19 +162,22 @@ def main() -> None:
     )
     parser.add_argument(
         "--scale",
-        choices=["small", "medium", "full"],
+        choices=["f2", "f4", "f8", "f16", "f32", "f64"],
         default=None,
-        help="Data scale profile (default: full). "
-             "small = ~865K rows for testing, "
-             "medium = ~10M rows, "
-             "full = 200M+ fact rows (GB-scale).",
+        help="Data scale profile named by target Fabric capacity SKU (default: f8). "
+             "f2 = ~10M rows / ~1 GB, "
+             "f4 = ~50M rows / ~4 GB, "
+             "f8 = ~532M rows / ~40 GB, "
+             "f16 = ~1B rows / ~80 GB, "
+             "f32 = ~3B rows / ~225 GB, "
+             "f64 = ~5B rows / ~375 GB.",
     )
     args = parser.parse_args()
 
     # Apply scale profile BEFORE any generators are imported (they read cfg at import time)
     if args.scale:
         cfg.apply_scale(args.scale)
-    elif cfg.SCALE != "full":
+    elif cfg.SCALE != "f64":
         # Honour DATAGEN_SCALE env var if set
         cfg.apply_scale(cfg.SCALE)
 

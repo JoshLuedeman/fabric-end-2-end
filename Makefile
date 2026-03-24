@@ -8,6 +8,7 @@
 
 .DEFAULT_GOAL := help
 ENVIRONMENT ?= dev
+SCALE ?= f8
 
 .PHONY: help setup clean generate-data stream-build stream-run \
         sim-build sim-run sim-run-live \
@@ -22,6 +23,7 @@ help: ## Show this help message
 		awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
 	@echo ""
 	@echo "Set ENVIRONMENT=dev|prod (default: dev)"
+	@echo "Set SCALE=f2|f4|f8|f16|f32|f64 (default: f8)"
 
 # --- Setup ---
 
@@ -39,9 +41,9 @@ clean: ## Remove generated artifacts
 
 # --- Data Generation ---
 
-generate-data: ## Generate synthetic demo data (output: data/generators/output/)
-	@echo "Generating synthetic data..."
-	python data/generators/generate_all.py --output-dir data/generators/output
+generate-data: ## Generate synthetic demo data (SCALE=f2|f4|f8|f16|f32|f64)
+	@echo "Generating synthetic data (scale: $(SCALE))..."
+	python data/generators/generate_all.py --output-dir data/generators/output --scale $(SCALE)
 	@echo "Data generation complete."
 
 seed-data: generate-data ## Generate data and upload to Lakehouse bronze layer
