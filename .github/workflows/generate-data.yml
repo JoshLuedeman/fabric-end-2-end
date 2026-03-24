@@ -63,8 +63,9 @@ jobs:
 
       - name: Run data generators
         run: |
-          echo "🏭 Generating synthetic data..."
-          python data/generators/generate_all.py --output-dir ./data-output
+          SCALE=$(echo "${{ vars.FABRIC_SKU || 'F8' }}" | tr 'A-Z' 'a-z')
+          echo "🏭 Generating synthetic data (scale: $SCALE)..."
+          python data/generators/generate_all.py --output-dir ./data-output --scale $SCALE
           echo ""
           echo "Generated files:"
           find ./data-output -type f | sort
@@ -88,6 +89,7 @@ jobs:
 
       - name: Generation summary
         run: |
+          SCALE=$(echo "${{ vars.FABRIC_SKU || 'F8' }}" | tr 'A-Z' 'a-z')
           echo "### Data Generation" >> "$GITHUB_STEP_SUMMARY"
           echo "✅ Synthetic data generated successfully." >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
@@ -95,6 +97,7 @@ jobs:
           echo "|--------|-------|" >> "$GITHUB_STEP_SUMMARY"
           FILE_COUNT=$(find ./data-output -type f | wc -l)
           TOTAL_SIZE=$(du -sh ./data-output | cut -f1)
+          echo "| Scale Profile | $SCALE |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Files | $FILE_COUNT |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Total Size | $TOTAL_SIZE |" >> "$GITHUB_STEP_SUMMARY"
 

@@ -8,7 +8,8 @@
 
 .DEFAULT_GOAL := help
 ENVIRONMENT ?= dev
-SCALE ?= f8
+FABRIC_SKU ?= F8
+SCALE = $(shell echo $(FABRIC_SKU) | tr 'A-Z' 'a-z')
 
 .PHONY: help setup clean generate-data stream-build stream-run \
         sim-build sim-run sim-run-live \
@@ -23,7 +24,7 @@ help: ## Show this help message
 		awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
 	@echo ""
 	@echo "Set ENVIRONMENT=dev|prod (default: dev)"
-	@echo "Set SCALE=f2|f4|f8|f16|f32|f64 (default: f8)"
+	@echo "Set FABRIC_SKU=F2|F4|F8|F16|F32|F64 (default: F8)"
 
 # --- Setup ---
 
@@ -41,7 +42,7 @@ clean: ## Remove generated artifacts
 
 # --- Data Generation ---
 
-generate-data: ## Generate synthetic demo data (SCALE=f2|f4|f8|f16|f32|f64)
+generate-data: ## Generate synthetic demo data (FABRIC_SKU=F2|F4|F8|F16|F32|F64)
 	@echo "Generating synthetic data (scale: $(SCALE))..."
 	python data/generators/generate_all.py --output-dir data/generators/output --scale $(SCALE)
 	@echo "Data generation complete."
@@ -77,13 +78,13 @@ tf-init: ## Initialize Terraform (usage: make tf-init ENVIRONMENT=dev)
 	cd infra/environments/$(ENVIRONMENT) && terraform init
 
 tf-plan: ## Terraform plan (usage: make tf-plan ENVIRONMENT=dev)
-	cd infra/environments/$(ENVIRONMENT) && terraform plan -out=tfplan
+	cd infra/environments/$(ENVIRONMENT) && terraform plan -var="capacity_sku=$(FABRIC_SKU)" -out=tfplan
 
 tf-apply: ## Terraform apply (usage: make tf-apply ENVIRONMENT=dev)
 	cd infra/environments/$(ENVIRONMENT) && terraform apply tfplan
 
 tf-destroy: ## Terraform destroy (usage: make tf-destroy ENVIRONMENT=dev)
-	cd infra/environments/$(ENVIRONMENT) && terraform destroy
+	cd infra/environments/$(ENVIRONMENT) && terraform destroy -var="capacity_sku=$(FABRIC_SKU)"
 
 # --- Content Deployment (Fabric CLI) ---
 
@@ -110,7 +111,7 @@ post-deploy: ## Run post-deployment configuration (domains, Airflow, PBI apps)
 	@bash scripts/post-deploy-config.sh
 
 deploy-all: preflight tf-init tf-plan tf-apply deploy-fabric deploy-content seed-data post-deploy ## Full environment deployment (end-to-end)
-	@echo "=== Full deployment to $(ENVIRONMENT) complete ==="
+	@echo "=== Full deployment to $(ENVIRONMENT) (SKU: $(FABRIC_SKU)) complete ==="
 
 # --- Teamwork Agent Targets ---
 

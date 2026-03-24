@@ -138,6 +138,7 @@ Configure in **Settings → Secrets and variables → Actions → Variables**:
 | `FABRIC_WORKSPACE_ID` | Fabric workspace GUID for content deployment | After infra deploy — from Terraform output or Fabric portal URL |
 | `LAKEHOUSE_ONELAKE_URL` | OneLake URL for data upload | After infra deploy — `https://onelake.dfs.fabric.microsoft.com/<workspace>/<lakehouse>` |
 | `AZURE_RESOURCE_GROUP` | Resource group for streaming ACI deployment | After infra deploy — e.g., `rg-contoso-fabric-dev` |
+| `FABRIC_SKU` | Fabric capacity SKU — controls capacity size AND data generation scale (F2/F4/F8/F16/F32/F64) | F8 |
 
 ---
 
@@ -551,12 +552,14 @@ The data generators support a `--scale` flag named after the Fabric capacity SKU
 python data/generators/generate_all.py --output-dir data/generators/output --scale f2
 
 # Local — generate standard demo data (default)
-make seed-data ENVIRONMENT=dev                    # defaults to f8
+make seed-data ENVIRONMENT=dev FABRIC_SKU=F8
 
 # Local — generate enterprise-scale data
-make generate-data SCALE=f32
+make generate-data FABRIC_SKU=F32
 ```
 
+> **In CI**, set `FABRIC_SKU` as a GitHub repository variable. All workflows will use it automatically.
+>
 > **Out of memory?** Use `--scale f2` or `--scale f4`. Profiles `f16` and above generate billions of rows and require 32+ GB RAM. Consider generating on a VM with matching resources.
 
 ---

@@ -26,7 +26,7 @@ End-to-end Microsoft Fabric demo showcasing all platform capabilities including 
 - **Data Agents**: AI-powered virtual analysts (sales + supply chain)
 - **Automated Deployment**: Terraform + Fabric CLI + GitHub Actions
 
-> **Data scale**: 6 profiles named by Fabric capacity SKU (`f2` through `f64`) — from ~10M rows / 1 GB for CI up to ~5B rows / 375 GB for stress-testing. Default is `f8` (~532M rows, ~40 GB).
+> **Data scale**: One variable (`FABRIC_SKU`) controls everything — from `F2` (~10M rows, 1 GB) for CI to `F64` (~5B rows, 375 GB) for stress-testing. Default is `F8` (~532M rows, 40 GB).
 
 ## Quick Start
 

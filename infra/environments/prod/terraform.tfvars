@@ -5,7 +5,6 @@
 
 environment         = "prod"
 location            = "eastus"
-capacity_sku        = "F8"
 resource_group_name = "rg-contoso-fabric-prod"
 project_prefix      = "contoso"
 

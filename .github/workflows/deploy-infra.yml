@@ -22,6 +22,18 @@ on:
           - dev
           - prod
         default: dev
+      fabric_sku:
+        description: "Fabric capacity SKU"
+        required: false
+        type: choice
+        options:
+          - F2
+          - F4
+          - F8
+          - F16
+          - F32
+          - F64
+        default: F8
 
 permissions:
   id-token: write   # OIDC token for Azure login
@@ -81,6 +93,7 @@ jobs:
         run: |
           terraform plan \
             -detailed-exitcode \
+            -var="capacity_sku=${{ inputs.fabric_sku || vars.FABRIC_SKU || 'F8' }}" \
             -out=tfplan \
             -input=false
         continue-on-error: true

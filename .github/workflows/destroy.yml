@@ -110,7 +110,10 @@ jobs:
         working-directory: ${{ env.WORKING_DIR }}
         run: |
           echo "📋 Generating destroy plan..."
-          terraform plan -destroy -input=false -out=destroy.tfplan
+          terraform plan -destroy \
+            -var="capacity_sku=${{ vars.FABRIC_SKU || 'F8' }}" \
+            -input=false \
+            -out=destroy.tfplan
 
       - name: Terraform Destroy
         working-directory: ${{ env.WORKING_DIR }}
