@@ -30,7 +30,7 @@ End-to-end Microsoft Fabric demo showcasing all platform capabilities including 
 
 ## Quick Start
 
-> **CI/CD Setup:** For detailed configuration of GitHub Actions pipelines — including required secrets, variables, OIDC federation, and deployment order — see the [CI/CD Setup Guide](docs/cicd-setup.md).
+> **📘 Complete Setup Guide:** For the full step-by-step walkthrough — prerequisites, secrets, variables, deployment order, post-deploy feature configuration, and verification — see **[SETUP.md](SETUP.md)**. It consolidates all setup information into one place.
 
 ```bash
 # 1. Bootstrap (one-time): create SPN and configure permissions
@@ -51,6 +51,8 @@ make deploy-content ENVIRONMENT=dev
 make stream-build
 make stream-run
 ```
+
+See [SETUP.md](SETUP.md) for the complete 7-step deployment with GitHub Actions alternatives, post-deployment Fabric feature configuration, admin portal settings, and verification checklist.
 
 ## Project Structure
 
