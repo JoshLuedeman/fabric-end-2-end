@@ -1,5 +1,7 @@
 # Fabric End-to-End Demo Environment
 
+> **🚧 Work in Progress** — This project is under active development. Infrastructure modules, data generators, notebooks, and deployment workflows are being built out incrementally. Expect breaking changes, incomplete features, and rough edges. Contributions and feedback are welcome!
+
 End-to-end Microsoft Fabric demo showcasing all platform capabilities including features announced at FabCon/SQLCon 2026 in Atlanta.
 
 ## Scenario
