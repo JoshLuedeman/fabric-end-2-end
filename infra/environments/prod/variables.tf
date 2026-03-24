@@ -11,9 +11,14 @@ variable "location" {
 }
 
 variable "capacity_sku" {
-  description = "The Fabric Capacity SKU (e.g. F2, F4, F8, F16, F32)."
+  description = "The Fabric Capacity SKU that controls capacity size AND data generation scale."
   type        = string
   default     = "F8"
+
+  validation {
+    condition     = contains(["F2", "F4", "F8", "F16", "F32", "F64", "F128", "F256", "F512", "F1024", "F2048"], var.capacity_sku)
+    error_message = "capacity_sku must be a valid Fabric SKU: F2, F4, F8, F16, F32, F64, F128, F256, F512, F1024, or F2048."
+  }
 }
 
 variable "subscription_id" {

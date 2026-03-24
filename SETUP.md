@@ -138,7 +138,7 @@ Configure in **Settings → Secrets and variables → Actions → Variables**:
 | `FABRIC_WORKSPACE_ID` | Fabric workspace GUID for content deployment | After infra deploy — from Terraform output or Fabric portal URL |
 | `LAKEHOUSE_ONELAKE_URL` | OneLake URL for data upload | After infra deploy — `https://onelake.dfs.fabric.microsoft.com/<workspace>/<lakehouse>` |
 | `AZURE_RESOURCE_GROUP` | Resource group for streaming ACI deployment | After infra deploy — e.g., `rg-contoso-fabric-dev` |
-| `FABRIC_SKU` | Fabric capacity SKU — controls capacity size AND data generation scale (F2/F4/F8/F16/F32/F64) | F8 |
+| `FABRIC_SKU` | Fabric capacity SKU — controls capacity size AND data generation scale. **Must be uppercase**: `F2`, `F4`, `F8`, `F16`, `F32`, or `F64` | `F8` |
 
 ---
 
@@ -536,31 +536,36 @@ make preflight ENVIRONMENT=dev
 
 ## 8. Data Scale Options
 
-The data generators support a `--scale` flag named after the Fabric capacity SKU they target. Choose the profile matching your provisioned capacity:
+Set `FABRIC_SKU` once — it provisions the matching Fabric capacity **and** generates the right volume of seed data automatically. The value must be an **uppercase** Fabric capacity SKU name (this is what Azure and Terraform expect).
 
-| Profile | Approximate Rows | Parquet Size | Generation Time | Target Capacity |
-|---------|-----------------|-------------|-----------------|-----------------|
-| `f2` | ~10M | ~1 GB | ~5 min | F2 |
-| `f4` | ~50M | ~4 GB | ~20 min | F4 |
-| `f8` | ~532M | ~40 GB | ~3 hours | F8 |
-| `f16` | ~1B | ~80 GB | ~6 hours | F16 |
-| `f32` | ~3B | ~225 GB | ~16 hours | F32 |
-| `f64` | ~5B | ~375 GB | ~24+ hours | F64 |
+| `FABRIC_SKU` | Approximate Rows | Parquet Size | Generation Time | Description |
+|--------------|-----------------|-------------|-----------------|-------------|
+| `F2` | ~10M | ~1 GB | ~5 min | CI / smoke tests |
+| `F4` | ~50M | ~4 GB | ~20 min | Integration testing |
+| `F8` | ~532M | ~40 GB | ~3 hours | Standard demo (default) |
+| `F16` | ~1B | ~80 GB | ~6 hours | Large-scale demo |
+| `F32` | ~3B | ~225 GB | ~16 hours | Enterprise-scale |
+| `F64` | ~5B | ~375 GB | ~24+ hours | Stress-test / max scale |
+
+> **Valid values**: `F2`, `F4`, `F8`, `F16`, `F32`, `F64` (must be uppercase). Terraform will reject invalid values at plan time.
 
 ```bash
 # Local — generate small dataset for CI
-python data/generators/generate_all.py --output-dir data/generators/output --scale f2
+make generate-data FABRIC_SKU=F2
 
-# Local — generate standard demo data (default)
-make seed-data ENVIRONMENT=dev FABRIC_SKU=F8
+# Local — full pipeline at standard scale (default)
+make deploy-all ENVIRONMENT=dev FABRIC_SKU=F8
 
-# Local — generate enterprise-scale data
+# Local — enterprise-scale data only
 make generate-data FABRIC_SKU=F32
+
+# Direct Python call (lowercase required for --scale flag)
+python data/generators/generate_all.py --output-dir data/generators/output --scale f2
 ```
 
-> **In CI**, set `FABRIC_SKU` as a GitHub repository variable. All workflows will use it automatically.
+> **In CI**, set `FABRIC_SKU` as a GitHub repository variable (e.g., `F8`). All workflows read it automatically — Terraform provisions the capacity, data generators produce the matching dataset.
 >
-> **Out of memory?** Use `--scale f2` or `--scale f4`. Profiles `f16` and above generate billions of rows and require 32+ GB RAM. Consider generating on a VM with matching resources.
+> **Out of memory?** Profiles `F16` and above generate billions of rows and require 32+ GB RAM. Consider generating on a VM with matching resources.
 
 ---
 

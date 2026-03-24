@@ -6,7 +6,7 @@ This file captures project learnings that persist across agent sessions.
 
 - **Name**: Fabric End-to-End Demo Environment
 - **Scenario**: Contoso Global Retail & Supply Chain
-- **Fabric Capacity**: F8
+- **Fabric Capacity**: Configurable via `FABRIC_SKU` (F2–F64, default F8)
 - **Environments**: Dev + Prod (per-workload workspaces × lifecycle stages)
 
 ## Tech Stack

@@ -9,7 +9,7 @@ Everything you need to configure after cloning or forking this repository to get
 Before you begin, ensure you have:
 
 - An **Azure subscription** with permissions to create App Registrations and Fabric capacity
-- A **Microsoft Fabric F2+ capacity** (F8 recommended for the full demo)
+- A **Microsoft Fabric F2+ capacity** (set `FABRIC_SKU` to match — default F8)
 - **GitHub CLI** (`gh`) installed — used by the bootstrap script ([install](https://cli.github.com/))
 - **Azure CLI** (`az`) authenticated with Owner or Global Admin permissions ([install](https://aka.ms/install-azure-cli))
 - **Terraform >= 1.5** installed locally (optional, only needed for local runs)

@@ -14,9 +14,14 @@ variable "location" {
 }
 
 variable "sku_name" {
-  description = "The SKU name for the Fabric Capacity (e.g. F2, F4, F8, F16, F32, F64)."
+  description = "The SKU name for the Fabric Capacity."
   type        = string
   default     = "F8"
+
+  validation {
+    condition     = contains(["F2", "F4", "F8", "F16", "F32", "F64", "F128", "F256", "F512", "F1024", "F2048"], var.sku_name)
+    error_message = "sku_name must be a valid Fabric capacity SKU: F2, F4, F8, F16, F32, F64, F128, F256, F512, F1024, or F2048."
+  }
 }
 
 variable "admin_members" {

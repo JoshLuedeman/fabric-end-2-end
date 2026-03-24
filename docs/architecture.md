@@ -1,12 +1,12 @@
 # Architecture — Contoso Global Retail & Supply Chain
 
-> End-to-end Microsoft Fabric demo environment showcasing the full platform across retail, supply chain, IoT, and AI workloads — running on a single F8 capacity.
+> End-to-end Microsoft Fabric demo environment showcasing the full platform across retail, supply chain, IoT, and AI workloads — configurable from F2 to F64 capacity via a single `FABRIC_SKU` variable.
 
 ---
 
 ## Architecture Overview
 
-This project deploys a cross-industry demo on **Microsoft Fabric F8 capacity** with two lifecycle environments (Dev and Prod). Each environment provisions **8 purpose-built workspaces**:
+This project deploys a cross-industry demo on **Microsoft Fabric** (default F8 capacity, configurable via `FABRIC_SKU`) with two lifecycle environments (Dev and Prod). Each environment provisions **8 purpose-built workspaces**:
 
 | Workspace | Purpose |
 |---|---|
@@ -241,7 +241,7 @@ All Power BI reports are stored in `.pbip` (Power BI Project) format. Semantic m
 
 | Layer | Technology | Version / SKU |
 |---|---|---|
-| Compute | Microsoft Fabric | F8 capacity |
+| Compute | Microsoft Fabric | F2–F64 (set via `FABRIC_SKU`, default F8) |
 | IaC | Terraform | ≥ 1.9 |
 | Fabric Provider | `microsoft/fabric` | Latest |
 | Azure Provider | `hashicorp/azurerm` | Latest |

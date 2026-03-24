@@ -72,7 +72,7 @@ See [docs/feature-matrix.md](docs/feature-matrix.md) for full feature coverage i
 
 ## Prerequisites
 
-- Azure subscription with Fabric F8 capacity
+- Azure subscription with Fabric capacity (F2+ — set `FABRIC_SKU` to match)
 - Terraform >= 1.9
 - Python >= 3.12
 - Node.js >= 22

@@ -14,7 +14,7 @@ This document tracks which Microsoft Fabric features are demonstrated in this en
 |---------|--------|----------------|------------|
 | OneLake | ✅ | Unified storage for all workloads | Terraform |
 | Workspaces | ✅ | 8 workspaces per environment | Terraform |
-| Fabric Capacity (F8) | ✅ | Provisioned via IaC | Terraform |
+| Fabric Capacity (F2–F64) | ✅ | Provisioned via IaC | Terraform (`FABRIC_SKU`) |
 | Git Integration | ✅ | Source-controlled artifacts | GitHub |
 
 ## Data Engineering

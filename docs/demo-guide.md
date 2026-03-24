@@ -4,7 +4,7 @@ A step-by-step walkthrough of **Contoso Global Retail** — a living, breathing 
 
 ## Prerequisites
 
-1. Azure subscription with Fabric F8 capacity provisioned
+1. Azure subscription with Fabric capacity provisioned (set `FABRIC_SKU` variable — default F8)
 2. Service principal configured (see `infra/bootstrap/README.md`)
 3. GitHub repository secrets configured for OIDC auth
 4. Tools installed: Terraform, Python 3.12+, Node.js 22+, Fabric CLI
