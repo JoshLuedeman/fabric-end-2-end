@@ -95,7 +95,19 @@ upload-reports: ## Upload Power BI reports to Fabric workspace
 
 # --- Full Deployment ---
 
-deploy-all: tf-init tf-plan tf-apply deploy-content seed-data ## Full environment deployment
+preflight: ## Run preflight checks (validates tools, auth, settings)
+	@bash scripts/preflight-check.sh $(ENVIRONMENT)
+
+configure-tenant: ## Configure Fabric tenant settings (requires Fabric Admin)
+	@bash scripts/configure-tenant.sh
+
+deploy-fabric: ## Deploy all Fabric items via Fabric CLI
+	@bash scripts/deploy-fab-cli.sh
+
+post-deploy: ## Run post-deployment configuration (domains, Airflow, PBI apps)
+	@bash scripts/post-deploy-config.sh
+
+deploy-all: preflight tf-init tf-plan tf-apply deploy-fabric deploy-content seed-data post-deploy ## Full environment deployment (end-to-end)
 	@echo "=== Full deployment to $(ENVIRONMENT) complete ==="
 
 # --- Teamwork Agent Targets ---

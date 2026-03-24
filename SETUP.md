@@ -186,7 +186,34 @@ These cannot be automated and must be done in the portal:
 
 ## 5. Deployment Order
 
-Follow these steps sequentially. For each step, both the **local** (`make`) and **CI/CD** (GitHub Actions) paths are shown.
+> **One-command deployment:** `make deploy-all ENVIRONMENT=dev` runs the full pipeline below.
+> For step-by-step control, follow the individual steps.
+
+### Step 0: Preflight Check + Tenant Configuration
+
+Before deploying, validate all prerequisites and configure tenant settings:
+
+```bash
+# Validate tools, auth, and settings
+make preflight ENVIRONMENT=dev
+
+# Enable required Fabric Admin tenant settings (one-time, requires Fabric Admin)
+make configure-tenant
+
+# Or with a security group scope (recommended for production):
+./scripts/configure-tenant.sh --security-group <entra-group-id>
+```
+
+The preflight check validates: CLI tools, Azure/Fabric auth, tenant settings, TF state backend, GitHub secrets (in CI), and Python/Node.js dependencies.
+
+The tenant configuration script enables these settings via the Admin REST API (Preview):
+1. Service principals can use Fabric APIs
+2. Push apps to end users
+3. Digital Twin Builder (Preview)
+4. Users can create Fabric items
+5. XMLA endpoints
+
+> **Note:** `configure-tenant.sh` uses the Preview Update Tenant Settings API. If any setting fails to enable programmatically, the script provides manual fallback instructions.
 
 ```
 Step 1: Bootstrap           → Azure identity + GitHub secrets
@@ -194,9 +221,10 @@ Step 2: Deploy Infra (dev)  → Fabric capacity, workspaces, lakehouses, Event H
 Step 3: Set post-deploy     → EVENTHUB_CONNECTION_STRING, FABRIC_WORKSPACE_ID,
         secrets/variables      LAKEHOUSE_ONELAKE_URL, AZURE_RESOURCE_GROUP
 Step 4: Generate Data       → 532M+ rows of synthetic Parquet data
-Step 5: Deploy Content      → Notebooks, pipelines, reports, semantic models
+Step 5: Deploy Fabric Items → Eventstreams, dashboards, dataflows, GraphQL, etc.
 Step 6: Deploy Streaming    → IoT simulator to Azure Container Instances
-Step 7: Start OLTP Sim      → Continuous POS transactions to SQL Database
+Step 7: Post-Deploy Config  → Domains, Variable Library, Airflow, PBI Apps
+Step 8: Start OLTP Sim      → Continuous POS transactions to SQL Database
 ```
 
 ### Step 1: Bootstrap
@@ -467,7 +495,26 @@ Centralize environment-specific configuration values.
 
 ## 7. Fabric Admin Portal Settings
 
-Consolidated list of all admin portal toggles needed for the full demo:
+These tenant settings are required for the full demo. They can be enabled **automatically** or manually.
+
+### Automated (recommended)
+
+```bash
+# Enable all required tenant settings via REST API
+make configure-tenant
+
+# Or with dry-run to see what would change:
+./scripts/configure-tenant.sh --dry-run
+
+# Scope SPN access to a specific security group (recommended for production):
+./scripts/configure-tenant.sh --security-group <entra-group-id>
+```
+
+The script uses the Fabric Admin REST API (Preview) and requires the authenticated identity to be a **Fabric Administrator** with `Tenant.ReadWrite.All` permission.
+
+### Manual fallback
+
+If the API fails for any setting, enable it in the portal:
 
 | Setting | Location | Required For |
 |---------|----------|-------------|
@@ -476,9 +523,13 @@ Consolidated list of all admin portal toggles needed for the full demo:
 | Digital Twin Builder (Preview) | Admin Portal → Tenant settings → Preview features | Digital Twin Builder |
 | Users can create Fabric items | Admin Portal → Tenant settings | Content deployment |
 | Allow XMLA endpoints | Admin Portal → Capacity settings | Semantic model refresh via external tools |
-| Publish content packs and apps to the entire organization | Admin Portal → Tenant settings → Content pack and app settings | Power BI Apps publishing |
 
-> Enable these **before** running the deployment steps. Missing settings cause cryptic "access denied" errors during Terraform apply and content deployment.
+### Verify settings
+
+```bash
+# Run preflight check to verify all settings are enabled
+make preflight ENVIRONMENT=dev
+```
 
 ---
 
