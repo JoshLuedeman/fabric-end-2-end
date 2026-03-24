@@ -1,5 +1,5 @@
 -- ===========================================================================
--- Contoso Operational POS Database — Views
+-- Tales & Timber Operational POS Database — Views
 -- Operational views for the live OLTP system.
 -- ===========================================================================
 

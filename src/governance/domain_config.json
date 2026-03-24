@@ -1,8 +1,8 @@
 {
-  "name": "Contoso Global Retail — Fabric Domain Configuration",
-  "description": "Defines the business domain hierarchy, workspace assignments, and endorsement policies for the Contoso Fabric tenant. Domains provide logical grouping of workspaces by business function to enable decentralized data governance.",
+  "name": "Tales & Timber — Fabric Domain Configuration",
+  "description": "Defines the business domain hierarchy, workspace assignments, and endorsement policies for the Tales & Timber Fabric tenant. Domains provide logical grouping of workspaces by business function to enable decentralized data governance.",
   "version": "1.0",
-  "tenant": "contoso.onmicrosoft.com",
+  "tenant": "tt.onmicrosoft.com",
   "domains": [
     {
       "id": "retail-operations",
@@ -14,17 +14,17 @@
       "viewers_group": "sg-fabric-retail-ops-viewers",
       "workspace_assignments": [
         {
-          "workspace_pattern": "contoso-ingestion-{env}",
+          "workspace_pattern": "tt-ingestion-{env}",
           "role": "Data ingestion pipelines (ELT from POS, ERP, CRM)",
           "data_classification": "internal"
         },
         {
-          "workspace_pattern": "contoso-data-engineering-{env}",
+          "workspace_pattern": "tt-data-engineering-{env}",
           "role": "Medallion lakehouse (bronze/silver/gold) transformations",
           "data_classification": "internal"
         },
         {
-          "workspace_pattern": "contoso-data-warehouse-{env}",
+          "workspace_pattern": "tt-data-warehouse-{env}",
           "role": "Central warehouse and OLTP operational database",
           "data_classification": "confidential"
         }
@@ -52,12 +52,12 @@
       "viewers_group": "sg-fabric-customer-intel-viewers",
       "workspace_assignments": [
         {
-          "workspace_pattern": "contoso-data-science-{env}",
+          "workspace_pattern": "tt-data-science-{env}",
           "role": "ML models, experiments, and predictive analytics",
           "data_classification": "confidential"
         },
         {
-          "workspace_pattern": "contoso-analytics-{env}",
+          "workspace_pattern": "tt-analytics-{env}",
           "role": "Power BI reports, semantic models, and dashboards",
           "data_classification": "internal"
         }
@@ -86,7 +86,7 @@
       "viewers_group": "sg-fabric-supply-chain-viewers",
       "workspace_assignments": [
         {
-          "workspace_pattern": "contoso-real-time-{env}",
+          "workspace_pattern": "tt-real-time-{env}",
           "role": "Eventhouse, KQL databases, eventstreams for IoT and logistics data",
           "data_classification": "internal"
         }
@@ -114,12 +114,12 @@
       "viewers_group": "sg-fabric-governance-viewers",
       "workspace_assignments": [
         {
-          "workspace_pattern": "contoso-governance-{env}",
+          "workspace_pattern": "tt-governance-{env}",
           "role": "Data governance policies, lineage tracking, and compliance monitoring",
           "data_classification": "highly_confidential"
         },
         {
-          "workspace_pattern": "contoso-ai-agents-{env}",
+          "workspace_pattern": "tt-ai-agents-{env}",
           "role": "AI agents for data Q&A, automated insights, and copilot experiences",
           "data_classification": "confidential"
         }
@@ -134,7 +134,7 @@
       "data_products": [
         "Data quality scorecard",
         "Platform usage analytics",
-        "Contoso Data Agent (AI Q&A)"
+        "Tales & Timber Data Agent (AI Q&A)"
       ]
     }
   ],

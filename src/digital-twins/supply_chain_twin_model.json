@@ -2,26 +2,26 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "_comment": [
     "Digital Twin Model — Supply Chain",
-    "Contoso Global Retail & Supply Chain",
+    "Tales & Timber",
     "",
     "Defines the entity types, relationships, properties, and telemetry",
-    "bindings for a digital twin of the Contoso supply chain network.",
+    "bindings for a digital twin of the Tales & Timber supply chain network.",
     "Models the flow: Supplier → Warehouse → DistributionCenter → Store.",
     "",
     "Backed by the Shipments, InventorySnapshot, and RealtimeSales tables",
-    "in contoso_kqldb."
+    "in tt_kqldb."
   ],
 
-  "modelId": "contoso:SupplyChain:1",
+  "modelId": "tt:SupplyChain:1",
   "modelVersion": "1.0.0",
-  "displayName": "Contoso Supply Chain Twin",
-  "description": "Digital twin model for the Contoso supply chain — suppliers, warehouses, distribution centers, transport routes, and fleet.",
+  "displayName": "Tales & Timber Supply Chain Twin",
+  "description": "Digital twin model for the Tales & Timber supply chain — suppliers, warehouses, distribution centers, transport routes, and fleet.",
 
   "entityTypes": [
     {
       "id": "Supplier",
       "displayName": "Supplier",
-      "description": "External supplier that provides products to Contoso warehouses.",
+      "description": "External supplier that provides products to Tales & Timber warehouses.",
       "properties": [
         { "name": "SupplierId",        "type": "string",   "description": "Supplier identifier (SUP-0001 to SUP-NNNN)" },
         { "name": "SupplierName",      "type": "string",   "description": "Supplier business name" },
@@ -38,7 +38,7 @@
       "telemetryBindings": [
         {
           "name": "ShipmentActivity",
-          "source": "contoso_kqldb.Shipments",
+          "source": "tt_kqldb.Shipments",
           "filter": "SupplierId == '{SupplierId}'",
           "valueColumn": "Quantity",
           "timestampColumn": "ShipmentDate",
@@ -51,7 +51,7 @@
     {
       "id": "Warehouse",
       "displayName": "Warehouse",
-      "description": "Contoso warehouse that receives goods from suppliers and distributes to stores or distribution centers.",
+      "description": "Tales & Timber warehouse that receives goods from suppliers and distributes to stores or distribution centers.",
       "properties": [
         { "name": "WarehouseId",       "type": "string",   "description": "Warehouse identifier (WH-0001 to WH-NNNN)" },
         { "name": "WarehouseName",     "type": "string",   "description": "Warehouse display name" },
@@ -68,7 +68,7 @@
       "telemetryBindings": [
         {
           "name": "ReceivingRate",
-          "source": "contoso_kqldb.Shipments",
+          "source": "tt_kqldb.Shipments",
           "filter": "WarehouseId == '{WarehouseId}' and DeliveryDate >= ago(24h)",
           "valueColumn": "Quantity",
           "timestampColumn": "DeliveryDate",
@@ -115,7 +115,7 @@
       "telemetryBindings": [
         {
           "name": "ActiveShipments",
-          "source": "contoso_kqldb.Shipments",
+          "source": "tt_kqldb.Shipments",
           "filter": "ShipmentDate <= now() and DeliveryDate > now()",
           "valueColumn": "Quantity",
           "timestampColumn": "ShipmentDate",

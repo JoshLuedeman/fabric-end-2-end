@@ -1,5 +1,5 @@
 {
-  "name": "Contoso Connection References",
+  "name": "Tales & Timber Connection References",
   "description": "Connection configurations referenced by notebooks, pipelines, and dataflows. Each connection maps to a Fabric Connection resource or external endpoint.",
   "version": "1.0",
   "connections": [
@@ -11,7 +11,7 @@
       "target_workspace": "data-warehouse",
       "parameters": {
         "server": "{workspace_sql_endpoint}",
-        "database": "contoso_operational_db",
+        "database": "tt_operational_db",
         "authentication": "WorkspaceIdentity"
       },
       "privacy_level": "Organizational",
@@ -31,7 +31,7 @@
       },
       "privacy_level": "Organizational",
       "credential_type": "WorkspaceIdentity",
-      "used_by": ["semantic-models/contoso_sales", "semantic-models/contoso_operations", "notebooks/gold_layer_transforms"]
+      "used_by": ["semantic-models/tt_sales", "semantic-models/tt_operations", "notebooks/gold_layer_transforms"]
     },
     {
       "name": "eventhouse_connection",
@@ -41,7 +41,7 @@
       "target_workspace": "real-time",
       "parameters": {
         "cluster_uri": "{eventhouse_query_endpoint}",
-        "database": "contoso_kqldb",
+        "database": "tt_kqldb",
         "authentication": "WorkspaceIdentity"
       },
       "privacy_level": "Organizational",
@@ -75,27 +75,27 @@
     },
     {
       "name": "erp_system_connection",
-      "description": "Connection to Contoso SAP ERP system for purchase orders, supplier data, and financial records",
+      "description": "Connection to Tales & Timber SAP ERP system for purchase orders, supplier data, and financial records",
       "type": "odbc",
       "connectivity_type": "VirtualNetworkGateway",
       "target_workspace": "ingestion",
       "parameters": {
-        "server": "erp.contoso.internal",
+        "server": "erp.tt.internal",
         "port": 3306,
-        "database": "contoso_erp",
+        "database": "tt_erp",
         "authentication": "ServicePrincipal",
-        "gateway_name": "contoso-vnet-gateway"
+        "gateway_name": "tt-vnet-gateway"
       },
       "privacy_level": "Private",
       "credential_type": "ServicePrincipal",
       "environment_overrides": {
         "dev": {
-          "server": "erp-sandbox.contoso.internal",
-          "database": "contoso_erp_sandbox"
+          "server": "erp-sandbox.tt.internal",
+          "database": "tt_erp_sandbox"
         },
         "prod": {
-          "server": "erp.contoso.internal",
-          "database": "contoso_erp"
+          "server": "erp.tt.internal",
+          "database": "tt_erp"
         }
       },
       "used_by": ["pipelines/ingest_erp_financials", "pipelines/ingest_purchase_orders", "pipelines/ingest_supplier_master"]

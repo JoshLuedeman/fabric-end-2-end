@@ -1,5 +1,5 @@
 /**
- * Contoso IoT Edge Simulator
+ * Tales & Timber IoT Edge Simulator
  *
  * Generates real-time IoT sensor telemetry (temperature, humidity, foot
  * traffic, energy, door counters) and sends it to Azure Event Hubs.
@@ -129,7 +129,7 @@ async function shutdown(): Promise<void> {
 async function main(): Promise<void> {
   const config = loadConfig();
 
-  console.log("=== Contoso IoT Edge Simulator ===");
+  console.log("=== Tales & Timber IoT Edge Simulator ===");
   console.log(`Mode: ${config.dryRun ? "DRY RUN (console only)" : "LIVE (sending to Event Hubs)"}`);
   console.log(`Rate — IoT: ${config.iotEventsPerSecond}/s`);
   console.log(`Stores: ${config.storeIds.length}`);

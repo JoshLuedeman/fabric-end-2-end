@@ -1,16 +1,20 @@
 # Fabric End-to-End Demo Environment
 
+<p align="center">
+  <img src="assets/logo/tales-and-timber.svg" alt="Tales & Timber" width="400"/>
+</p>
+
 > **🚧 Work in Progress** — This project is under active development. Infrastructure modules, data generators, notebooks, and deployment workflows are being built out incrementally. Expect breaking changes, incomplete features, and rough edges. Contributions and feedback are welcome!
 
 ## Business Story
 
-This demo simulates **Contoso Global Retail** — a multinational retailer with 500 stores across 8 countries. The environment runs an operational POS database, ingests data through a metadata-driven pipeline, transforms it through a medallion lakehouse, serves analytics via a star schema warehouse and Power BI, monitors operations in real-time, and uses ML to predict demand, segment customers, and detect anomalies. Every component is automated and deployed from code.
+This demo simulates **Tales & Timber** — a multinational retailer with 500 stores across 8 countries. The environment runs an operational POS database, ingests data through a metadata-driven pipeline, transforms it through a medallion lakehouse, serves analytics via a star schema warehouse and Power BI, monitors operations in real-time, and uses ML to predict demand, segment customers, and detect anomalies. Every component is automated and deployed from code.
 
 End-to-end Microsoft Fabric demo showcasing all platform capabilities including features announced at FabCon/SQLCon 2026 in Atlanta.
 
 ## Scenario
 
-**Contoso Global Retail & Supply Chain** — a cross-industry demo with point-of-sale transactions, supply chain logistics, customer analytics, financial reporting, and workforce operations.
+**Tales & Timber** — a cross-industry demo with point-of-sale transactions, supply chain logistics, customer analytics, financial reporting, and workforce operations.
 
 ## Architecture
 

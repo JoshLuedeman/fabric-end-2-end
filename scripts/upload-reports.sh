@@ -5,7 +5,7 @@ set -euo pipefail
 # Usage: ./scripts/upload-reports.sh <environment>
 
 ENVIRONMENT="${1:-dev}"
-WORKSPACE="contoso-analytics-${ENVIRONMENT}"
+WORKSPACE="tt-analytics-${ENVIRONMENT}"
 
 echo "=== Uploading Power BI content to ${WORKSPACE} ==="
 

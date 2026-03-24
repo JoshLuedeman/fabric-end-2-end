@@ -1,6 +1,6 @@
 // =====================================================
 // Sales Anomaly Detection
-// Contoso Global Retail - Fabric Eventhouse
+// Tales & Timber - Fabric Eventhouse
 // =====================================================
 // Uses make-series and series_decompose_anomalies to
 // detect unusual sales volume spikes/drops per store.

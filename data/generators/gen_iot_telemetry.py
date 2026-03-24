@@ -1,5 +1,5 @@
 """
-Generate IoT sensor telemetry data for Contoso Global Retail stores.
+Generate IoT sensor telemetry data for Tales & Timber stores.
 
 Produces time-series readings at ~5-minute intervals for the last 30 days
 of the configured date range.  Data is written as chunked Parquet part

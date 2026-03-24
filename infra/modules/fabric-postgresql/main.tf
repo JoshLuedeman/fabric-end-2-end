@@ -19,7 +19,7 @@
 # provider adds native support, replace the null_resource with the real
 # resource and uncomment the outputs.
 #
-# Use case for Contoso Global Retail:
+# Use case for Tales & Timber:
 #   - Marketing analytics database — the marketing team prefers PostgreSQL
 #     for its JSON support (campaign metadata) and PostGIS (geo-analysis
 #     of campaign reach by store location)

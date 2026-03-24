@@ -1,5 +1,5 @@
 """
-Orchestrator – run all Contoso Global Retail data generators in the correct order.
+Orchestrator – run all Tales & Timber data generators in the correct order.
 
 Usage:
     python generate_all.py                          # f8 (default, ~532M rows)
@@ -153,7 +153,7 @@ def _collect_output_sizes(output_dir: str) -> list[tuple[str, float]]:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Generate all Contoso demo datasets."
+        description="Generate all Tales & Timber demo datasets."
     )
     parser.add_argument(
         "--output-dir",

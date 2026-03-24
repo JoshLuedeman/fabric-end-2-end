@@ -1,5 +1,5 @@
 """
-Generate inventory movement data for Contoso Global Retail.
+Generate inventory movement data for Tales & Timber.
 
 Output: output/inventory/part_XXXXXXXXXX.parquet  (chunked, Snappy-compressed)
 

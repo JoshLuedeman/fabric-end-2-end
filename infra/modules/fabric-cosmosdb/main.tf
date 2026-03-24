@@ -20,7 +20,7 @@
 # provider adds native support, replace the null_resource with the real
 # resource and uncomment the outputs.
 #
-# Use cases for Contoso Global Retail:
+# Use cases for Tales & Timber:
 #   - Product catalog (rich, schema-flexible documents with varying attributes)
 #   - Customer 360 profiles (aggregated view across POS, web, loyalty)
 #   - Order event sourcing (immutable event log for order lifecycle)

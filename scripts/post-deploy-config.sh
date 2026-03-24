@@ -118,7 +118,7 @@ VARLIB_DIR="$REPO_ROOT/src/governance/variable_library"
 if [ -d "$VARLIB_DIR" ]; then
   # Create the Variable Library item
   VARLIB_RESULT="$(fabric_api POST "/workspaces/${WORKSPACE_ID}/variableLibraries" \
-    -d "{\"displayName\":\"contoso-config-${ENVIRONMENT}\",\"description\":\"Centralized configuration for Contoso ${ENVIRONMENT} environment\"}" 2>/dev/null || true)"
+    -d "{\"displayName\":\"tt-config-${ENVIRONMENT}\",\"description\":\"Centralized configuration for Tales & Timber ${ENVIRONMENT} environment\"}" 2>/dev/null || true)"
   VARLIB_ID="$(echo "$VARLIB_RESULT" | jq -r '.id // empty' 2>/dev/null || true)"
 
   if [ -n "$VARLIB_ID" ]; then
@@ -160,7 +160,7 @@ AIRFLOW_DIR="$REPO_ROOT/src/airflow"
 if [ -d "$AIRFLOW_DIR/dags" ]; then
   # Create Apache Airflow Job
   AIRFLOW_RESULT="$(fabric_api POST "/workspaces/${WORKSPACE_ID}/items" \
-    -d "{\"displayName\":\"contoso-airflow-${ENVIRONMENT}\",\"type\":\"ApacheAirflowJob\",\"description\":\"Contoso ETL orchestration DAGs\"}" 2>/dev/null || true)"
+    -d "{\"displayName\":\"tt-airflow-${ENVIRONMENT}\",\"type\":\"ApacheAirflowJob\",\"description\":\"Tales & Timber ETL orchestration DAGs\"}" 2>/dev/null || true)"
   AIRFLOW_JOB_ID="$(echo "$AIRFLOW_RESULT" | jq -r '.id // empty' 2>/dev/null || true)"
 
   if [ -n "$AIRFLOW_JOB_ID" ]; then
@@ -187,7 +187,7 @@ if [ -d "$AIRFLOW_DIR/dags" ]; then
       ["environment"]="${ENVIRONMENT}"
       ["retention_days"]="365"
       ["quality_alert_webhook"]=""
-      ["mlflow_tracking_uri"]="mlflow://contoso-ml-experiments"
+      ["mlflow_tracking_uri"]="mlflow://tt-ml-experiments"
     )
     for key in "${!AIRFLOW_VARS[@]}"; do
       fabric_api POST "/workspaces/${WORKSPACE_ID}/apacheAirflowJobs/${AIRFLOW_JOB_ID}/variables" \
@@ -242,7 +242,7 @@ log "Deploying OLTP Simulator"
 
 SIMULATOR_DIR="$REPO_ROOT/simulator"
 if [ -f "$SIMULATOR_DIR/Dockerfile" ] && [ -f "$SIMULATOR_DIR/oltp_simulator.py" ]; then
-  RESOURCE_GROUP="${AZURE_RESOURCE_GROUP:-rg-contoso-fabric-${ENVIRONMENT}}"
+  RESOURCE_GROUP="${AZURE_RESOURCE_GROUP:-rg-tt-fabric-${ENVIRONMENT}}"
   REGISTRY="ghcr.io/$(echo "${GITHUB_REPOSITORY:-joshluedeman/fabric-end-2-end}" | tr '[:upper:]' '[:lower:]')"
   IMAGE="${REGISTRY}/oltp-simulator:latest"
 
@@ -258,13 +258,13 @@ if [ -f "$SIMULATOR_DIR/Dockerfile" ] && [ -f "$SIMULATOR_DIR/oltp_simulator.py"
     log "  Deploying to Azure Container Instances"
     az container create \
       --resource-group "$RESOURCE_GROUP" \
-      --name "contoso-oltp-simulator-${ENVIRONMENT}" \
+      --name "tt-oltp-simulator-${ENVIRONMENT}" \
       --image "$IMAGE" \
       --cpu 0.5 --memory 0.5 \
       --restart-policy Always \
       --environment-variables \
         SQL_SERVER="\${SQL_SERVER}" \
-        SQL_DATABASE="contoso_operational_db" \
+        SQL_DATABASE="tt_operational_db" \
         ENVIRONMENT="${ENVIRONMENT}" \
       --output none 2>/dev/null \
       || warn "  ACI deployment failed — SQL_SERVER env var must be set post-deploy"

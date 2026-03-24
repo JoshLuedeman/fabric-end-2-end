@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "description": "Fabric native deployment pipeline configuration for Contoso Global Retail & Supply Chain. These pipelines handle Fabric-item promotion (lakehouses, warehouses, semantic models, reports, notebooks) across Dev → Test → Prod workspaces.",
+  "description": "Fabric native deployment pipeline configuration for Tales & Timber. These pipelines handle Fabric-item promotion (lakehouses, warehouses, semantic models, reports, notebooks) across Dev → Test → Prod workspaces.",
   "pipelines": [
     {
       "name": "Retail Data Pipeline",
@@ -8,17 +8,17 @@
       "stages": [
         {
           "name": "Development",
-          "workspace_pattern": "contoso-{area}-dev",
+          "workspace_pattern": "tt-{area}-dev",
           "workspace_areas": ["ingestion", "data-engineering"]
         },
         {
           "name": "Test",
-          "workspace_pattern": "contoso-{area}-test",
+          "workspace_pattern": "tt-{area}-test",
           "workspace_areas": ["ingestion", "data-engineering"]
         },
         {
           "name": "Production",
-          "workspace_pattern": "contoso-{area}-prod",
+          "workspace_pattern": "tt-{area}-prod",
           "workspace_areas": ["ingestion", "data-engineering"]
         }
       ],
@@ -53,25 +53,25 @@
       "stages": [
         {
           "name": "Development",
-          "workspace_pattern": "contoso-{area}-dev",
+          "workspace_pattern": "tt-{area}-dev",
           "workspace_areas": ["data-warehouse", "analytics"]
         },
         {
           "name": "Test",
-          "workspace_pattern": "contoso-{area}-test",
+          "workspace_pattern": "tt-{area}-test",
           "workspace_areas": ["data-warehouse", "analytics"]
         },
         {
           "name": "Production",
-          "workspace_pattern": "contoso-{area}-prod",
+          "workspace_pattern": "tt-{area}-prod",
           "workspace_areas": ["data-warehouse", "analytics"]
         }
       ],
       "items": [
-        { "type": "Warehouse", "names": ["contoso_warehouse"] },
-        { "type": "SemanticModel", "names": ["contoso_retail_model", "contoso_supply_chain_model"] },
+        { "type": "Warehouse", "names": ["tt_warehouse"] },
+        { "type": "SemanticModel", "names": ["tt_retail_model", "tt_supply_chain_model"] },
         { "type": "Report", "names": ["*"] },
-        { "type": "SQLDatabase", "names": ["contoso_operational_db"] }
+        { "type": "SQLDatabase", "names": ["tt_operational_db"] }
       ],
       "rules": {
         "auto_deploy": {
@@ -101,23 +101,23 @@
       "stages": [
         {
           "name": "Development",
-          "workspace_pattern": "contoso-real-time-dev",
+          "workspace_pattern": "tt-real-time-dev",
           "workspace_areas": ["real-time"]
         },
         {
           "name": "Test",
-          "workspace_pattern": "contoso-real-time-test",
+          "workspace_pattern": "tt-real-time-test",
           "workspace_areas": ["real-time"]
         },
         {
           "name": "Production",
-          "workspace_pattern": "contoso-real-time-prod",
+          "workspace_pattern": "tt-real-time-prod",
           "workspace_areas": ["real-time"]
         }
       ],
       "items": [
-        { "type": "Eventhouse", "names": ["contoso_eventhouse"] },
-        { "type": "KQLDatabase", "names": ["contoso_kqldb"] },
+        { "type": "Eventhouse", "names": ["tt_eventhouse"] },
+        { "type": "KQLDatabase", "names": ["tt_kqldb"] },
         { "type": "Eventstream", "names": ["*"] },
         { "type": "Reflex", "names": ["*"] }
       ],
@@ -155,24 +155,24 @@
       "stages": [
         {
           "name": "Development",
-          "workspace_pattern": "contoso-data-science-dev",
+          "workspace_pattern": "tt-data-science-dev",
           "workspace_areas": ["data-science"]
         },
         {
           "name": "Test",
-          "workspace_pattern": "contoso-data-science-test",
+          "workspace_pattern": "tt-data-science-test",
           "workspace_areas": ["data-science"]
         },
         {
           "name": "Production",
-          "workspace_pattern": "contoso-data-science-prod",
+          "workspace_pattern": "tt-data-science-prod",
           "workspace_areas": ["data-science"]
         }
       ],
       "items": [
         { "type": "Notebook", "names": ["demand_forecasting", "churn_prediction", "customer_segmentation", "promotion_effectiveness", "anomaly_detection_ml", "deploy_*", "model_monitoring"] },
         { "type": "MLModel", "names": ["demand-forecaster", "churn-predictor", "customer-segmenter", "promo-effectiveness", "anomaly-detector"] },
-        { "type": "MLExperiment", "names": ["contoso-demand-forecasting", "contoso-churn-prediction", "contoso-customer-segmentation", "contoso-promotion-effectiveness", "contoso-anomaly-detection"] }
+        { "type": "MLExperiment", "names": ["tt-demand-forecasting", "tt-churn-prediction", "tt-customer-segmentation", "tt-promotion-effectiveness", "tt-anomaly-detection"] }
       ],
       "rules": {
         "auto_deploy": {
@@ -208,7 +208,7 @@
   "global_settings": {
     "notification_channels": {
       "teams_webhook": "${TEAMS_WEBHOOK_URL}",
-      "email_group": "contoso-fabric-ops@contoso.com"
+      "email_group": "tt-fabric-ops@tt.com"
     },
     "deployment_window": {
       "allowed_days": ["Monday", "Tuesday", "Wednesday", "Thursday"],

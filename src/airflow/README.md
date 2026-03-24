@@ -1,14 +1,14 @@
-# Contoso Retail — Apache Airflow DAGs
+# Tales & Timber Retail — Apache Airflow DAGs
 
-These DAGs are deployed to **Fabric's Managed Airflow** ([Apache Airflow Jobs](https://learn.microsoft.com/fabric/data-factory/apache-airflow-jobs)) and orchestrate the full Contoso data platform.
+These DAGs are deployed to **Fabric's Managed Airflow** ([Apache Airflow Jobs](https://learn.microsoft.com/fabric/data-factory/apache-airflow-jobs)) and orchestrate the full Tales & Timber data platform.
 
 ## DAG Overview
 
 | DAG ID | Schedule | Description |
 |--------|----------|-------------|
-| `contoso_daily_etl` | Daily 02:00 UTC | Full pipeline: OLTP CDC → Bronze → Silver → Gold → Warehouse → ML refresh |
-| `contoso_hourly_realtime_quality` | Hourly | Data freshness, volume, and schema drift checks on Eventhouse streams |
-| `contoso_weekly_maintenance` | Sunday 00:00 UTC | Delta OPTIMIZE/VACUUM, warehouse stats, archival, full ML retrain, cleanup |
+| `tt_daily_etl` | Daily 02:00 UTC | Full pipeline: OLTP CDC → Bronze → Silver → Gold → Warehouse → ML refresh |
+| `tt_hourly_realtime_quality` | Hourly | Data freshness, volume, and schema drift checks on Eventhouse streams |
+| `tt_weekly_maintenance` | Sunday 00:00 UTC | Delta OPTIMIZE/VACUUM, warehouse stats, archival, full ML retrain, cleanup |
 
 ## Relationship to Fabric Pipelines
 
@@ -49,9 +49,9 @@ All notebook and pipeline item IDs are referenced via [Airflow Variables](https:
 | `notebook_ml_churn` | Churn prediction notebook ID | `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx` |
 | `notebook_ml_segments` | Customer segmentation notebook ID | `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx` |
 | `kql_database_id` | Eventhouse KQL database ID | `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx` |
-| `quality_alert_webhook` | Teams incoming-webhook URL | `https://contoso.webhook.office.com/...` |
+| `quality_alert_webhook` | Teams incoming-webhook URL | `https://tt.webhook.office.com/...` |
 | `retention_days` | Hot-storage retention (default 365) | `365` |
-| `mlflow_tracking_uri` | MLflow tracking server URI | `https://mlflow.contoso.com` |
+| `mlflow_tracking_uri` | MLflow tracking server URI | `https://mlflow.tt.com` |
 
 ### How to set variables
 

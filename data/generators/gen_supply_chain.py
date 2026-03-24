@@ -1,5 +1,5 @@
 """
-Generate supply-chain graph data for Contoso Global Retail  (GB-scale).
+Generate supply-chain graph data for Tales & Timber  (GB-scale).
 
 Dimension tables (small, single-DataFrame):
   - suppliers.parquet
@@ -106,7 +106,7 @@ def generate_warehouses() -> pd.DataFrame:
         rows.append(
             {
                 "warehouse_id": cfg.warehouse_id(i),
-                "warehouse_name": f"Contoso {city} DC",
+                "warehouse_name": f"Tales & Timber {city} DC",
                 "city": city,
                 "country": country,
                 "capacity_units": int(rng.integers(5_000, 100_000)),

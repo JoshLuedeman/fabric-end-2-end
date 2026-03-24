@@ -6,7 +6,7 @@
 # MAGIC registry, register it as a Fabric ML Model, create a scoring endpoint,
 # MAGIC and run a test prediction.
 # MAGIC
-# MAGIC **Business Context:** Contoso Global Retail needs real-time demand
+# MAGIC **Business Context:** Tales & Timber needs real-time demand
 # MAGIC predictions surfaced in Power BI dashboards and operational systems.
 # MAGIC This notebook bridges the gap between model training (see
 # MAGIC `demand_forecasting.py`) and production serving.
@@ -54,7 +54,7 @@ from datetime import datetime, timedelta
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
-EXPERIMENT_NAME = "contoso-demand-forecasting"
+EXPERIMENT_NAME = "tt-demand-forecasting"
 MODEL_REGISTRY_NAME = "demand-forecaster"
 GOLD_LAKEHOUSE = "lh_gold"
 ENDPOINT_NAME = "demand-forecast-endpoint"
@@ -268,7 +268,7 @@ except Exception as e:
 # MAGIC    Each dashboard refresh triggers a fresh prediction.
 # MAGIC
 # MAGIC 3. Add a visual-level filter for store/category to enable drill-down
-# MAGIC    forecasting in the Contoso Retail dashboard.
+# MAGIC    forecasting in the Tales & Timber Retail dashboard.
 
 # COMMAND ----------
 

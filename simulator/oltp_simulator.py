@@ -1,5 +1,5 @@
 """
-Contoso OLTP Transaction Simulator
+Tales & Timber OLTP Transaction Simulator
 
 Generates realistic POS transactions, customer interactions, and inventory
 updates against the Fabric SQL Database at configurable rates.
@@ -592,7 +592,7 @@ def _setup_signal_handlers() -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Contoso OLTP Transaction Simulator")
+    parser = argparse.ArgumentParser(description="Tales & Timber OLTP Transaction Simulator")
     parser.add_argument(
         "--dry-run",
         action="store_true",
@@ -620,7 +620,7 @@ def main() -> None:
     _store_weights = _build_store_weights()
 
     log.info("=" * 70)
-    log.info("Contoso OLTP Simulator starting")
+    log.info("Tales & Timber OLTP Simulator starting")
     log.info(
         "  mode=%s  rate_mult=%.1fx  stores=%d  products=%d  customers=%d",
         "DRY-RUN" if config.DRY_RUN else "LIVE",

@@ -3,7 +3,7 @@
   "description": "Triggers when any product at any store falls below reorder point for 2+ consecutive hours",
   "dataSource": {
     "type": "KQLDatabase",
-    "database": "contoso_kqldb",
+    "database": "tt_kqldb",
     "query": "Inventory | where quantity_on_hand < reorder_point | summarize ConsecutiveHours=dcount(bin(timestamp, 1h)) by store_id, product_id | where ConsecutiveHours >= 2"
   },
   "trigger": {
@@ -19,7 +19,7 @@
   "actions": [
     {
       "type": "email",
-      "recipients": ["inventory-team@contoso.com"],
+      "recipients": ["inventory-team@tt.com"],
       "subject": "🚨 Low Stock Alert: {{product_id}} at {{store_id}}",
       "body": "Product {{product_id}} at store {{store_id}} has been below reorder point ({{reorder_point}}) for {{ConsecutiveHours}} hours. Current stock: {{quantity_on_hand}}."
     },

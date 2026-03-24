@@ -46,7 +46,7 @@ COSMOS_CONFIG = {
     "spark.cosmos.accountEndpoint": "<your-cosmos-endpoint>.documents.fabric.microsoft.com",
     "spark.cosmos.accountKey": "",  # Leave empty — Fabric uses managed identity
     "spark.cosmos.useGatewayMode": "true",
-    "spark.cosmos.database": "contoso_cosmosdb",
+    "spark.cosmos.database": "tt_cosmosdb",
     "spark.cosmos.preferredRegionsList": "East US",
     "spark.cosmos.read.inferSchema.enabled": "true",
     "spark.cosmos.read.inferSchema.includeSystemProperties": "false",

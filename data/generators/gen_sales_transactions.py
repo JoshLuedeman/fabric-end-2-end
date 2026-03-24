@@ -1,5 +1,5 @@
 """
-Generate fact sales transaction data for Contoso Global Retail.
+Generate fact sales transaction data for Tales & Timber.
 
 Chunked generation for GB-scale output — 200 M rows written as 1 M-row
 Parquet part files with Snappy compression.  Each chunk is fully

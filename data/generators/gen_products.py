@@ -1,5 +1,5 @@
 """
-Generate product dimension data for Contoso Global Retail.
+Generate product dimension data for Tales & Timber.
 
 Output: products.parquet  (snappy-compressed)
 """

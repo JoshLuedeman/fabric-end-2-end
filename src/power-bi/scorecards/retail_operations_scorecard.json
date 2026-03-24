@@ -1,9 +1,9 @@
 {
   "name": "Retail Operations Scorecard",
-  "description": "Executive KPI scorecard tracking core retail operations metrics for Contoso Global Retail. Covers daily revenue, same-store growth, transaction value, customer satisfaction, and inventory performance across 500 stores.",
+  "description": "Executive KPI scorecard tracking core retail operations metrics for Tales & Timber. Covers daily revenue, same-store growth, transaction value, customer satisfaction, and inventory performance across 500 stores.",
   "version": "1.0",
-  "workspace": "contoso-analytics",
-  "semantic_model": "contoso_sales",
+  "workspace": "tt-analytics",
+  "semantic_model": "tt_sales",
   "update_frequency": "daily",
   "fiscal_year_start": "February",
   "goals": [
@@ -20,7 +20,7 @@
         "behind": { "below_pct_of_target": 85 }
       },
       "connected_metric": {
-        "semantic_model": "contoso_sales",
+        "semantic_model": "tt_sales",
         "measure": "Measures.TotalRevenue",
         "filter": "DimDate.Date = TODAY()"
       },
@@ -45,7 +45,7 @@
         "behind": { "below_pct_of_target": 70 }
       },
       "connected_metric": {
-        "semantic_model": "contoso_sales",
+        "semantic_model": "tt_sales",
         "measure": "Measures.YoYGrowth",
         "filter": "DimStore.StoreAge >= 12"
       },
@@ -70,7 +70,7 @@
         "behind": { "below_pct_of_target": 90 }
       },
       "connected_metric": {
-        "semantic_model": "contoso_sales",
+        "semantic_model": "tt_sales",
         "measure": "Measures.AvgOrderValue",
         "filter": null
       },
@@ -95,7 +95,7 @@
         "behind": { "below_value": 3.9 }
       },
       "connected_metric": {
-        "semantic_model": "contoso_operations",
+        "semantic_model": "tt_operations",
         "measure": "Measures.AvgCSAT",
         "filter": "DimDate.IsCurrentQuarter = TRUE"
       },
@@ -120,7 +120,7 @@
         "behind": { "below_pct_of_target": 80 }
       },
       "connected_metric": {
-        "semantic_model": "contoso_operations",
+        "semantic_model": "tt_operations",
         "measure": "Measures.InventoryTurnover",
         "filter": null
       },
@@ -145,7 +145,7 @@
         "behind": { "above_value": 3.0 }
       },
       "connected_metric": {
-        "semantic_model": "contoso_operations",
+        "semantic_model": "tt_operations",
         "measure": "Measures.OutOfStockRate",
         "filter": null
       },

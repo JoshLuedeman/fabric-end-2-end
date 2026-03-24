@@ -1,6 +1,6 @@
-# Contoso Retail GraphQL API — Setup Guide
+# Tales & Timber Retail GraphQL API — Setup Guide
 
-This guide walks through creating, configuring, and consuming the Contoso GraphQL API in Microsoft Fabric.
+This guide walks through creating, configuring, and consuming the Tales & Timber GraphQL API in Microsoft Fabric.
 
 ## Table of Contents
 
@@ -19,7 +19,7 @@ This guide walks through creating, configuring, and consuming the Contoso GraphQ
 ## Prerequisites
 
 - Microsoft Fabric workspace with **Contributor** or **Admin** role
-- A provisioned Fabric **Warehouse** (`contoso_warehouse`) or **Lakehouse** (`lh_gold`) with populated tables
+- A provisioned Fabric **Warehouse** (`tt_warehouse`) or **Lakehouse** (`lh_gold`) with populated tables
 - Microsoft Entra ID tenant with appropriate app registrations
 - (Optional) Terraform with `microsoft/fabric` provider >= 1.8 for IaC provisioning
 
@@ -27,10 +27,10 @@ This guide walks through creating, configuring, and consuming the Contoso GraphQ
 
 ## Create the GraphQL API in Fabric Portal
 
-1. Navigate to your Fabric workspace (e.g., `contoso-data-warehouse-dev`)
+1. Navigate to your Fabric workspace (e.g., `tt-data-warehouse-dev`)
 2. Click **+ New item** → select **GraphQL API** under the "API" section
-3. Enter the display name: `contoso_retail_api`
-4. Enter a description: `Unified GraphQL API for Contoso retail data — products, stores, customers, sales, and inventory`
+3. Enter the display name: `tt_retail_api`
+4. Enter a description: `Unified GraphQL API for Tales & Timber retail data — products, stores, customers, sales, and inventory`
 5. Click **Create**
 
 The API item is created and you'll be taken to the schema editor.
@@ -45,7 +45,7 @@ The GraphQL API needs a data source to resolve queries against.
 
 1. In the GraphQL API editor, click **Connect data source**
 2. Select **Microsoft Fabric Warehouse**
-3. Choose `contoso_warehouse` from the workspace
+3. Choose `tt_warehouse` from the workspace
 4. Fabric will introspect the warehouse schema and present available tables:
    - `dims.dim_customer`
    - `dims.dim_product`
@@ -58,7 +58,7 @@ The GraphQL API needs a data source to resolve queries against.
 ### Option B: Gold Lakehouse (DirectLake)
 
 1. Click **Connect data source** → select **Microsoft Fabric Lakehouse**
-2. Choose `lh_gold` from the `contoso-data-engineering-{env}` workspace
+2. Choose `lh_gold` from the `tt-data-engineering-{env}` workspace
 3. Select the Delta tables exposed through the gold layer
 4. Click **Connect**
 
@@ -66,7 +66,7 @@ The GraphQL API needs a data source to resolve queries against.
 
 ## Import the Schema
 
-After connecting the data source, Fabric auto-generates a basic schema. You can enhance it with the Contoso schema definitions:
+After connecting the data source, Fabric auto-generates a basic schema. You can enhance it with the Tales & Timber schema definitions:
 
 1. Open the **Schema** tab in the GraphQL API editor
 2. Click **Edit schema** (switch to SDL mode)
@@ -176,7 +176,7 @@ curl -X POST "https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token" \
 const GRAPHQL_ENDPOINT =
   "https://api.fabric.microsoft.com/v1/workspaces/{workspace_id}/graphqlApis/{api_id}/graphql";
 
-async function queryContosoAPI<T>(
+async function queryTales & TimberAPI<T>(
   query: string,
   variables?: Record<string, unknown>,
   accessToken: string
@@ -203,7 +203,7 @@ async function queryContosoAPI<T>(
 }
 
 // Example: Fetch top products
-const data = await queryContosoAPI(
+const data = await queryTales & TimberAPI(
   `query TopProducts($limit: Int!, $start: String!, $end: String!) {
     topProducts(limit: $limit, dateRange: { startDate: $start, endDate: $end }) {
       rank
@@ -223,7 +223,7 @@ const data = await queryContosoAPI(
 import { useEffect, useState } from "react";
 import { useMsal } from "@azure/msal-react";
 
-function useContosoQuery<T>(query: string, variables?: Record<string, unknown>) {
+function useTales & TimberQuery<T>(query: string, variables?: Record<string, unknown>) {
   const { instance } = useMsal();
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
@@ -235,7 +235,7 @@ function useContosoQuery<T>(query: string, variables?: Record<string, unknown>) 
         const tokenResponse = await instance.acquireTokenSilent({
           scopes: ["https://analysis.windows.net/powerbi/api/.default"],
         });
-        const result = await queryContosoAPI<T>(
+        const result = await queryTales & TimberAPI<T>(
           query,
           variables,
           tokenResponse.accessToken
@@ -266,7 +266,7 @@ module "graphql_api" {
 
   workspace_id    = module.fabric_workspaces["data-warehouse"].workspace_id
   display_name    = "${var.project_prefix}_retail_api"
-  description     = "Contoso Retail GraphQL API (${var.environment})"
+  description     = "Tales & Timber Retail GraphQL API (${var.environment})"
   data_source_id  = module.warehouse.warehouse_id
   data_source_type = "warehouse"
 }

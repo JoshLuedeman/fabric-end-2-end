@@ -5,7 +5,7 @@
 # MAGIC **Purpose:** Segment customers using RFM analysis combined with K-Means clustering
 # MAGIC to enable targeted marketing, personalised offers, and retention strategies.
 # MAGIC
-# MAGIC **Business Context:** Contoso Global Retail serves millions of customers across
+# MAGIC **Business Context:** Tales & Timber serves millions of customers across
 # MAGIC multiple channels. Understanding customer segments enables the marketing team to
 # MAGIC allocate budget efficiently — VIP Champions receive exclusive previews, At-Risk
 # MAGIC customers receive win-back campaigns, and Bargain Hunters receive value-focused
@@ -16,7 +16,7 @@
 # MAGIC - `dim_customer` — customer attributes (loyalty_tier, segment, lifetime_value)
 # MAGIC
 # MAGIC **Output:** `ml_customer_segments` gold table + MLflow experiment
-# MAGIC `contoso-customer-segmentation`
+# MAGIC `tt-customer-segmentation`
 
 # MAGIC %md
 # MAGIC ## 0. Install Dependencies
@@ -58,7 +58,7 @@ import seaborn as sns
 # Configuration
 # ---------------------------------------------------------------------------
 K_RANGE = range(3, 9)  # test 3 to 8 clusters
-EXPERIMENT_NAME = "contoso-customer-segmentation"
+EXPERIMENT_NAME = "tt-customer-segmentation"
 
 SEGMENT_LABELS = {
     0: "VIP Champions",
@@ -423,7 +423,7 @@ ax2.set_title("Elbow Method & Silhouette Analysis", fontsize=12)
 ax2.legend(loc="upper left", fontsize=8)
 ax2_twin.legend(loc="upper right", fontsize=8)
 
-plt.suptitle("Contoso Customer Segmentation Analysis", fontsize=14)
+plt.suptitle("Tales & Timber Customer Segmentation Analysis", fontsize=14)
 plt.tight_layout()
 plt.savefig("/tmp/customer_segmentation_viz.png", dpi=150, bbox_inches="tight")
 plt.show()
@@ -440,7 +440,7 @@ print("✅ Visualisation rendered.")
 # MAGIC | Features | RFM + behavioural (7 features) |
 # MAGIC | Optimal K | Determined by silhouette score |
 # MAGIC | Output table | `ml_customer_segments` |
-# MAGIC | MLflow experiment | `contoso-customer-segmentation` |
+# MAGIC | MLflow experiment | `tt-customer-segmentation` |
 # MAGIC | Segments | VIP Champions, Loyal Regulars, At Risk, New Customers, Bargain Hunters, Churning |
 
 print("Customer segmentation notebook complete.")

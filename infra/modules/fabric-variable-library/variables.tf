@@ -4,9 +4,9 @@ variable "workspace_id" {
 }
 
 variable "project_prefix" {
-  description = "Prefix for resource display names (e.g., 'contoso')."
+  description = "Prefix for resource display names (e.g., 'tt')."
   type        = string
-  default     = "contoso"
+  default     = "tt"
 }
 
 variable "environment" {

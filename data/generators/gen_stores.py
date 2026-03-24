@@ -1,5 +1,5 @@
 """
-Generate store dimension data for Contoso Global Retail.
+Generate store dimension data for Tales & Timber.
 
 Output: stores.parquet (snappy-compressed)
 
@@ -191,7 +191,7 @@ def generate_stores() -> pd.DataFrame:
 
     # --- Store name (vectorised string concat) ---------------------------
     store_name = np.char.add(
-        np.char.add("Contoso ", city.astype(str)),
+        np.char.add("Tales & Timber ", city.astype(str)),
         np.char.add(" ", store_type.astype(str)),
     )
 

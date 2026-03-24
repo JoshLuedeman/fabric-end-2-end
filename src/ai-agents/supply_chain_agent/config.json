@@ -1,5 +1,5 @@
 {
-  "name": "Contoso Supply Chain Advisor",
+  "name": "Tales & Timber Supply Chain Advisor",
   "description": "AI-powered supply chain advisor that analyzes supplier performance, shipment delays, inventory optimization, and logistics using natural language and graph relationships.",
   "type": "data_agent",
   "capabilities": [

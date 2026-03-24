@@ -1,9 +1,9 @@
 {
   "name": "Digital Analytics Scorecard",
-  "description": "Executive KPI scorecard for Contoso digital commerce and marketing performance. Tracks website conversion, cart abandonment, engagement metrics, mobile adoption, and email marketing ROI.",
+  "description": "Executive KPI scorecard for Tales & Timber digital commerce and marketing performance. Tracks website conversion, cart abandonment, engagement metrics, mobile adoption, and email marketing ROI.",
   "version": "1.0",
-  "workspace": "contoso-analytics",
-  "semantic_model": "contoso_sales",
+  "workspace": "tt-analytics",
+  "semantic_model": "tt_sales",
   "update_frequency": "daily",
   "fiscal_year_start": "February",
   "goals": [
@@ -20,7 +20,7 @@
         "behind": { "below_value": 2.5 }
       },
       "connected_metric": {
-        "semantic_model": "contoso_sales",
+        "semantic_model": "tt_sales",
         "measure": "Measures.WebConversionRate",
         "filter": "FactSales.SalesChannel = 'Online'"
       },
@@ -45,7 +45,7 @@
         "behind": { "above_value": 72.0 }
       },
       "connected_metric": {
-        "semantic_model": "contoso_sales",
+        "semantic_model": "tt_sales",
         "measure": "Measures.CartAbandonmentRate",
         "filter": null
       },
@@ -70,7 +70,7 @@
         "behind": { "below_value": 3.5 }
       },
       "connected_metric": {
-        "semantic_model": "contoso_sales",
+        "semantic_model": "tt_sales",
         "measure": "Measures.AvgSessionDuration",
         "filter": null
       },
@@ -95,7 +95,7 @@
         "behind": { "below_value": 52 }
       },
       "connected_metric": {
-        "semantic_model": "contoso_sales",
+        "semantic_model": "tt_sales",
         "measure": "Measures.MobileTrafficShare",
         "filter": null
       },
@@ -120,7 +120,7 @@
         "behind": { "below_value": 3.0 }
       },
       "connected_metric": {
-        "semantic_model": "contoso_sales",
+        "semantic_model": "tt_sales",
         "measure": "Measures.EmailCampaignROI",
         "filter": "DimDate.IsCurrentQuarter = TRUE"
       },

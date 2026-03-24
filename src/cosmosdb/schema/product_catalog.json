@@ -1,6 +1,6 @@
 {
   "$schema": "https://learn.microsoft.com/azure/cosmos-db/nosql/schema",
-  "_comment": "Contoso Global Retail — Product Catalog (Cosmos DB NoSQL)",
+  "_comment": "Tales & Timber — Product Catalog (Cosmos DB NoSQL)",
   "containerConfig": {
     "containerName": "product_catalog",
     "partitionKey": {
@@ -43,7 +43,7 @@
   "sampleDocuments": [
     {
       "product_id": "PRD-00142",
-      "name": "Contoso Premium Merino Wool Sweater",
+      "name": "Tales & Timber Premium Merino Wool Sweater",
       "description": "Ultra-soft merino wool crew neck sweater with ribbed cuffs and hem. Sustainably sourced from New Zealand farms.",
       "category": {
         "l1": "Apparel",
@@ -68,12 +68,12 @@
       },
       "images": [
         {
-          "url": "https://contoso-cdn.azureedge.net/products/PRD-00142/main.webp",
+          "url": "https://tt-cdn.azureedge.net/products/PRD-00142/main.webp",
           "alt_text": "Merino wool sweater front view",
           "type": "main"
         },
         {
-          "url": "https://contoso-cdn.azureedge.net/products/PRD-00142/detail-01.webp",
+          "url": "https://tt-cdn.azureedge.net/products/PRD-00142/detail-01.webp",
           "alt_text": "Merino wool sweater texture close-up",
           "type": "detail"
         }
@@ -93,7 +93,7 @@
       },
       "tags": ["sustainable", "premium", "merino", "winter-essentials", "gift-guide"],
       "seo_metadata": {
-        "title": "Premium Merino Wool Sweater | Contoso",
+        "title": "Premium Merino Wool Sweater | Tales & Timber",
         "meta_description": "Shop our sustainably sourced merino wool sweater. Ultra-soft, breathable, and perfect for layering.",
         "slug": "premium-merino-wool-sweater"
       },
@@ -101,7 +101,7 @@
     },
     {
       "product_id": "PRD-00587",
-      "name": "Contoso SmartHome Hub Pro 3rd Gen",
+      "name": "Tales & Timber SmartHome Hub Pro 3rd Gen",
       "description": "Voice-controlled smart home hub with 10-inch touchscreen, Zigbee/Z-Wave/Matter support, and built-in Alexa and Google Assistant.",
       "category": {
         "l1": "Electronics",
@@ -130,7 +130,7 @@
       },
       "images": [
         {
-          "url": "https://contoso-cdn.azureedge.net/products/PRD-00587/main.webp",
+          "url": "https://tt-cdn.azureedge.net/products/PRD-00587/main.webp",
           "alt_text": "SmartHome Hub Pro front view",
           "type": "main"
         }
@@ -149,7 +149,7 @@
       },
       "tags": ["smart-home", "matter-compatible", "voice-control", "tech-gifts"],
       "seo_metadata": {
-        "title": "SmartHome Hub Pro 3rd Gen | Contoso Electronics",
+        "title": "SmartHome Hub Pro 3rd Gen | Tales & Timber Electronics",
         "meta_description": "Control your entire smart home from one hub. WiFi 6E, Matter support, 10-inch touchscreen.",
         "slug": "smarthome-hub-pro-3rd-gen"
       },
@@ -157,7 +157,7 @@
     },
     {
       "product_id": "PRD-01023",
-      "name": "Contoso Organic Acai Berry Smoothie Mix",
+      "name": "Tales & Timber Organic Acai Berry Smoothie Mix",
       "description": "USDA organic freeze-dried acai berry powder blended with banana, spinach, and chia seeds. Just add water or milk for a superfood smoothie.",
       "category": {
         "l1": "Food & Beverage",
@@ -196,7 +196,7 @@
       },
       "images": [
         {
-          "url": "https://contoso-cdn.azureedge.net/products/PRD-01023/main.webp",
+          "url": "https://tt-cdn.azureedge.net/products/PRD-01023/main.webp",
           "alt_text": "Organic acai smoothie mix pouch",
           "type": "main"
         }
@@ -216,7 +216,7 @@
       },
       "tags": ["organic", "superfood", "vegan", "health-wellness", "smoothie"],
       "seo_metadata": {
-        "title": "Organic Acai Berry Smoothie Mix | Contoso Food",
+        "title": "Organic Acai Berry Smoothie Mix | Tales & Timber Food",
         "meta_description": "USDA organic acai smoothie mix with banana, spinach & chia. 20 servings per pouch.",
         "slug": "organic-acai-berry-smoothie-mix"
       },
@@ -224,7 +224,7 @@
     },
     {
       "product_id": "PRD-00891",
-      "name": "Contoso Artisan Leather Messenger Bag",
+      "name": "Tales & Timber Artisan Leather Messenger Bag",
       "description": "Full-grain Italian leather messenger bag with brass hardware, padded 15-inch laptop compartment, and adjustable crossbody strap.",
       "category": {
         "l1": "Apparel",
@@ -250,7 +250,7 @@
       },
       "images": [
         {
-          "url": "https://contoso-cdn.azureedge.net/products/PRD-00891/main.webp",
+          "url": "https://tt-cdn.azureedge.net/products/PRD-00891/main.webp",
           "alt_text": "Leather messenger bag front view",
           "type": "main"
         }
@@ -268,7 +268,7 @@
       },
       "tags": ["leather", "premium", "laptop-bag", "business", "gift-guide"],
       "seo_metadata": {
-        "title": "Artisan Leather Messenger Bag | Contoso",
+        "title": "Artisan Leather Messenger Bag | Tales & Timber",
         "meta_description": "Handcrafted full-grain Italian leather messenger bag with padded laptop compartment.",
         "slug": "artisan-leather-messenger-bag"
       },

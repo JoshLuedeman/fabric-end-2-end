@@ -1,6 +1,6 @@
 // =====================================================
 // Customer Community Detection Queries
-// Contoso Global Retail - Microsoft Fabric Graph
+// Tales & Timber - Microsoft Fabric Graph
 // =====================================================
 // Detects communities of customers who share purchasing
 // patterns — i.e. customers who shop at the same stores.

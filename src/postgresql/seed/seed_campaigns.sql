@@ -1,8 +1,8 @@
 -- ==========================================================================
--- Contoso Global Retail — Marketing Campaign Seed Data (PostgreSQL)
+-- Tales & Timber — Marketing Campaign Seed Data (PostgreSQL)
 --
 -- 15 campaigns across email, social, paid search, display, and SMS channels
--- representing a typical quarter of Contoso's marketing activity.
+-- representing a typical quarter of Tales & Timber's marketing activity.
 -- ==========================================================================
 
 SET search_path TO marketing, public;
@@ -28,7 +28,7 @@ VALUES
     ('a1b2c3d4-0003-4000-8000-000000000003', 'Weekly Newsletter — June W1', 'email', 'email', 'completed', 'retention',
      '{"segments": ["newsletter-subscribers"]}',
      2000.00, '2025-06-02', '2025-06-02', 'content-team',
-     '{"subject_line": "This week at Contoso: New arrivals + Recipe of the Week", "template_id": "TPL-NEWSLETTER"}'),
+     '{"subject_line": "This week at Tales & Timber: New arrivals + Recipe of the Week", "template_id": "TPL-NEWSLETTER"}'),
 
     ('a1b2c3d4-0004-4000-8000-000000000004', 'Loyalty Points Double Weekend', 'email', 'email', 'scheduled', 'upsell',
      '{"segments": ["all-loyalty-members"], "loyalty_tiers": ["Silver", "Gold", "Platinum"]}',
@@ -39,21 +39,21 @@ VALUES
     ('a1b2c3d4-0005-4000-8000-000000000005', 'Instagram Summer Style Challenge', 'social', 'instagram', 'active', 'awareness',
      '{"demographics": {"age_range": [18, 34]}, "interests": ["fashion", "lifestyle", "sustainability"]}',
      25000.00, '2025-06-01', '2025-08-31', 'social-team',
-     '{"hashtag": "#ContosoSummerStyle", "influencer_handles": ["@stylebycontoso", "@sustainwear"], "platform": "Instagram"}'),
+     '{"hashtag": "#TalesAndTimberSummerStyle", "influencer_handles": ["@stylebytt", "@sustainwear"], "platform": "Instagram"}'),
 
     ('a1b2c3d4-0006-4000-8000-000000000006', 'Facebook Retargeting — Cart Abandoners', 'social', 'facebook', 'active', 'acquisition',
      '{"segments": ["cart-abandoners-7d"], "demographics": {"age_range": [25, 54]}}',
      12000.00, '2025-06-01', '2025-06-30', 'performance-team',
-     '{"pixel_id": "PX-CONTOSO-001", "lookalike_pct": 2, "platform": "Meta Ads Manager"}'),
+     '{"pixel_id": "PX-TT-001", "lookalike_pct": 2, "platform": "Meta Ads Manager"}'),
 
     ('a1b2c3d4-0007-4000-8000-000000000007', 'TikTok Back-to-School Teaser', 'social', 'tiktok', 'draft', 'awareness',
      '{"demographics": {"age_range": [16, 24]}, "interests": ["back-to-school", "student-life"]}',
      18000.00, '2025-07-15', '2025-08-20', 'social-team',
-     '{"hashtag": "#ContosoBTS", "content_type": "short_video", "platform": "TikTok Ads"}'),
+     '{"hashtag": "#Tales & TimberBTS", "content_type": "short_video", "platform": "TikTok Ads"}'),
 
     -- Paid search campaigns
     ('a1b2c3d4-0008-4000-8000-000000000008', 'Google Ads — Brand Terms', 'paid_search', 'google', 'active', 'awareness',
-     '{"keywords": ["contoso", "contoso store", "contoso online", "contoso near me"]}',
+     '{"keywords": ["tt", "tt store", "tt online", "tt near me"]}',
      10000.00, '2025-01-01', '2025-12-31', 'performance-team',
      '{"platform": "Google Ads", "match_type": "exact", "bid_strategy": "target_impression_share"}'),
 
@@ -82,7 +82,7 @@ VALUES
     ('a1b2c3d4-0013-4000-8000-000000000013', 'Flash Sale Alert — 48hr Electronics', 'sms', 'sms', 'completed', 'upsell',
      '{"segments": ["sms-opt-in", "tech-enthusiast"], "loyalty_tiers": ["Gold", "Platinum"]}',
      3000.00, '2025-05-24', '2025-05-26', 'promotions-team',
-     '{"message_template": "⚡ 48HR FLASH SALE: Up to 40% off electronics! Shop now: contoso.com/flash", "short_url": "ctso.co/flash48"}'),
+     '{"message_template": "⚡ 48HR FLASH SALE: Up to 40% off electronics! Shop now: tt.com/flash", "short_url": "ctso.co/flash48"}'),
 
     -- Influencer campaign
     ('a1b2c3d4-0014-4000-8000-000000000014', 'Sustainable Living Influencer Series', 'influencer', 'multi-channel', 'active', 'awareness',

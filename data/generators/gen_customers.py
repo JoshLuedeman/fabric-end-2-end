@@ -1,5 +1,5 @@
 """
-Generate customer dimension data for Contoso Global Retail.
+Generate customer dimension data for Tales & Timber.
 
 Output: customers.parquet
 

@@ -1,5 +1,5 @@
 """
-Contoso OLTP Simulator — Configuration
+Tales & Timber OLTP Simulator — Configuration
 
 All tuneable parameters for transaction rates, data distributions,
 and time-of-day patterns.  Override via environment variables where noted.

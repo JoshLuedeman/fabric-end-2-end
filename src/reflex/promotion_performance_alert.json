@@ -31,7 +31,7 @@
   "actions": [
     {
       "type": "email",
-      "recipients": ["marketing-team@contoso.com"],
+      "recipients": ["marketing-team@tt.com"],
       "subject": "📊 Promotion Alert: {{promotion_name}} ({{promotion_id}}) — {{#if (lt redemption_rate_pct 5)}}Underperforming{{else}}Budget Risk{{/if}}",
       "body": "A running promotion requires attention.\n\nPromotion: {{promotion_name}} (ID: {{promotion_id}})\nDuration: {{start_date}} to {{end_date}} ({{days_active}}/{{total_duration_days}} days elapsed)\n\nPerformance Metrics:\n  • Redemption Rate: {{redemption_rate_pct}}% ({{redemption_count}}/{{eligible_customers}} customers)\n  • Budget Consumed: {{budget_consumed_pct}}% (${{budget_consumed}}/${{total_budget}})\n  • Duration Elapsed: {{duration_elapsed_pct}}%\n\n{{#if (lt redemption_rate_pct 5)}}⚠️ UNDERPERFORMING: Redemption rate is below 5% after {{days_active}} days.\nRecommendation: Consider increasing visibility (featured placement), adjusting discount amount, or extending the promotion with revised targeting.{{/if}}{{#if (and (gt budget_consumed_pct 50) (lt duration_elapsed_pct 25))}}🚨 BUDGET RISK: Over 50% of budget consumed in first 25% of promotion duration.\nRecommendation: Consider pausing the promotion, reducing per-redemption value, or requesting additional budget if ROI is positive.{{/if}}"
     },

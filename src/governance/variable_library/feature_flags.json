@@ -1,5 +1,5 @@
 {
-  "name": "Contoso Feature Flags",
+  "name": "Tales & Timber Feature Flags",
   "description": "Feature toggles to control capability rollout across environments. Flags allow gradual enablement of new features without redeployment.",
   "version": "1.0",
   "flags": [

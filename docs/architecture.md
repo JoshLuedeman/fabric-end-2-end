@@ -1,4 +1,4 @@
-# Architecture — Contoso Global Retail & Supply Chain
+# Architecture — Tales & Timber
 
 > End-to-end Microsoft Fabric demo environment showcasing the full platform across retail, supply chain, IoT, and AI workloads — configurable from F2 to F64 capacity via a single `FABRIC_SKU` variable.
 
@@ -10,14 +10,14 @@ This project deploys a cross-industry demo on **Microsoft Fabric** (default F8 c
 
 | Workspace | Purpose |
 |---|---|
-| `contoso-ingestion-{env}` | Data Factory pipelines for source ingestion |
-| `contoso-data-engineering-{env}` | Medallion Lakehouse (Bronze → Silver → Gold) |
-| `contoso-data-warehouse-{env}` | Star schema warehouse (dimensions + facts) |
-| `contoso-real-time-{env}` | Eventhouse, KQL database, Eventstream |
-| `contoso-data-science-{env}` | ML notebooks and experiments |
-| `contoso-analytics-{env}` | Power BI semantic models, reports, task flows |
-| `contoso-governance-{env}` | Data lineage, cataloging, and policies |
-| `contoso-ai-agents-{env}` | Data Agents (AI-powered virtual analysts) |
+| `tt-ingestion-{env}` | Data Factory pipelines for source ingestion |
+| `tt-data-engineering-{env}` | Medallion Lakehouse (Bronze → Silver → Gold) |
+| `tt-data-warehouse-{env}` | Star schema warehouse (dimensions + facts) |
+| `tt-real-time-{env}` | Eventhouse, KQL database, Eventstream |
+| `tt-data-science-{env}` | ML notebooks and experiments |
+| `tt-analytics-{env}` | Power BI semantic models, reports, task flows |
+| `tt-governance-{env}` | Data lineage, cataloging, and policies |
+| `tt-ai-agents-{env}` | Data Agents (AI-powered virtual analysts) |
 
 ### Key Capabilities
 
@@ -88,7 +88,7 @@ flowchart LR
 | **Silver** | `src/notebooks/silver/` | PySpark | `transform_sales.py`, `transform_customers.py`, `transform_supply_chain.py` — cleansing, deduplication, type enforcement |
 | **Gold** | `src/notebooks/gold/` | PySpark | `dim_customer.py`, `dim_product.py`, `dim_store.py`, `fact_sales.py`, `fact_inventory.py` — dimensional model |
 | **Warehouse** | `src/warehouse/` | T-SQL | Star schema: `schemas/dimensions.sql`, `schemas/facts.sql`, `schemas/staging.sql`; loaded by `pl_load_warehouse.json` |
-| **Semantic Models** | `src/power-bi/semantic-models/` | Power BI | `contoso_sales.bim`, `contoso_operations.bim` |
+| **Semantic Models** | `src/power-bi/semantic-models/` | Power BI | `tt_sales.bim`, `tt_operations.bim` |
 | **Reports** | `src/power-bi/reports/` | Power BI (PBIP) | `sales_analytics.pbip`, `executive_dashboard.pbip`, `inventory_operations.pbip`, `realtime_monitoring.pbip` |
 | **Task Flows** | `src/power-bi/task-flows/` | Power BI | `inventory_reorder.json`, `lead_qualification.json` |
 
@@ -98,7 +98,7 @@ flowchart LR
 |---|---|---|---|
 | **Event Generator** | `streaming/src/generators/` | Node.js / TypeScript | `pos_transactions.ts`, `inventory_updates.ts`, `iot_sensors.ts` — Dockerized, continuous event emission |
 | **Eventstream** | Fabric Eventstream resource | Fabric | Routes events from generator to Eventhouse |
-| **Eventhouse** | `contoso_eventhouse` | KQL Database | `contoso_kqldb` — ingestion via `src/kql/ingestion/realtime_sales.kql` |
+| **Eventhouse** | `tt_eventhouse` | KQL Database | `tt_kqldb` — ingestion via `src/kql/ingestion/realtime_sales.kql` |
 | **KQL Queries** | `src/kql/queries/` | KQL | `sales_anomaly_detection.kql`, `inventory_alerts.kql`, `iot_device_health.kql` |
 | **Real-Time Dashboard** | `src/kql/dashboards/` | KQL | `realtime_operations.kql` |
 

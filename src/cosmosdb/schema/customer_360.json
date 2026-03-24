@@ -1,6 +1,6 @@
 {
   "$schema": "https://learn.microsoft.com/azure/cosmos-db/nosql/schema",
-  "_comment": "Contoso Global Retail — Customer 360 Profile (Cosmos DB NoSQL)",
+  "_comment": "Tales & Timber — Customer 360 Profile (Cosmos DB NoSQL)",
   "containerConfig": {
     "containerName": "customer_360",
     "partitionKey": {

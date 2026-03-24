@@ -1,6 +1,6 @@
 // =====================================================
 // Inventory Alerts & Reorder Monitoring
-// Contoso Global Retail - Fabric Eventhouse
+// Tales & Timber - Fabric Eventhouse
 // =====================================================
 // Identifies products below reorder point, calculates
 // days of stock remaining, and assigns alert priority.

@@ -1,5 +1,5 @@
 {
-  "name": "Contoso Environment Variables",
+  "name": "Tales & Timber Environment Variables",
   "description": "Variables that change between dev and prod environments. Used by notebooks, pipelines, and Spark jobs to configure behavior per environment.",
   "version": "1.0",
   "variables": [
@@ -20,8 +20,8 @@
       "description": "Display name of the central data warehouse",
       "type": "string",
       "values": {
-        "dev": "contoso_warehouse",
-        "prod": "contoso_warehouse"
+        "dev": "tt_warehouse",
+        "prod": "tt_warehouse"
       },
       "scope": "workspace",
       "target_workspaces": ["data-warehouse"],
@@ -32,8 +32,8 @@
       "description": "Display name of the OLTP operational SQL database",
       "type": "string",
       "values": {
-        "dev": "contoso_operational_db",
-        "prod": "contoso_operational_db"
+        "dev": "tt_operational_db",
+        "prod": "tt_operational_db"
       },
       "scope": "workspace",
       "target_workspaces": ["data-warehouse"],

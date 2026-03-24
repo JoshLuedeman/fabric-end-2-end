@@ -5,7 +5,7 @@ set -euo pipefail
 # Usage: ./scripts/upload-notebooks.sh <environment>
 
 ENVIRONMENT="${1:-dev}"
-WORKSPACE_PREFIX="contoso-data-engineering-${ENVIRONMENT}"
+WORKSPACE_PREFIX="tt-data-engineering-${ENVIRONMENT}"
 
 echo "=== Uploading notebooks to ${WORKSPACE_PREFIX} ==="
 

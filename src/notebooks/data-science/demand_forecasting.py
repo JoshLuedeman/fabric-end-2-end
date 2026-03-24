@@ -4,7 +4,7 @@
 # MAGIC
 # MAGIC **Purpose:** Predict next 30 days of sales by store × category using Facebook Prophet.
 # MAGIC
-# MAGIC **Business Context:** Contoso Global Retail uses demand forecasting to optimise
+# MAGIC **Business Context:** Tales & Timber uses demand forecasting to optimise
 # MAGIC inventory replenishment, staffing, and promotional calendars. Accurate forecasts
 # MAGIC reduce stock-outs (lost revenue) and overstock (markdowns). This notebook trains
 # MAGIC one Prophet model per top-20 store×category combination, logs every run to MLflow,
@@ -16,7 +16,7 @@
 # MAGIC - `dim_product` — product attributes (category, subcategory)
 # MAGIC
 # MAGIC **Output:** `ml_demand_forecast` gold table + MLflow experiment
-# MAGIC `contoso-demand-forecasting`
+# MAGIC `tt-demand-forecasting`
 
 # MAGIC %md
 # MAGIC ## 0. Install Dependencies
@@ -57,7 +57,7 @@ matplotlib.use("Agg")
 FORECAST_HORIZON_DAYS = 30
 TOP_N_COMBINATIONS = 20
 TEST_DAYS = 30  # hold-out period for evaluation
-EXPERIMENT_NAME = "contoso-demand-forecasting"
+EXPERIMENT_NAME = "tt-demand-forecasting"
 MODEL_REGISTRY_NAME = "demand-forecaster"
 
 print("Imports and configuration loaded.")
@@ -376,7 +376,7 @@ if top_combos:
 # MAGIC | Forecast horizon | 30 days |
 # MAGIC | Evaluation metric | MAPE, RMSE |
 # MAGIC | Output table | `ml_demand_forecast` |
-# MAGIC | MLflow experiment | `contoso-demand-forecasting` |
+# MAGIC | MLflow experiment | `tt-demand-forecasting` |
 # MAGIC | Registered model | `demand-forecaster` |
 
 print("Demand forecasting notebook complete.")

@@ -60,7 +60,7 @@ resource "fabric_shortcut" "onelake" {
 #   target = {
 #     amazon_s3 = {
 #       location      = each.value.location     # e.g. "https://partner-bucket.s3.us-east-1.amazonaws.com"
-#       subpath       = each.value.subpath       # e.g. "/contoso/shared-catalog"
+#       subpath       = each.value.subpath       # e.g. "/tt/shared-catalog"
 #       connection_id = each.value.connection_id
 #     }
 #   }

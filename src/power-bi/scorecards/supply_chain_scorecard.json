@@ -1,9 +1,9 @@
 {
   "name": "Supply Chain Performance Scorecard",
-  "description": "Executive KPI scorecard for Contoso supply chain operations. Tracks delivery reliability, fulfillment efficiency, warehouse utilization, inventory health, supplier quality, and logistics costs across the distribution network.",
+  "description": "Executive KPI scorecard for Tales & Timber supply chain operations. Tracks delivery reliability, fulfillment efficiency, warehouse utilization, inventory health, supplier quality, and logistics costs across the distribution network.",
   "version": "1.0",
-  "workspace": "contoso-analytics",
-  "semantic_model": "contoso_operations",
+  "workspace": "tt-analytics",
+  "semantic_model": "tt_operations",
   "update_frequency": "daily",
   "fiscal_year_start": "February",
   "goals": [
@@ -20,7 +20,7 @@
         "behind": { "below_value": 90.0 }
       },
       "connected_metric": {
-        "semantic_model": "contoso_operations",
+        "semantic_model": "tt_operations",
         "measure": "Measures.OnTimeDeliveryPct",
         "filter": "DimDate.IsCurrentMonth = TRUE"
       },
@@ -45,7 +45,7 @@
         "behind": { "below_value": 95.0 }
       },
       "connected_metric": {
-        "semantic_model": "contoso_operations",
+        "semantic_model": "tt_operations",
         "measure": "Measures.OrderFillRate",
         "filter": null
       },
@@ -71,7 +71,7 @@
         "behind": { "above_value": 95 }
       },
       "connected_metric": {
-        "semantic_model": "contoso_operations",
+        "semantic_model": "tt_operations",
         "measure": "Measures.WarehouseUtilization",
         "filter": null
       },
@@ -96,7 +96,7 @@
         "behind": { "above_value": 40 }
       },
       "connected_metric": {
-        "semantic_model": "contoso_operations",
+        "semantic_model": "tt_operations",
         "measure": "Measures.DaysSalesOfInventory",
         "filter": null
       },
@@ -121,7 +121,7 @@
         "behind": { "below_value": 4.0 }
       },
       "connected_metric": {
-        "semantic_model": "contoso_operations",
+        "semantic_model": "tt_operations",
         "measure": "Measures.SupplierQualityRating",
         "filter": "Suppliers.IsActive = TRUE"
       },
@@ -146,7 +146,7 @@
         "behind": { "above_value": 1.40 }
       },
       "connected_metric": {
-        "semantic_model": "contoso_operations",
+        "semantic_model": "tt_operations",
         "measure": "Measures.FreightCostPerUnit",
         "filter": null
       },

@@ -22,7 +22,7 @@
 # MAGIC - `dim_store` — store attributes for context
 # MAGIC
 # MAGIC **Output:** `ml_anomalies` gold table + MLflow experiment
-# MAGIC `contoso-anomaly-detection`
+# MAGIC `tt-anomaly-detection`
 
 # MAGIC %md
 # MAGIC ## 0. Install Dependencies
@@ -65,7 +65,7 @@ CONTAMINATION_RATE = 0.05  # expected anomaly fraction
 RECENT_DAYS = 7            # flag anomalies in last N days
 N_ESTIMATORS = 200
 RANDOM_STATE = 42
-EXPERIMENT_NAME = "contoso-anomaly-detection"
+EXPERIMENT_NAME = "tt-anomaly-detection"
 
 print("Imports and configuration loaded.")
 
@@ -480,7 +480,7 @@ ax4.pie(
 )
 ax4.set_title("Anomalies by Domain", fontsize=11)
 
-plt.suptitle("Contoso ML Anomaly Detection Dashboard", fontsize=14)
+plt.suptitle("Tales & Timber ML Anomaly Detection Dashboard", fontsize=14)
 plt.tight_layout()
 plt.savefig("/tmp/anomaly_detection_viz.png", dpi=150, bbox_inches="tight")
 plt.show()
@@ -499,7 +499,7 @@ print("✅ Visualisation rendered.")
 # MAGIC | Inventory features | net quantity, movement count, returns, adjustments, on-hand, below-reorder |
 # MAGIC | Recent window | Last 7 days |
 # MAGIC | Output table | `ml_anomalies` |
-# MAGIC | MLflow experiment | `contoso-anomaly-detection` |
+# MAGIC | MLflow experiment | `tt-anomaly-detection` |
 # MAGIC | Cross-validation | Compared with KQL-detected anomalies when available |
 
 print("Anomaly detection notebook complete.")

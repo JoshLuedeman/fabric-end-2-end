@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "description": "Automated branch management configuration for Contoso Fabric Branched Workspaces. Integrated with GitHub Actions via the Fabric REST API.",
+  "description": "Automated branch management configuration for Tales & Timber Fabric Branched Workspaces. Integrated with GitHub Actions via the Fabric REST API.",
 
   "auto_create_rules": {
     "enabled": true,
@@ -27,27 +27,27 @@
           "branch_name_template": "{github_branch_name}",
           "workspaces_to_branch": [
             {
-              "workspace_pattern": "contoso-analytics-dev",
+              "workspace_pattern": "tt-analytics-dev",
               "isolation_level": "shared",
               "description": "Auto-created for PR #{pr_number}: {pr_title}"
             },
             {
-              "workspace_pattern": "contoso-data-warehouse-dev",
+              "workspace_pattern": "tt-data-warehouse-dev",
               "isolation_level": "full",
               "condition": "changed_paths_match('src/warehouse/**')",
               "description": "Auto-created for PR #{pr_number}: {pr_title}"
             },
             {
-              "workspace_pattern": "contoso-data-engineering-dev",
+              "workspace_pattern": "tt-data-engineering-dev",
               "isolation_level": "full",
               "condition": "changed_paths_match('src/notebooks/**') || changed_paths_match('src/pipelines/**')",
               "description": "Auto-created for PR #{pr_number}: {pr_title}"
             }
           ],
           "post_create_webhook": {
-            "url": "https://contoso-fabric-automation.azurewebsites.net/api/branch-created",
+            "url": "https://tt-fabric-automation.azurewebsites.net/api/branch-created",
             "headers": {
-              "X-Contoso-Source": "github-actions"
+              "X-Tales & Timber-Source": "github-actions"
             }
           }
         }
@@ -193,19 +193,19 @@
     "max_total_branches_across_all_workspaces": 20,
     "max_full_isolation_branches": 10,
     "alert_at_branch_count": 15,
-    "alert_recipients": ["contoso-fabric-admins@contoso.com"]
+    "alert_recipients": ["tt-fabric-admins@tt.com"]
   },
 
   "notifications": {
     "channels": [
       {
         "type": "teams_webhook",
-        "url": "https://contoso.webhook.office.com/webhookb2/{tenant_id}/{webhook_id}",
+        "url": "https://tt.webhook.office.com/webhookb2/{tenant_id}/{webhook_id}",
         "events": ["branch_created", "branch_merged", "branch_deleted", "merge_conflict", "branch_expiring"]
       },
       {
         "type": "email",
-        "recipients": ["fabric-ops@contoso.com"],
+        "recipients": ["fabric-ops@tt.com"],
         "events": ["branch_expiring", "capacity_limit_warning"]
       }
     ]

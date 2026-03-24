@@ -1,13 +1,13 @@
 {
   "schema_version": "1.0",
-  "api_name": "Contoso Retail GraphQL API",
-  "description": "Unified GraphQL API for querying Contoso Global Retail & Supply Chain data from the Fabric Warehouse and Lakehouse.",
+  "api_name": "Tales & Timber Retail GraphQL API",
+  "description": "Unified GraphQL API for querying Tales & Timber data from the Fabric Warehouse and Lakehouse.",
 
   "data_source_mapping": {
     "description": "Maps GraphQL types to underlying Fabric Warehouse tables. The GraphQL API resolver layer translates GraphQL queries into T-SQL executed against the warehouse.",
     "primary_data_source": {
       "type": "warehouse",
-      "name": "contoso_warehouse",
+      "name": "tt_warehouse",
       "schema_files": ["../schema/retail_api.graphql", "../schema/mutations.graphql"]
     },
     "type_mappings": [
@@ -136,17 +136,17 @@
     },
     "security_groups": {
       "read_access": [
-        "contoso-data-readers",
-        "contoso-store-managers",
-        "contoso-regional-directors"
+        "tt-data-readers",
+        "tt-store-managers",
+        "tt-regional-directors"
       ],
       "write_access": [
-        "contoso-order-managers",
-        "contoso-warehouse-ops",
-        "contoso-crm-operators"
+        "tt-order-managers",
+        "tt-warehouse-ops",
+        "tt-crm-operators"
       ],
       "admin_access": [
-        "contoso-fabric-admins"
+        "tt-fabric-admins"
       ]
     },
     "row_level_security": {
@@ -185,8 +185,8 @@
     "enabled": true,
     "description": "Cross-Origin Resource Sharing configuration for web applications consuming the GraphQL API.",
     "allowed_origins": [
-      "https://contoso-retail.azurewebsites.net",
-      "https://contoso-admin.azurewebsites.net",
+      "https://tt-retail.azurewebsites.net",
+      "https://tt-admin.azurewebsites.net",
       "https://app.fabric.microsoft.com",
       "http://localhost:3000"
     ],
@@ -241,9 +241,9 @@
               "rank": 1,
               "product": {
                 "productId": "PRD-00142",
-                "name": "Contoso Wireless Mouse Pro",
+                "name": "Tales & Timber Wireless Mouse Pro",
                 "category": "Electronics",
-                "brand": "Contoso",
+                "brand": "Tales & Timber",
                 "unitPrice": 49.99
               },
               "totalRevenue": 284943.00,
@@ -262,7 +262,7 @@
         "data": {
           "storePerformance": {
             "store": {
-              "name": "Contoso Flagship Seattle",
+              "name": "Tales & Timber Flagship Seattle",
               "region": "West",
               "city": "Seattle"
             },
@@ -293,12 +293,12 @@
               "severity": "CRITICAL",
               "product": {
                 "productId": "PRD-00087",
-                "name": "Contoso USB-C Hub",
+                "name": "Tales & Timber USB-C Hub",
                 "category": "Electronics"
               },
               "store": {
                 "storeId": "STR-0042",
-                "name": "Contoso Flagship Seattle",
+                "name": "Tales & Timber Flagship Seattle",
                 "city": "Seattle"
               },
               "currentOnHand": 3,

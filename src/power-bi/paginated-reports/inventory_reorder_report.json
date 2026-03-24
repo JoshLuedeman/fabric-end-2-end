@@ -7,7 +7,7 @@
   "datasetBinding": {
     "datasetReference": {
       "byPath": {
-        "path": "../../semantic-models/contoso_operations.bim"
+        "path": "../../semantic-models/tt_operations.bim"
       }
     }
   },
@@ -58,7 +58,7 @@
       "items": [
         {
           "type": "image",
-          "description": "Contoso logo",
+          "description": "Tales & Timber logo",
           "position": { "left": "0in", "top": "0in", "width": "1.8in", "height": "0.7in" }
         },
         {
@@ -196,7 +196,7 @@
   ],
   "subscriptions": {
     "schedule": "daily at 05:30 UTC",
-    "recipients": ["procurement-team@contoso.com", "inventory-ops@contoso.com"],
+    "recipients": ["procurement-team@tt.com", "inventory-ops@tt.com"],
     "format": "PDF",
     "subject": "Inventory Reorder Report — {date} — {CountRows} items requiring reorder"
   }

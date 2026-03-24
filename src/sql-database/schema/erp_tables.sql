@@ -1,5 +1,5 @@
 -- ===========================================================================
--- Contoso ERP Schema — Tables mirrored into OneLake via Fabric Mirroring
+-- Tales & Timber ERP Schema — Tables mirrored into OneLake via Fabric Mirroring
 -- Source: Azure SQL Database (simulating external ERP system)
 -- Tables: Suppliers, PurchaseOrders, PurchaseOrderLines, GLJournalEntries,
 --         ChartOfAccounts

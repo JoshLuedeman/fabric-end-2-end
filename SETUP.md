@@ -1,6 +1,6 @@
 # Complete Setup Guide
 
-> Everything you need to get the **Contoso Global Retail** demo environment running — from zero to a fully operational Fabric environment.
+> Everything you need to get the **Tales & Timber** demo environment running — from zero to a fully operational Fabric environment.
 
 **Estimated total setup time:** ~2 hours for first-time deployment (varies with data scale and network speed).
 
@@ -137,7 +137,7 @@ Configure in **Settings → Secrets and variables → Actions → Variables**:
 |----------|-------------|----------------|
 | `FABRIC_WORKSPACE_ID` | Fabric workspace GUID for content deployment | After infra deploy — from Terraform output or Fabric portal URL |
 | `LAKEHOUSE_ONELAKE_URL` | OneLake URL for data upload | After infra deploy — `https://onelake.dfs.fabric.microsoft.com/<workspace>/<lakehouse>` |
-| `AZURE_RESOURCE_GROUP` | Resource group for streaming ACI deployment | After infra deploy — e.g., `rg-contoso-fabric-dev` |
+| `AZURE_RESOURCE_GROUP` | Resource group for streaming ACI deployment | After infra deploy — e.g., `rg-tt-fabric-dev` |
 | `FABRIC_SKU` | Fabric capacity SKU — controls capacity size AND data generation scale. **Must be uppercase**: `F2`, `F4`, `F8`, `F16`, `F32`, or `F64` | `F8` |
 
 ---
@@ -354,8 +354,8 @@ Replicate external databases into OneLake with near-real-time CDC.
 
 Expose warehouse data through a unified GraphQL endpoint.
 
-1. In the `contoso-data-warehouse-{env}` workspace, create a **GraphQL API** item (`contoso_retail_api`)
-2. Connect it to the `contoso_warehouse` data source
+1. In the `tt-data-warehouse-{env}` workspace, create a **GraphQL API** item (`tt_retail_api`)
+2. Connect it to the `tt_warehouse` data source
 3. Import the schema from [`src/graphql/schema/retail_api.graphql`](src/graphql/schema/retail_api.graphql)
 4. Configure authentication (Entra ID — interactive or client credentials)
 5. Test with the built-in GraphQL explorer
@@ -367,9 +367,9 @@ Expose warehouse data through a unified GraphQL endpoint.
 Create live digital replicas of stores and supply chain assets.
 
 1. Enable **Digital Twin Builder (Preview)** in Fabric Admin Portal → Tenant settings
-2. Create twin spaces in the `contoso-real-time-{env}` workspace:
-   - `contoso_store_twin` — retail store layout + equipment
-   - `contoso_supply_chain_twin` — supplier → warehouse → store network
+2. Create twin spaces in the `tt-real-time-{env}` workspace:
+   - `tt_store_twin` — retail store layout + equipment
+   - `tt_supply_chain_twin` — supplier → warehouse → store network
 3. Import entity type models from [`src/digital-twins/`](src/digital-twins/)
 4. Link telemetry bindings to the Eventhouse KQL database
 
@@ -432,10 +432,10 @@ Bundle reports into installable app packages for end users.
    - Store Managers, Regional Directors, VP Operations
    - C-Suite, SVP Leadership
    - Technicians, Drivers, Warehouse Workers
-3. Publish 3 apps from the `contoso-analytics-{env}` workspace:
-   - **Contoso Retail Operations** — daily operations and inventory
-   - **Contoso Executive Suite** — C-level dashboards (Highly Confidential)
-   - **Contoso Field Operations** — mobile-optimized for field workers
+3. Publish 3 apps from the `tt-analytics-{env}` workspace:
+   - **Tales & Timber Retail Operations** — daily operations and inventory
+   - **Tales & Timber Executive Suite** — C-level dashboards (Highly Confidential)
+   - **Tales & Timber Field Operations** — mobile-optimized for field workers
 
 📖 **Full guide:** [`src/power-bi/apps/app_setup_guide.md`](src/power-bi/apps/app_setup_guide.md)
 
@@ -458,7 +458,7 @@ Promote Fabric item content across Dev → Test → Prod stages.
 
 Create Power BI scorecards for goal tracking.
 
-1. In the `contoso-analytics-{env}` workspace, create scorecards using definitions from
+1. In the `tt-analytics-{env}` workspace, create scorecards using definitions from
    [`src/power-bi/scorecards/`](src/power-bi/scorecards/):
    - `retail_operations_scorecard.json`
    - `supply_chain_scorecard.json`
@@ -474,10 +474,10 @@ Configure **4 business domains** in Fabric Admin Portal → Domains:
 
 | Domain | Workspaces |
 |--------|------------|
-| **Retail Operations** | `contoso-ingestion-{env}`, `contoso-data-engineering-{env}`, `contoso-data-warehouse-{env}` |
-| **Customer Intelligence** | `contoso-data-science-{env}`, `contoso-analytics-{env}` |
-| **Supply Chain & Logistics** | `contoso-real-time-{env}` |
-| **Corporate Governance** | `contoso-governance-{env}`, `contoso-ai-agents-{env}` |
+| **Retail Operations** | `tt-ingestion-{env}`, `tt-data-engineering-{env}`, `tt-data-warehouse-{env}` |
+| **Customer Intelligence** | `tt-data-science-{env}`, `tt-analytics-{env}` |
+| **Supply Chain & Logistics** | `tt-real-time-{env}` |
+| **Corporate Governance** | `tt-governance-{env}`, `tt-ai-agents-{env}` |
 
 📖 **Domain configuration:** [`src/governance/domain_config.json`](src/governance/domain_config.json)
 
@@ -485,7 +485,7 @@ Configure **4 business domains** in Fabric Admin Portal → Domains:
 
 Centralize environment-specific configuration values.
 
-1. Create a **Variable Library** in the `contoso-governance-{env}` workspace
+1. Create a **Variable Library** in the `tt-governance-{env}` workspace
 2. Import variables from [`src/governance/variable_library/`](src/governance/variable_library/):
    - `environment_variables.json` — environment-specific settings
    - `connection_references.json` — connection string references
@@ -574,14 +574,14 @@ python data/generators/generate_all.py --output-dir data/generators/output --sca
 After completing all deployment steps, walk through this checklist to confirm everything is working:
 
 - [ ] ✅ Terraform apply succeeded — all modules green, no errors
-- [ ] ✅ **8 Fabric workspaces** visible in portal (`contoso-ingestion-dev`, `contoso-data-engineering-dev`, `contoso-data-warehouse-dev`, `contoso-real-time-dev`, `contoso-data-science-dev`, `contoso-analytics-dev`, `contoso-governance-dev`, `contoso-ai-agents-dev`)
+- [ ] ✅ **8 Fabric workspaces** visible in portal (`tt-ingestion-dev`, `tt-data-engineering-dev`, `tt-data-warehouse-dev`, `tt-real-time-dev`, `tt-data-science-dev`, `tt-analytics-dev`, `tt-governance-dev`, `tt-ai-agents-dev`)
 - [ ] ✅ Lakehouse contains **bronze / silver / gold** Delta tables with data
 - [ ] ✅ Warehouse has **dimension and fact tables** populated (`dim_customer`, `dim_product`, `dim_store`, `fact_sales`, `fact_inventory`)
-- [ ] ✅ KQL database receiving events from Eventstream — run `.show database contoso_kqldb extents` to verify
+- [ ] ✅ KQL database receiving events from Eventstream — run `.show database tt_kqldb extents` to verify
 - [ ] ✅ IoT simulator running — check ACI container status in Azure Portal or run `az container show`
 - [ ] ✅ OLTP simulator generating transactions — verify CDC watermark timestamps are advancing
 - [ ] ✅ Power BI reports loading with data — open `executive_dashboard` and `sales_analytics` reports
-- [ ] ✅ Airflow DAGs scheduled and running — check Airflow UI for `contoso_daily_etl`, `contoso_hourly_realtime_quality`, `contoso_weekly_maintenance`
+- [ ] ✅ Airflow DAGs scheduled and running — check Airflow UI for `tt_daily_etl`, `tt_hourly_realtime_quality`, `tt_weekly_maintenance`
 - [ ] ✅ Data Activator alerts configured — verify Reflex triggers for inventory, sales anomaly, IoT failure, churn risk
 - [ ] ✅ ML models trained and registered in MLflow — check experiments for demand forecasting, churn, and segmentation
 
@@ -631,7 +631,7 @@ python data/generators/generate_all.py --output-dir data/generators/output --sca
 
 ### Notebook execution fails
 
-**Fix:** Check that the Lakehouse mount path is correct. Notebooks reference the Lakehouse by name — verify `lh_bronze`, `lh_silver`, `lh_gold` exist in the `contoso-data-engineering-{env}` workspace. Ensure data was uploaded before running silver/gold transforms.
+**Fix:** Check that the Lakehouse mount path is correct. Notebooks reference the Lakehouse by name — verify `lh_bronze`, `lh_silver`, `lh_gold` exist in the `tt-data-engineering-{env}` workspace. Ensure data was uploaded before running silver/gold transforms.
 
 ### KQL query returns no data
 

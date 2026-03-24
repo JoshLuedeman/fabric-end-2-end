@@ -1,5 +1,5 @@
 """
-Generate web clickstream event data for Contoso Global Retail.
+Generate web clickstream event data for Tales & Timber.
 
 Output: output/web_clickstream/part_XXXXXXXXXX.parquet  (chunked, Snappy-compressed)
 

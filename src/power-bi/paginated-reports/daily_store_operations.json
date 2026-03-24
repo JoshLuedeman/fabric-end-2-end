@@ -7,7 +7,7 @@
   "datasetBinding": {
     "datasetReference": {
       "byPath": {
-        "path": "../../semantic-models/contoso_operations.bim"
+        "path": "../../semantic-models/tt_operations.bim"
       }
     }
   },
@@ -48,7 +48,7 @@
       "items": [
         {
           "type": "image",
-          "description": "Contoso logo",
+          "description": "Tales & Timber logo",
           "position": { "left": "0in", "top": "0in", "width": "2in", "height": "0.8in" }
         },
         {
@@ -185,7 +185,7 @@
       "items": [
         {
           "type": "textbox",
-          "value": "='Generated: ' & Now() & ' | Contoso Global Retail — Confidential'",
+          "value": "='Generated: ' & Now() & ' | Tales & Timber — Confidential'",
           "position": { "left": "0in", "top": "0in", "width": "5in", "height": "0.3in" },
           "style": { "font_size": "8pt", "color": "#888888" }
         },

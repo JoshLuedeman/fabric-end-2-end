@@ -3,7 +3,7 @@
 # configure-tenant.sh
 # Configures required Fabric tenant settings via the Admin REST API (Preview).
 #
-# This script enables the tenant-level toggles needed for the Contoso demo
+# This script enables the tenant-level toggles needed for the Tales & Timber demo
 # environment to function. Must be run by a Fabric Administrator.
 #
 # Settings enabled:
@@ -165,7 +165,7 @@ EOF
 # Step 2 — Enable required tenant settings
 # ---------------------------------------------------------------------------
 echo ""
-log "Configuring required tenant settings for Contoso demo environment"
+log "Configuring required tenant settings for Tales & Timber demo environment"
 echo ""
 
 FAILED=0

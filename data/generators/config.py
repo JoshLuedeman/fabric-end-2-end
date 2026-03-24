@@ -1,5 +1,5 @@
 """
-Shared configuration for Contoso Global Retail & Supply Chain data generators.
+Shared configuration for Tales & Timber data generators.
 
 All generators import from this module to ensure consistent entity counts,
 date ranges, and cross-referenced IDs.
@@ -204,6 +204,9 @@ PRODUCT_CATEGORIES = {
     "Books": ["Fiction", "Non-Fiction", "Children's", "Technical", "Audiobooks"],
     "Automotive": ["Parts", "Accessories", "Tools", "Care Products", "Electronics"],
     "Office": ["Supplies", "Furniture", "Technology", "Breakroom", "Printing"],
+    "Camping": ["Tents", "Sleeping Bags", "Camp Stoves", "Lanterns", "Coolers", "Camp Furniture"],
+    "Outdoor Gear": ["Hiking Boots", "Backpacks", "Climbing Gear", "Trail Running", "Navigation", "Hydration"],
+    "Home & Cabin": ["Rustic Furniture", "Lodge Decor", "Fireplaces", "Candles", "Blankets", "Cookware"],
 }
 
 # Category -> (min_cost, max_cost, margin_low, margin_high)
@@ -218,6 +221,9 @@ CATEGORY_PRICING = {
     "Books": (3.0, 60.0, 0.30, 0.55),
     "Automotive": (5.0, 300.0, 0.20, 0.45),
     "Office": (2.0, 200.0, 0.30, 0.60),
+    "Camping": (15.0, 400.0, 0.25, 0.55),
+    "Outdoor Gear": (20.0, 500.0, 0.20, 0.50),
+    "Home & Cabin": (10.0, 600.0, 0.30, 0.60),
 }
 
 # ---------------------------------------------------------------------------

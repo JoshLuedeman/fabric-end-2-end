@@ -55,7 +55,7 @@ These are **non-sensitive configuration values** stored as repository variables 
 |----------|-------------|---------------|
 | `FABRIC_WORKSPACE_ID` | Fabric workspace ID for content deployment (notebooks, pipelines, reports) | `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx` (GUID from Fabric portal URL) |
 | `LAKEHOUSE_ONELAKE_URL` | OneLake URL for the Lakehouse where generated data is uploaded | `https://onelake.dfs.fabric.microsoft.com/<workspace-name>/<lakehouse-name>` |
-| `AZURE_RESOURCE_GROUP` | Azure resource group for deploying the streaming container instance | `rg-contoso-fabric-dev` (created by Terraform) |
+| `AZURE_RESOURCE_GROUP` | Azure resource group for deploying the streaming container instance | `rg-tt-fabric-dev` (created by Terraform) |
 
 ---
 

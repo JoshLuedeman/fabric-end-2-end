@@ -285,7 +285,7 @@ if "sale_timestamp" in df.columns or "sale_time" in df.columns:
     )
 
 # ---- Data Wrangler Generated Code ----
-# Operation: Derive fiscal_quarter (Contoso fiscal year starts April)
+# Operation: Derive fiscal_quarter (Tales & Timber fiscal year starts April)
 df = df.withColumn(
     "fiscal_quarter",
     when(col("sale_month").between(4, 6), lit("Q1"))

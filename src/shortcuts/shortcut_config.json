@@ -1,6 +1,6 @@
 {
   "$schema": "https://learn.microsoft.com/fabric/onelake/onelake-shortcuts",
-  "_comment": "OneLake shortcut topology for Contoso Global Retail & Supply Chain",
+  "_comment": "OneLake shortcut topology for Tales & Timber",
   "shortcuts": {
     "adls_gen2": {
       "weather_data_feed": {
@@ -26,7 +26,7 @@
         "source_path": "Tables",
         "shortcut_path": "Tables/gold",
         "target_workspace": "data-warehouse",
-        "target_lakehouse": "contoso_warehouse (Lakehouse shortcut mounted in warehouse workspace)",
+        "target_lakehouse": "tt_warehouse (Lakehouse shortcut mounted in warehouse workspace)",
         "refresh": "Real-time (shortcut, no copy)"
       }
     },
@@ -35,9 +35,9 @@
       "partner_product_catalog": {
         "description": "Third-party marketplace product catalog from a retail partner, stored in an S3 bucket. Contains competitive pricing, product attributes, and category mappings.",
         "source_type": "Amazon S3",
-        "bucket": "contoso-partner-catalog",
+        "bucket": "tt-partner-catalog",
         "region": "us-east-1",
-        "subpath": "/contoso/shared-catalog",
+        "subpath": "/tt/shared-catalog",
         "format": "Parquet + CSV",
         "shortcut_path": "Files/external/partner_catalog",
         "target_workspace": "data-engineering",

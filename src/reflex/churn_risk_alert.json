@@ -24,7 +24,7 @@
   "actions": [
     {
       "type": "email",
-      "recipients": ["customer-success@contoso.com"],
+      "recipients": ["customer-success@tt.com"],
       "subject": "🔔 Churn Risk: {{loyalty_tier}} Customer {{customer_name}} ({{customer_id}})",
       "body": "A high-value customer has been flagged as at-risk for churn.\n\nCustomer: {{customer_name}} (ID: {{customer_id}})\nLoyalty Tier: {{loyalty_tier}}\nChurn Probability: {{churn_probability}}\nLifetime Value: ${{lifetime_value}}\nLast Purchase: {{last_purchase_date}}\n\nTop Contributing Factors:\n{{top_churn_factors}}\n\nRecommended Action: Initiate personalized retention outreach within 48 hours."
     },

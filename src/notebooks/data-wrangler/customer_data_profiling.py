@@ -6,7 +6,7 @@
 # MAGIC analysis. Generate column-level statistics, identify outliers, duplicates,
 # MAGIC and data quality issues, and output a data quality report table.
 # MAGIC
-# MAGIC **Business Context:** Contoso Global Retail has 2M+ customers across
+# MAGIC **Business Context:** Tales & Timber has 2M+ customers across
 # MAGIC multiple channels. Ensuring data quality is critical for accurate churn
 # MAGIC predictions, customer segmentation, and personalised marketing. This
 # MAGIC notebook provides a repeatable profiling pipeline that runs before

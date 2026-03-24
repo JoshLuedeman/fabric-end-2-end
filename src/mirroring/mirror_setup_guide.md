@@ -1,4 +1,4 @@
-# Database Mirroring Setup Guide — Contoso Global Retail
+# Database Mirroring Setup Guide — Tales & Timber
 
 > **Fabric Mirroring** replicates external databases into OneLake with near-real-time
 > CDC (Change Data Capture). Data lands in Delta-Parquet format and is immediately
@@ -82,7 +82,7 @@ module "erp_mirror" {
 ## Setup: Snowflake Mirror (Supply Chain Partners)
 
 ### Prerequisites
-1. Snowflake account with `CONTOSO_READER` role granted on the shared database
+1. Snowflake account with `TT_READER` role granted on the shared database
 2. Key-pair authentication configured (RSA private key)
 3. Fabric Connection for Snowflake created in the workspace
 
@@ -92,7 +92,7 @@ module "erp_mirror" {
 3. Select **Snowflake** as the source
 4. Configure connection:
    - **Account**: `<partner-account>.snowflakecomputing.com`
-   - **Warehouse**: `CONTOSO_PARTNER_WH`
+   - **Warehouse**: `TT_PARTNER_WH`
    - **Database**: `SUPPLY_CHAIN_ANALYTICS`
    - **Authentication**: Key Pair (upload private key via Fabric Connection)
 5. Select tables from the `SHARED` schema
@@ -125,7 +125,7 @@ az rest --method POST \
 2. Click **+ New** → **Mirrored Database**
 3. Select **Azure Cosmos DB** as the source
 4. Authenticate via **Managed Identity** (recommended) or account key
-5. Select database: `contoso_cosmosdb`
+5. Select database: `tt_cosmosdb`
 6. Select containers: `product_catalog`, `customer_360`
 7. Configure column mapping:
    - Flatten depth: 1 (top-level properties become columns)
@@ -180,7 +180,7 @@ dedup, checkpointing, and incremental append logic.
 
 - **Copy Job** → Use for initial bulk loads, one-time historical backfills, or sources not supported by Mirroring. Also useful for sources behind firewalls where continuous CDC isn't feasible.
 
-### Contoso example:
+### Tales & Timber example:
 | Data Source | Method | Rationale |
 |-------------|--------|-----------|
 | ERP (Azure SQL) | **Mirroring** | Near-real-time financial data for daily reporting |

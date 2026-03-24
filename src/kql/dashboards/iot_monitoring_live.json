@@ -1,16 +1,16 @@
 {
   "_comment": [
     "KQL Real-Time Dashboard — IoT / Facility Monitoring",
-    "Contoso Global Retail — contoso_kqldb",
+    "Tales & Timber — tt_kqldb",
     "",
     "Import this definition into a Fabric Real-Time Dashboard.",
     "Each tile contains a standalone KQL query designed for the",
-    "RealtimeIoT table in the contoso_eventhouse / contoso_kqldb."
+    "RealtimeIoT table in the tt_eventhouse / tt_kqldb."
   ],
 
   "name": "IoT Monitoring Live",
-  "workspace": "contoso-real-time-${environment}",
-  "database": "contoso_kqldb",
+  "workspace": "tt-real-time-${environment}",
+  "database": "tt_kqldb",
   "auto_refresh_seconds": 15,
   "time_range_default": "Last 2 hours",
 

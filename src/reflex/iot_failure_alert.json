@@ -3,7 +3,7 @@
   "description": "Monitors IoT sensor health: triggers on connectivity loss (>15 min silence) or temperature out of safe range (>35°C or <2°C for refrigeration units)",
   "dataSource": {
     "type": "Eventhouse",
-    "database": "contoso_kqldb",
+    "database": "tt_kqldb",
     "query": "let connectivity_threshold = 15m; let temp_high = 35.0; let temp_low = 2.0; let connectivity_failures = IoTSensorReadings | summarize LastReading = max(Timestamp) by SensorId, StoreId, SensorType | where (now() - LastReading) > connectivity_threshold | extend AlertType = 'connectivity_loss', Priority = 'medium', Reading = toreal(0), Threshold = toreal(0); let temperature_failures = IoTSensorReadings | where SensorType == 'refrigeration' and Timestamp > ago(5m) | summarize AvgTemp = avg(Temperature), MaxTemp = max(Temperature), MinTemp = min(Temperature) by SensorId, StoreId, SensorType | where MaxTemp > temp_high or MinTemp < temp_low | extend AlertType = iff(MaxTemp > temp_high, 'temperature_high', 'temperature_low'), Priority = 'critical', Reading = iff(MaxTemp > temp_high, MaxTemp, MinTemp), Threshold = iff(MaxTemp > temp_high, temp_high, temp_low); connectivity_failures | union temperature_failures | project SensorId, StoreId, SensorType, AlertType, Priority, Reading, Threshold"
   },
   "trigger": {
@@ -37,7 +37,7 @@
   "actions": [
     {
       "type": "email",
-      "recipients": ["facilities-team@contoso.com"],
+      "recipients": ["facilities-team@tt.com"],
       "subject": "{{#if (eq Priority 'critical')}}🚨{{else}}⚠️{{/if}} IoT Alert [{{Priority}}]: {{AlertType}} — Sensor {{SensorId}} at Store {{StoreId}}",
       "body": "An IoT sensor alert has been raised.\n\nSensor ID: {{SensorId}}\nStore: {{StoreId}}\nSensor Type: {{SensorType}}\nAlert Type: {{AlertType}}\nPriority: {{Priority}}\nReading: {{Reading}}\nThreshold: {{Threshold}}\n\n{{#if (eq AlertType 'connectivity_loss')}}Sensor has not reported data for over 15 minutes. Check device connectivity and power supply.{{else}}Temperature reading is outside the safe operating range. Immediate inspection required to prevent spoilage.{{/if}}"
     },

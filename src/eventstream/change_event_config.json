@@ -10,24 +10,24 @@
     "",
     "Data flow:",
     "  OLTP Simulator → Fabric SQL Database → Change Event Streaming → Eventstream",
-    "    ├─→ Eventhouse (contoso_kqldb)   — real-time analytics / KQL dashboards",
+    "    ├─→ Eventhouse (tt_kqldb)   — real-time analytics / KQL dashboards",
     "    └─→ Lakehouse (bronze layer)     — near-real-time CDC for batch analytics",
     "",
     "The IoT sensor telemetry follows a separate path:",
     "  IoT Simulator (streaming/) → Event Hub → Eventstream → Eventhouse"
   ],
 
-  "displayName": "contoso-change-events",
+  "displayName": "tt-change-events",
   "description": "Routes SQL Database CDC change events to Eventhouse and Lakehouse for real-time and batch analytics",
 
   "sources": [
     {
-      "name": "contoso-sql-db-changes",
+      "name": "tt-sql-db-changes",
       "type": "FabricSQLDatabaseChangeEventStreaming",
-      "description": "Change events from the Contoso OLTP database (Fabric SQL Database)",
+      "description": "Change events from the Tales & Timber OLTP database (Fabric SQL Database)",
       "config": {
-        "workspaceName": "contoso-fabric-workspace",
-        "sqlDatabaseName": "contoso_operational_db",
+        "workspaceName": "tt-fabric-workspace",
+        "sqlDatabaseName": "tt_operational_db",
         "tables": [
           {
             "schema": "dbo",
@@ -55,12 +55,12 @@
       }
     },
     {
-      "name": "contoso-iot-events",
+      "name": "tt-iot-events",
       "type": "AzureEventHub",
       "description": "IoT sensor telemetry from the streaming container (separate data path)",
       "config": {
-        "eventHubNamespace": "contoso-eventhub-ns",
-        "eventHubName": "contoso-events",
+        "eventHubNamespace": "tt-eventhub-ns",
+        "eventHubName": "tt-events",
         "consumerGroup": "$Default",
         "dataFormat": "JSON"
       }
@@ -71,7 +71,7 @@
     {
       "name": "enrich-transactions",
       "description": "Add processing timestamp and source tag to transaction events",
-      "inputStream": "contoso-sql-db-changes",
+      "inputStream": "tt-sql-db-changes",
       "filterTables": ["Transactions", "TransactionItems"],
       "operations": [
         {
@@ -89,7 +89,7 @@
     {
       "name": "enrich-inventory",
       "description": "Add processing metadata to inventory change events",
-      "inputStream": "contoso-sql-db-changes",
+      "inputStream": "tt-sql-db-changes",
       "filterTables": ["Inventory"],
       "operations": [
         {
@@ -112,9 +112,9 @@
       "type": "FabricEventhouse",
       "description": "Real-time analytics — powers KQL dashboards and Reflex triggers",
       "config": {
-        "workspaceName": "contoso-fabric-workspace",
-        "eventhouseName": "contoso_eventhouse",
-        "kqlDatabaseName": "contoso_kqldb",
+        "workspaceName": "tt-fabric-workspace",
+        "eventhouseName": "tt_eventhouse",
+        "kqlDatabaseName": "tt_kqldb",
         "tableMappings": [
           {
             "sourceTable": "Transactions",
@@ -148,8 +148,8 @@
       "type": "FabricLakehouse",
       "description": "Near-real-time CDC landing zone — feeds the medallion architecture",
       "config": {
-        "workspaceName": "contoso-fabric-workspace",
-        "lakehouseName": "contoso_lakehouse",
+        "workspaceName": "tt-fabric-workspace",
+        "lakehouseName": "tt_lakehouse",
         "tableMappings": [
           {
             "sourceTable": "Transactions",
@@ -180,19 +180,19 @@
 
   "setupInstructions": {
     "step1_enableChangeEventStreaming": [
-      "1. Open the Fabric portal → navigate to contoso_operational_db",
+      "1. Open the Fabric portal → navigate to tt_operational_db",
       "2. Click 'Change Event Streaming' in the database settings",
       "3. Select the tables: Transactions, TransactionItems, Inventory, CustomerInteractions",
-      "4. Choose the target Eventstream: contoso-change-events",
+      "4. Choose the target Eventstream: tt-change-events",
       "5. Set capture mode to 'Incremental'",
       "6. Click 'Enable' to start streaming changes"
     ],
     "step2_configureEventstream": [
-      "1. Open the Eventstream 'contoso-change-events' in the Fabric portal",
+      "1. Open the Eventstream 'tt-change-events' in the Fabric portal",
       "2. Verify the SQL Database source appears with 4 tables",
-      "3. Add destination: Eventhouse → contoso_eventhouse → contoso_kqldb",
+      "3. Add destination: Eventhouse → tt_eventhouse → tt_kqldb",
       "4. Map each source table to its destination table (see tableMappings above)",
-      "5. Add destination: Lakehouse → contoso_lakehouse",
+      "5. Add destination: Lakehouse → tt_lakehouse",
       "6. Map each source table to its bronze Delta path",
       "7. Activate the Eventstream"
     ],

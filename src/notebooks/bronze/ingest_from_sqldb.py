@@ -18,7 +18,7 @@ from datetime import datetime
 # The connection string is injected via Fabric-managed JDBC; no secrets needed.
 SQLDB_JDBC_URL = (
     "jdbc:sqlserver://<your-sqldb-endpoint>.database.fabric.microsoft.com:1433;"
-    "database=contoso_operational_db;"
+    "database=tt_operational_db;"
     "encrypt=true;"
     "trustServerCertificate=false;"
     "authentication=ActiveDirectoryMSI"

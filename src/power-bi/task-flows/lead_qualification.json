@@ -36,7 +36,7 @@
   "action": {
     "type": "user_data_function",
     "function_name": "fn_qualify_lead",
-    "workspace": "contoso-analytics",
+    "workspace": "tt-analytics",
     "write_target": {
       "type": "warehouse_table",
       "schema": "operations",

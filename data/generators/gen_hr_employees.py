@@ -1,5 +1,5 @@
 """
-Generate employee dimension data for Contoso Global Retail.
+Generate employee dimension data for Tales & Timber.
 
 Output: employees.parquet
 
@@ -159,7 +159,7 @@ def generate_employees() -> pd.DataFrame:
     last_names = np.array([fake.last_name() for _ in range(n)], dtype=object)
     emails = np.array(
         [
-            f"{fn.lower()}.{ln.lower()}{i}@contoso.com"
+            f"{fn.lower()}.{ln.lower()}{i}@talesandtimber.com"
             for i, fn, ln in zip(emp_nums, first_names, last_names)
         ],
         dtype=object,

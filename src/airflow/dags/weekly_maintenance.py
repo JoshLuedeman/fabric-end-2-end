@@ -1,5 +1,5 @@
 """
-Contoso Weekly Maintenance DAG
+Tales & Timber Weekly Maintenance DAG
 
 Runs every Sunday at midnight UTC. Performs housekeeping tasks across
 the Fabric data platform:
@@ -31,9 +31,9 @@ from airflow.providers.microsoft.fabric.operators.fabric import (
 from airflow.utils.task_group import TaskGroup
 
 default_args = {
-    "owner": "contoso-data-team",
+    "owner": "tt-data-team",
     "depends_on_past": False,
-    "email": ["data-team@contoso.com"],
+    "email": ["data-team@tt.com"],
     "email_on_failure": True,
     "email_on_retry": False,
     "retries": 1,
@@ -256,13 +256,13 @@ def cleanup_mlflow_runs(**context):
 # DAG definition
 # ---------------------------------------------------------------------------
 with DAG(
-    dag_id="contoso_weekly_maintenance",
+    dag_id="tt_weekly_maintenance",
     default_args=default_args,
     description="Weekly: optimize tables, update stats, archive, retrain ML, quality report",
     schedule_interval="0 0 * * 0",
     start_date=datetime(2025, 1, 1),
     catchup=False,
-    tags=["contoso", "maintenance", "weekly"],
+    tags=["tt", "maintenance", "weekly"],
     max_active_runs=1,
 ) as dag:
 

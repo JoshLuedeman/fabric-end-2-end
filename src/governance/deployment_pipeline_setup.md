@@ -2,7 +2,7 @@
 
 ## Overview
 
-Contoso Global Retail uses **two complementary CI/CD mechanisms**:
+Tales & Timber uses **two complementary CI/CD mechanisms**:
 
 | Concern | Tool | What it manages |
 |---|---|---|
@@ -58,9 +58,9 @@ GitHub repo                    Fabric Service
 ───────────                    ──────────────
  .github/workflows/
    terraform-plan.yml  ──────► Terraform creates:
-   terraform-apply.yml           ├── contoso-ingestion-dev
-                                 ├── contoso-data-engineering-dev
-                                 ├── contoso-analytics-dev
+   terraform-apply.yml           ├── tt-ingestion-dev
+                                 ├── tt-data-engineering-dev
+                                 ├── tt-analytics-dev
                                  └── ... (all 8 workspace areas × 3 envs)
 
  src/notebooks/        ──────► Deployed to dev workspaces via fabric_notebook

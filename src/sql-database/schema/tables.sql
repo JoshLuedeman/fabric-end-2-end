@@ -1,5 +1,5 @@
 -- ===========================================================================
--- Contoso Operational POS Database (Fabric SQL Database)
+-- Tales & Timber Operational POS Database (Fabric SQL Database)
 -- Normalized OLTP schema for point-of-sale and inventory management
 --
 -- This is the LIVE transactional system. The analytics Lakehouse/Warehouse

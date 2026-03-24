@@ -1,7 +1,7 @@
-# Contoso Global Retail — Branched Workspaces Strategy
+# Tales & Timber — Branched Workspaces Strategy
 
 > **Status:** Planning — Branched Workspaces was announced at FabCon 2026.  
-> **Applies to:** All 8 Contoso Fabric workspaces across dev and prod environments.  
+> **Applies to:** All 8 Tales & Timber Fabric workspaces across dev and prod environments.  
 > **Complements:** GitHub Actions CI/CD (`/.github/workflows/`) and native Deployment Pipelines (`src/governance/deployment_pipeline_config.json`).
 
 ---
@@ -37,7 +37,7 @@ Branched Workspaces allow creating isolated copies of a Fabric workspace — inc
 
 ## How Branched Workspaces Fit Our ALM Strategy
 
-Contoso uses a **three-layer ALM approach**:
+Tales & Timber uses a **three-layer ALM approach**:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -84,8 +84,8 @@ Contoso uses a **three-layer ALM approach**:
 ### Naming Examples
 
 ```
-feature/CONTOSO-1234-add-customer-churn-model
-feature/CONTOSO-5678-update-inventory-dashboard
+feature/TT-1234-add-customer-churn-model
+feature/TT-5678-update-inventory-dashboard
 release/v2.4.0
 hotfix/fix-rls-filter-missing-region
 experiment/test-direct-lake-performance
@@ -162,7 +162,7 @@ Branched workspaces support two isolation levels:
 - **Cost:** Lower — only metadata and report definitions are duplicated
 - **Use when:** Updating report layouts, adding new visuals, tweaking DAX measures
 
-### Contoso Default by Workspace
+### Tales & Timber Default by Workspace
 
 | Workspace | Default Isolation |
 |---|---|
@@ -191,9 +191,9 @@ Branched Workspaces and Git integration serve **complementary** purposes:
 ### Recommended Workflow
 
 ```
-1. Create Git branch:          git checkout -b feature/CONTOSO-1234-churn-model
+1. Create Git branch:          git checkout -b feature/TT-1234-churn-model
 2. Create workspace branch:    Fabric Portal → Workspace → Branch → New from main
-                               Name: feature/CONTOSO-1234-churn-model
+                               Name: feature/TT-1234-churn-model
 3. Develop:
    - Code changes → commit to Git branch
    - Item changes → saved in workspace branch automatically
@@ -221,7 +221,7 @@ Deployment Pipelines and Branched Workspaces operate at different scopes:
 
 ```
                     ┌─────────────────────┐
-                    │  feature/CONTOSO-1234│ ◄── Workspace branch (dev)
+                    │  feature/TT-1234│ ◄── Workspace branch (dev)
                     └──────────┬──────────┘
                                │ merge
                     ┌──────────▼──────────┐

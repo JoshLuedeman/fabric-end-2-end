@@ -1,18 +1,18 @@
 {
   "_comment": [
     "KQL Real-Time Dashboard — Supply Chain Real-Time",
-    "Contoso Global Retail — contoso_kqldb",
+    "Tales & Timber — tt_kqldb",
     "",
     "Import this definition into a Fabric Real-Time Dashboard.",
     "Queries reference the Shipments, InventorySnapshot, and",
-    "RealtimeSales tables in contoso_kqldb.  The Shipments table",
+    "RealtimeSales tables in tt_kqldb.  The Shipments table",
     "is populated from the supply chain data generator and synced",
     "to Eventhouse via Lakehouse shortcut or Data Pipeline."
   ],
 
   "name": "Supply Chain Real-Time",
-  "workspace": "contoso-real-time-${environment}",
-  "database": "contoso_kqldb",
+  "workspace": "tt-real-time-${environment}",
+  "database": "tt_kqldb",
   "auto_refresh_seconds": 60,
   "time_range_default": "Last 24 hours",
 

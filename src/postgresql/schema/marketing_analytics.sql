@@ -1,5 +1,5 @@
 -- ==========================================================================
--- Contoso Global Retail — Marketing Analytics Schema (PostgreSQL in Fabric)
+-- Tales & Timber — Marketing Analytics Schema (PostgreSQL in Fabric)
 --
 -- The marketing team's dedicated analytical database. PostgreSQL was chosen
 -- for its native JSON operators (campaign metadata, A/B test variants),
@@ -23,7 +23,7 @@ CREATE EXTENSION IF NOT EXISTS "pg_trgm";     -- Trigram text similarity
 -- --------------------------------------------------------------------------
 
 CREATE SCHEMA IF NOT EXISTS marketing;
-COMMENT ON SCHEMA marketing IS 'Contoso marketing analytics — campaigns, A/B tests, attribution, spend';
+COMMENT ON SCHEMA marketing IS 'Tales & Timber marketing analytics — campaigns, A/B tests, attribution, spend';
 
 SET search_path TO marketing, public;
 

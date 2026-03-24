@@ -35,7 +35,7 @@ except Exception:
 # ---------------------------------------------------------------------------
 SQLDB_JDBC_URL = (
     "jdbc:sqlserver://<your-sqldb-endpoint>.database.fabric.microsoft.com:1433;"
-    "database=contoso_operational_db;"
+    "database=tt_operational_db;"
     "encrypt=true;"
     "trustServerCertificate=false;"
     "authentication=ActiveDirectoryMSI"

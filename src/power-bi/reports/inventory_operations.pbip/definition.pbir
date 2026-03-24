@@ -2,7 +2,7 @@
   "version": "1.0",
   "datasetReference": {
     "byPath": {
-      "path": "../../semantic-models/contoso_operations.bim"
+      "path": "../../semantic-models/tt_operations.bim"
     },
     "byConnection": {
       "connectionString": null,

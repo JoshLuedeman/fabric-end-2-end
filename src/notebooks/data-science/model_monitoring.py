@@ -6,7 +6,7 @@
 # MAGIC and performance degradation. Generate model health reports and trigger
 # MAGIC retraining when drift exceeds thresholds.
 # MAGIC
-# MAGIC **Business Context:** Contoso Global Retail's ML models (demand forecasting,
+# MAGIC **Business Context:** Tales & Timber's ML models (demand forecasting,
 # MAGIC churn prediction) are retrained periodically, but the underlying data
 # MAGIC distributions can shift between retraining cycles due to seasonality,
 # MAGIC promotions, or market changes. This notebook detects drift early so the
@@ -58,7 +58,7 @@ from datetime import datetime, timedelta
 # ---------------------------------------------------------------------------
 MODELS_TO_MONITOR = {
     "demand-forecaster": {
-        "experiment": "contoso-demand-forecasting",
+        "experiment": "tt-demand-forecasting",
         "type": "regression",
         "primary_metric": "mape",
         "threshold_metric": 0.25,       # MAPE > 25% triggers alert
@@ -66,7 +66,7 @@ MODELS_TO_MONITOR = {
         "baseline_table": "ml_demand_forecast",
     },
     "churn-predictor": {
-        "experiment": "contoso-churn-prediction",
+        "experiment": "tt-churn-prediction",
         "type": "classification",
         "primary_metric": "auc",
         "threshold_metric": 0.70,       # AUC < 0.70 triggers alert
@@ -78,7 +78,7 @@ MODELS_TO_MONITOR = {
 # Drift thresholds
 PSI_THRESHOLD = 0.20          # PSI > 0.2 = significant drift
 KS_PVALUE_THRESHOLD = 0.01   # KS p-value < 0.01 = significant shift
-MONITORING_EXPERIMENT = "contoso-model-monitoring"
+MONITORING_EXPERIMENT = "tt-model-monitoring"
 
 print("Imports and configuration loaded.")
 print(f"Monitoring {len(MODELS_TO_MONITOR)} models: {', '.join(MODELS_TO_MONITOR.keys())}")
@@ -478,7 +478,7 @@ with mlflow.start_run(run_name=f"monitoring-{datetime.now().strftime('%Y%m%d-%H%
 # MAGIC | PSI threshold | 0.20 (significant drift) |
 # MAGIC | Performance thresholds | MAPE < 0.25 (demand), AUC > 0.70 (churn) |
 # MAGIC | Output table | `ml_model_health_report` (append-only) |
-# MAGIC | MLflow experiment | `contoso-model-monitoring` |
+# MAGIC | MLflow experiment | `tt-model-monitoring` |
 # MAGIC | Schedule | Daily, after batch scoring completes |
 
 print("Model monitoring notebook complete.")

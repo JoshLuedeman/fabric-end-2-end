@@ -1,4 +1,4 @@
-"""Generate promotion dimension and promotion-results fact data for Contoso Global Retail.
+"""Generate promotion dimension and promotion-results fact data for Tales & Timber.
 
 Outputs
 -------

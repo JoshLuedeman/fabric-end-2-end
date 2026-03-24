@@ -36,7 +36,7 @@ concurrency:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}/streaming-generator
-  SIMULATOR_IMAGE_NAME: ${{ github.repository }}/contoso-oltp-simulator
+  SIMULATOR_IMAGE_NAME: ${{ github.repository }}/tt-oltp-simulator
   NODE_VERSION: "22"
   ENVIRONMENT: ${{ inputs.environment || 'dev' }}
 

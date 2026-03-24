@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0",
   "title": "Branched Workspace Workflow — Feature Development Example",
-  "description": "End-to-end example showing how a Contoso developer uses Branched Workspaces to add a 'Customer Churn Prediction' column to the data warehouse and update the analytics report, from branch creation to production deployment.",
+  "description": "End-to-end example showing how a Tales & Timber developer uses Branched Workspaces to add a 'Customer Churn Prediction' column to the data warehouse and update the analytics report, from branch creation to production deployment.",
   "scenario": "Add customer churn prediction score to dim_customer and surface it in the Customer Insights report.",
-  "ticket_id": "CONTOSO-1234",
+  "ticket_id": "TT-1234",
 
   "steps": [
     {
@@ -12,7 +12,7 @@
       "actor": "Developer",
       "action": "Create a Git branch for code changes",
       "details": {
-        "command": "git checkout -b feature/CONTOSO-1234-customer-churn-score",
+        "command": "git checkout -b feature/TT-1234-customer-churn-score",
         "description": "This branch will contain SQL schema changes, notebook updates, and semantic model definition updates."
       }
     },
@@ -28,10 +28,10 @@
             "method": "POST",
             "url": "https://api.fabric.microsoft.com/v1/workspaces/{data-warehouse-workspace-id}/branches",
             "body": {
-              "branchName": "feature/CONTOSO-1234-customer-churn-score",
+              "branchName": "feature/TT-1234-customer-churn-score",
               "isolationLevel": "full",
               "description": "Auto-created for PR #42: Add customer churn prediction score",
-              "sourceItems": ["contoso_warehouse", "contoso_operational_db"]
+              "sourceItems": ["tt_warehouse", "tt_operational_db"]
             },
             "result": {
               "branchId": "ws-branch-a1b2c3d4",
@@ -44,7 +44,7 @@
             "method": "POST",
             "url": "https://api.fabric.microsoft.com/v1/workspaces/{analytics-workspace-id}/branches",
             "body": {
-              "branchName": "feature/CONTOSO-1234-customer-churn-score",
+              "branchName": "feature/TT-1234-customer-churn-score",
               "isolationLevel": "shared",
               "description": "Auto-created for PR #42: Add customer churn prediction score"
             },
@@ -84,11 +84,11 @@
       "step": 4,
       "title": "Update semantic model",
       "actor": "Developer",
-      "action": "Add the churn score column and a calculated measure to the contoso_sales semantic model in the branched analytics workspace.",
+      "action": "Add the churn score column and a calculated measure to the tt_sales semantic model in the branched analytics workspace.",
       "details": {
         "changes": [
           {
-            "file": "src/power-bi/semantic-models/contoso_sales.bim",
+            "file": "src/power-bi/semantic-models/tt_sales.bim",
             "change": "Add 'churn_risk_score' column to the dim_customer table definition and create a 'High Risk Customer Count' measure.",
             "measure_dax": "CALCULATE(DISTINCTCOUNT(dim_customer[customer_key]), dim_customer[churn_risk_score] >= 0.7)"
           }
@@ -105,7 +105,7 @@
       "details": {
         "changes": [
           {
-            "workspace": "contoso-analytics-dev (branch: feature/CONTOSO-1234-customer-churn-score)",
+            "workspace": "tt-analytics-dev (branch: feature/TT-1234-customer-churn-score)",
             "item": "customer_insights report",
             "change": "Add a new report page 'Churn Risk' with: (1) Card showing High Risk Customer Count, (2) Scatter plot of lifetime_value vs churn_risk_score, (3) Table of top 50 at-risk customers"
           }
@@ -136,18 +136,18 @@
         "api_call": {
           "description": "Compare the branch with main to see what changed",
           "method": "GET",
-          "url": "https://api.fabric.microsoft.com/v1/workspaces/{workspace-id}/branches/feature%2FCONTOSO-1234-customer-churn-score/compare/main",
+          "url": "https://api.fabric.microsoft.com/v1/workspaces/{workspace-id}/branches/feature%2FTT-1234-customer-churn-score/compare/main",
           "result": {
             "changes": [
               {
                 "itemType": "Warehouse",
-                "itemName": "contoso_warehouse",
+                "itemName": "tt_warehouse",
                 "changeType": "modified",
                 "details": "Schema change: 1 column added to dims.dim_customer"
               },
               {
                 "itemType": "SemanticModel",
-                "itemName": "contoso_sales",
+                "itemName": "tt_sales",
                 "changeType": "modified",
                 "details": "1 column added, 1 measure added"
               },
@@ -204,7 +204,7 @@
         ],
         "workspace_merge_api": {
           "method": "POST",
-          "url": "https://api.fabric.microsoft.com/v1/workspaces/{workspace-id}/branches/feature%2FCONTOSO-1234-customer-churn-score/merge",
+          "url": "https://api.fabric.microsoft.com/v1/workspaces/{workspace-id}/branches/feature%2FTT-1234-customer-churn-score/merge",
           "body": {
             "targetBranch": "main",
             "deleteSourceBranch": true,

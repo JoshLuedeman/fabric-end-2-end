@@ -7,7 +7,7 @@
       "type": "CosmosDB",
       "typeProperties": {
         "accountEndpoint": "{{ .COSMOS_ACCOUNT_ENDPOINT }}",
-        "database": "contoso_cosmosdb",
+        "database": "tt_cosmosdb",
         "authentication": {
           "type": "ManagedIdentity",
           "_comment": "Fabric uses the workspace managed identity for Cosmos DB access — no secrets needed"

@@ -1,5 +1,5 @@
 """
-Generate CRM / customer-service interaction data for Contoso Global Retail.
+Generate CRM / customer-service interaction data for Tales & Timber.
 
 Output: output/customer_interactions/part_XXXXXXXXXX.parquet  (chunked, Snappy-compressed)
 

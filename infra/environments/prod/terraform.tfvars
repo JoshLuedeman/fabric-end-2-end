@@ -5,13 +5,13 @@
 
 environment         = "prod"
 location            = "eastus"
-resource_group_name = "rg-contoso-fabric-prod"
-project_prefix      = "contoso"
+resource_group_name = "rg-tt-fabric-prod"
+project_prefix      = "tt"
 
 admin_members = []
 
 tags = {
-  project     = "contoso-fabric-e2e"
+  project     = "tt-fabric-e2e"
   environment = "prod"
   managed_by  = "terraform"
 }

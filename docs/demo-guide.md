@@ -1,6 +1,6 @@
 # Demo Guide
 
-A step-by-step walkthrough of **Contoso Global Retail** — a living, breathing data platform running on Microsoft Fabric. This isn't a slide deck; it's a real company's data infrastructure. Every screen you open has millions of rows behind it, every pipeline has run, and every alert can fire.
+A step-by-step walkthrough of **Tales & Timber** — a living, breathing data platform running on Microsoft Fabric. This isn't a slide deck; it's a real company's data infrastructure. Every screen you open has millions of rows behind it, every pipeline has run, and every alert can fire.
 
 ## Prerequisites
 
@@ -20,7 +20,7 @@ A step-by-step walkthrough of **Contoso Global Retail** — a living, breathing 
 
 #### 1.1 The POS System — Fabric SQL Database
 
-Open the Fabric SQL Database. This is Contoso's operational point-of-sale system — a normalized 3NF OLTP database that processes every sale across 500 stores in 8 countries.
+Open the Fabric SQL Database. This is Tales & Timber's operational point-of-sale system — a normalized 3NF OLTP database that processes every sale across 500 stores in 8 countries.
 
 - Show the schema: `customers`, `products`, `stores`, `transactions`, `transaction_items` — classic retail OLTP
 - Run `EXEC sp_process_sale` — walk through what happens when a cashier scans an item:
@@ -31,7 +31,7 @@ Open the Fabric SQL Database. This is Contoso's operational point-of-sale system
 
 Show the CDC watermark table. Point out the `last_extracted_at` timestamps ticking forward.
 
-- "Every time a sale completes, CDC captures the change. This is the heartbeat of Contoso's 500 stores — and it's what feeds the entire analytics platform downstream."
+- "Every time a sale completes, CDC captures the change. This is the heartbeat of Tales & Timber's 500 stores — and it's what feeds the entire analytics platform downstream."
 
 #### 1.3 The Scale
 
@@ -42,7 +42,7 @@ Show the CDC watermark table. Point out the `last_extracted_at` timestamps ticki
 
 ### Act 2: The Data Platform (5-7 min)
 
-**Story**: *"Raw transactions aren't useful to anyone. Contoso's data engineering team transforms noise into signal through a three-layer lakehouse."*
+**Story**: *"Raw transactions aren't useful to anyone. Tales & Timber's data engineering team transforms noise into signal through a three-layer lakehouse."*
 
 #### 2.1 Metadata-Driven Ingestion
 
@@ -86,7 +86,7 @@ Run `vw_sales_summary` — show aggregated revenue by region, category, and time
 
 #### 3.2 Power BI Executive Dashboard
 
-Open the Executive Dashboard. This is what Contoso's leadership team sees every morning:
+Open the Executive Dashboard. This is what Tales & Timber's leadership team sees every morning:
 
 - **Revenue trends**: YoY and MoM comparisons across 8 countries
 - **Regional performance**: Map visualization with drill-through to store-level detail
@@ -103,7 +103,7 @@ Demonstrate row-level security — switch user context to show how a regional ma
 
 ### Act 4: Real-Time Intelligence (5-7 min)
 
-**Story**: *"When a refrigerator fails in Store 247 at 2 AM, Contoso can't wait for tomorrow's batch report. They need to know now."*
+**Story**: *"When a refrigerator fails in Store 247 at 2 AM, Tales & Timber can't wait for tomorrow's batch report. They need to know now."*
 
 #### 4.1 Streaming Events
 
@@ -132,13 +132,13 @@ Show the Reflex triggers firing:
 - **IoT Failure Alert**: A sensor goes silent for > 5 minutes → Power Automate creates an incident ticket and pages the facilities team
 - **Sales Anomaly Alert**: A store's sales deviate > 3σ from its rolling average → Teams notification to the regional manager
 
-"When something goes wrong, Contoso knows in minutes, not days."
+"When something goes wrong, Tales & Timber knows in minutes, not days."
 
 ---
 
 ### Act 5: AI & Data Science (5-7 min)
 
-**Story**: *"Reporting on the past is table stakes. Contoso's data science team predicts the future and automates the response."*
+**Story**: *"Reporting on the past is table stakes. Tales & Timber's data science team predicts the future and automates the response."*
 
 #### 5.1 Customer Segmentation
 
@@ -162,7 +162,7 @@ Walk through the LightGBM churn model:
 Show the Prophet time-series model predicting next month's sales per store × category:
 
 - Show the forecast vs actuals for a specific store — the model captures seasonality, trends, and holiday effects
-- "This feeds directly into the inventory replenishment engine. Contoso orders what they'll need, not what they think they'll need."
+- "This feeds directly into the inventory replenishment engine. Tales & Timber orders what they'll need, not what they think they'll need."
 
 #### 5.4 More ML Capabilities
 
@@ -183,7 +183,7 @@ Open the supply chain graph model. Run a GQL query:
 
 - "Find the shortest supply path from Supplier SUP-042 to Store S-015"
 - Visualize the supplier → warehouse → distribution center → store relationships
-- "Graph lets Contoso reason about their supply chain as a network, not a collection of tables."
+- "Graph lets Tales & Timber reason about their supply chain as a network, not a collection of tables."
 
 #### 6.2 Data Agents
 

@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" width="400" height="120">
+  <defs>
+    <linearGradient id="fire" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#E8590C"/>
+      <stop offset="50%" stop-color="#F76707"/>
+      <stop offset="100%" stop-color="#FFD43B"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Campfire icon -->
+  <g transform="translate(20, 15)">
+    <!-- Logs -->
+    <rect x="5" y="70" width="55" height="8" rx="4" fill="#5C3D2E" transform="rotate(-15, 32, 74)"/>
+    <rect x="5" y="70" width="55" height="8" rx="4" fill="#7B4F3A" transform="rotate(15, 32, 74)"/>
+    <!-- Flames -->
+    <path d="M32 10 C32 10, 12 45, 20 60 C24 67, 28 65, 30 58 C30 58, 26 50, 32 35 C38 50, 34 58, 34 58 C36 65, 40 67, 44 60 C52 45, 32 10, 32 10Z" fill="url(#fire)"/>
+    <path d="M32 25 C32 25, 22 48, 26 56 C28 60, 30 58, 32 52 C34 58, 36 60, 38 56 C42 48, 32 25, 32 25Z" fill="#FFD43B" opacity="0.8"/>
+    <!-- Sparks -->
+    <circle cx="25" cy="15" r="1.5" fill="#FFD43B" opacity="0.7"/>
+    <circle cx="40" cy="8" r="1" fill="#F76707" opacity="0.6"/>
+    <circle cx="20" cy="22" r="1" fill="#FFD43B" opacity="0.5"/>
+  </g>
+
+  <!-- Brand text -->
+  <text x="95" y="55" font-family="Georgia, 'Times New Roman', serif" font-size="36" font-weight="bold" fill="#2C1810" letter-spacing="1">
+    Tales &amp; Timber
+  </text>
+
+  <!-- Tagline -->
+  <text x="95" y="80" font-family="'Segoe UI', Arial, sans-serif" font-size="13" fill="#7B4F3A" letter-spacing="3" text-transform="uppercase">
+    ADVENTURE STARTS HERE
+  </text>
+
+  <!-- Decorative line -->
+  <line x1="95" y1="90" x2="370" y2="90" stroke="#E8590C" stroke-width="1.5" opacity="0.4"/>
+</svg>

@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------
-# Prod Environment — Contoso Global Retail & Supply Chain
+# Prod Environment — Tales & Timber
 # Composes all modules to create the complete Fabric production environment.
 # ---------------------------------------------------------------------------
 
@@ -22,8 +22,8 @@ locals {
 
   workspace_definitions = {
     for area in local.workspace_areas : area => {
-      display_name = "contoso-${area}-${var.environment}"
-      description  = "Contoso ${replace(title(replace(area, "-", " ")), " ", " ")} workspace (${var.environment})"
+      display_name = "tt-${area}-${var.environment}"
+      description  = "Tales & Timber ${replace(title(replace(area, "-", " ")), " ", " ")} workspace (${var.environment})"
     }
   }
 
@@ -37,7 +37,7 @@ locals {
 module "fabric_capacity" {
   source = "../../modules/fabric-capacity"
 
-  name                = "contoso-fabric-${var.environment}"
+  name                = "tt-fabric-${var.environment}"
   resource_group_name = var.resource_group_name
   location            = var.location
   sku_name            = var.capacity_sku
@@ -66,7 +66,7 @@ module "lakehouses" {
 
   workspace_id = module.fabric_workspaces["data-engineering"].workspace_id
   display_name = "lh_${each.value}"
-  description  = "Contoso ${title(each.value)} lakehouse — medallion architecture (${var.environment})"
+  description  = "Tales & Timber ${title(each.value)} lakehouse — medallion architecture (${var.environment})"
 }
 
 # ---------------------------------------------------------------------------
@@ -77,7 +77,7 @@ module "warehouse" {
 
   workspace_id = module.fabric_workspaces["data-warehouse"].workspace_id
   display_name = "${var.project_prefix}_warehouse"
-  description  = "Contoso central data warehouse (${var.environment})"
+  description  = "Tales & Timber central data warehouse (${var.environment})"
 }
 
 # ---------------------------------------------------------------------------
@@ -99,12 +99,12 @@ module "eventhouse" {
 
   workspace_id = module.fabric_workspaces["real-time"].workspace_id
   display_name = "${var.project_prefix}_eventhouse"
-  description  = "Contoso real-time analytics eventhouse (${var.environment})"
+  description  = "Tales & Timber real-time analytics eventhouse (${var.environment})"
 }
 
 resource "fabric_kql_database" "realtime_db" {
   display_name = "${var.project_prefix}_kqldb"
-  description  = "Contoso real-time KQL database (${var.environment})"
+  description  = "Tales & Timber real-time KQL database (${var.environment})"
   workspace_id = module.fabric_workspaces["real-time"].workspace_id
 
   configuration = {
@@ -126,7 +126,7 @@ resource "fabric_kql_database" "realtime_db" {
 #
 #   workspace_id     = module.fabric_workspaces["real-time"].workspace_id
 #   display_name     = "${var.project_prefix}_store_twin"
-#   description      = "Digital twin of Contoso retail stores — physical layout, equipment, IoT telemetry (${var.environment})"
+#   description      = "Digital twin of Tales & Timber retail stores — physical layout, equipment, IoT telemetry (${var.environment})"
 #   model_definition = "${path.root}/../../../src/digital-twins/store_twin_model.json"
 #   eventhouse_id    = module.eventhouse.eventhouse_id
 #   kql_database_id  = fabric_kql_database.realtime_db.id
@@ -137,7 +137,7 @@ resource "fabric_kql_database" "realtime_db" {
 #
 #   workspace_id     = module.fabric_workspaces["real-time"].workspace_id
 #   display_name     = "${var.project_prefix}_supply_chain_twin"
-#   description      = "Digital twin of Contoso supply chain — suppliers, warehouses, DCs, transport (${var.environment})"
+#   description      = "Digital twin of Tales & Timber supply chain — suppliers, warehouses, DCs, transport (${var.environment})"
 #   model_definition = "${path.root}/../../../src/digital-twins/supply_chain_twin_model.json"
 #   eventhouse_id    = module.eventhouse.eventhouse_id
 #   kql_database_id  = fabric_kql_database.realtime_db.id
@@ -149,7 +149,7 @@ resource "fabric_kql_database" "realtime_db" {
 module "staging_storage" {
   source = "../../modules/azure-storage"
 
-  name                = "stcontosostaging${var.environment}"
+  name                = "stttstaging${var.environment}"
   resource_group_name = var.resource_group_name
   location            = var.location
   container_names     = ["raw-data", "reference-data", "staging"]
@@ -462,7 +462,7 @@ module "graphql_api" {
 
   workspace_id     = module.fabric_workspaces["data-warehouse"].workspace_id
   display_name     = "${var.project_prefix}_retail_api"
-  description      = "Contoso Retail GraphQL API — unified query layer for products, stores, customers, sales, and inventory (${var.environment})"
+  description      = "Tales & Timber Retail GraphQL API — unified query layer for products, stores, customers, sales, and inventory (${var.environment})"
   data_source_id   = module.warehouse.warehouse_id
   data_source_type = "warehouse"
   schema_path      = "${path.module}/../../../src/graphql/schema/retail_api.graphql"

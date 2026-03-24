@@ -1,13 +1,13 @@
 # Digital Twin Builder Setup Guide
 
-> **Contoso Global Retail & Supply Chain** — Fabric Digital Twin Builder (Preview)
+> **Tales & Timber** — Fabric Digital Twin Builder (Preview)
 
-Digital Twin Builder in Microsoft Fabric lets you create live digital replicas of physical assets and business processes, backed by real-time telemetry from Eventhouse. This guide explains how to configure twins for the Contoso environment.
+Digital Twin Builder in Microsoft Fabric lets you create live digital replicas of physical assets and business processes, backed by real-time telemetry from Eventhouse. This guide explains how to configure twins for the Tales & Timber environment.
 
 ## Prerequisites
 
 - Fabric capacity provisioned (F8+) with Digital Twin Builder enabled (Preview feature)
-- Eventhouse deployed (`contoso_eventhouse` / `contoso_kqldb`)
+- Eventhouse deployed (`tt_eventhouse` / `tt_kqldb`)
 - Real-time data flowing via Eventstream (see `src/realtime-hub/hub_setup_guide.md`)
 - Twin model definitions in this directory:
   - [`store_twin_model.json`](./store_twin_model.json) — Retail store physical layout + equipment
@@ -64,16 +64,16 @@ Digital Twin Builder in Microsoft Fabric lets you create live digital replicas o
 
 ## Step 2: Create a Digital Twin Space
 
-1. Navigate to workspace **contoso-real-time-{environment}**
+1. Navigate to workspace **tt-real-time-{environment}**
 2. Click **+ New** → **Digital Twin Builder** (under Real-Time Intelligence)
 3. Enter:
-   - **Name:** `contoso_store_twin`
-   - **Description:** `Digital twin of Contoso retail stores — physical layout, equipment, and live IoT telemetry`
+   - **Name:** `tt_store_twin`
+   - **Description:** `Digital twin of Tales & Timber retail stores — physical layout, equipment, and live IoT telemetry`
 4. Click **Create**
 
 Repeat for the supply chain twin:
-- **Name:** `contoso_supply_chain_twin`
-- **Description:** `Digital twin of Contoso supply chain — suppliers, warehouses, distribution centers, and transport routes`
+- **Name:** `tt_supply_chain_twin`
+- **Description:** `Digital twin of Tales & Timber supply chain — suppliers, warehouses, distribution centers, and transport routes`
 
 ---
 
@@ -81,7 +81,7 @@ Repeat for the supply chain twin:
 
 Using the model in `store_twin_model.json`:
 
-1. Open `contoso_store_twin` in the Digital Twin Builder canvas
+1. Open `tt_store_twin` in the Digital Twin Builder canvas
 2. For each entity type, click **+ Add entity type** and enter:
 
 | Entity Type       | Properties (key fields)                          | Count (S-0001) |
@@ -110,7 +110,7 @@ Using the model in `store_twin_model.json`:
 
 Using the model in `supply_chain_twin_model.json`:
 
-1. Open `contoso_supply_chain_twin` in the Digital Twin Builder canvas
+1. Open `tt_supply_chain_twin` in the Digital Twin Builder canvas
 2. For each entity type, click **+ Add entity type**:
 
 | Entity Type         | Properties (key fields)                             |
@@ -133,10 +133,10 @@ Using the model in `supply_chain_twin_model.json`:
 
 ### Store Twin — IoT Sensor Bindings
 
-1. In `contoso_store_twin`, select the **HVACUnit** entity type
+1. In `tt_store_twin`, select the **HVACUnit** entity type
 2. Click **+ Add telemetry binding**
 3. Configure:
-   - **Source:** KQL Database → `contoso_kqldb`
+   - **Source:** KQL Database → `tt_kqldb`
    - **Table:** `RealtimeIoT`
    - **Filter:** `SensorType == 'Temperature' and StoreId == '{StoreId}'`
    - **Value Column:** `ReadingValue`
@@ -151,7 +151,7 @@ Using the model in `supply_chain_twin_model.json`:
 1. Select the **CheckoutLane** entity type
 2. Click **+ Add telemetry binding**
 3. Configure:
-   - **Source:** KQL Database → `contoso_kqldb`
+   - **Source:** KQL Database → `tt_kqldb`
    - **Table:** `RealtimeSales`
    - **Filter:** `StoreId == '{StoreId}'`
    - **Value Column:** `TotalAmount`
@@ -160,9 +160,9 @@ Using the model in `supply_chain_twin_model.json`:
 
 ### Supply Chain Twin — Shipment Bindings
 
-1. In `contoso_supply_chain_twin`, select the **Supplier** entity
+1. In `tt_supply_chain_twin`, select the **Supplier** entity
 2. Add telemetry binding:
-   - **Source:** `contoso_kqldb.Shipments`
+   - **Source:** `tt_kqldb.Shipments`
    - **Filter:** `SupplierId == '{SupplierId}'`
    - **Value Column:** `Quantity`
    - **Timestamp Column:** `ShipmentDate`

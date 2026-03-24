@@ -1,17 +1,17 @@
 # Real-Time Hub Setup Guide
 
-> **Contoso Global Retail & Supply Chain** — Fabric Real-Time Hub Configuration
+> **Tales & Timber** — Fabric Real-Time Hub Configuration
 
 The Real-Time Hub is the tenant-wide portal for discovering, managing, and consuming all data streams in your Microsoft Fabric environment. This guide walks through configuring the hub after the Terraform infrastructure has been deployed.
 
 ## Prerequisites
 
-- Fabric capacity provisioned (`contoso-fabric-{environment}`, F8 or higher)
+- Fabric capacity provisioned (`tt-fabric-{environment}`, F8 or higher)
 - All 8 workspaces created (see `infra/environments/{dev,prod}/main.tf`)
-- Eventhouse + KQL database deployed (`contoso_eventhouse` / `contoso_kqldb`)
-- Eventstream created (`contoso-change-events`)
-- SQL Database operational (`contoso_operational_db`)
-- Event Hub namespace configured (`contoso-eventhub-ns`)
+- Eventhouse + KQL database deployed (`tt_eventhouse` / `tt_kqldb`)
+- Eventstream created (`tt-change-events`)
+- SQL Database operational (`tt_operational_db`)
+- Event Hub namespace configured (`tt-eventhub-ns`)
 
 ## Stream Topology Overview
 
@@ -39,14 +39,14 @@ The Real-Time Hub is the tenant-wide portal for discovering, managing, and consu
 
 These three streams originate from the SQL Database via Change Event Streaming and flow through the existing Eventstream.
 
-1. Open workspace **contoso-data-warehouse-{environment}**
-2. Navigate to **contoso_operational_db** → **Settings** → **Change Event Streaming**
+1. Open workspace **tt-data-warehouse-{environment}**
+2. Navigate to **tt_operational_db** → **Settings** → **Change Event Streaming**
 3. Confirm the following tables are enabled:
    - `dbo.Transactions` — POS transaction headers
    - `dbo.TransactionItems` — POS line items
    - `dbo.Inventory` — Stock-level changes
    - `dbo.CustomerInteractions` — CRM interactions
-4. Verify the target Eventstream is set to **contoso-change-events**
+4. Verify the target Eventstream is set to **tt-change-events**
 5. Confirm capture mode is **Incremental**
 
 Once enabled, these streams will automatically appear in the Real-Time Hub catalog.
@@ -55,11 +55,11 @@ Once enabled, these streams will automatically appear in the Real-Time Hub catal
 
 ## Step 3: Verify IoT Telemetry Stream (Stream 3)
 
-1. Open workspace **contoso-real-time-{environment}**
-2. Navigate to the **contoso-change-events** Eventstream (or create a dedicated `contoso-iot-events` Eventstream)
+1. Open workspace **tt-real-time-{environment}**
+2. Navigate to the **tt-change-events** Eventstream (or create a dedicated `tt-iot-events` Eventstream)
 3. Confirm the **Azure Event Hub** source is configured:
-   - Namespace: `contoso-eventhub-ns`
-   - Event Hub: `contoso-events`
+   - Namespace: `tt-eventhub-ns`
+   - Event Hub: `tt-events`
    - Consumer Group: `$Default`
    - Data Format: JSON
 4. Verify the IoT simulator is running:
@@ -79,11 +79,11 @@ Once enabled, these streams will automatically appear in the Real-Time Hub catal
 
 The clickstream uses a batch-to-streaming bridge pattern:
 
-1. Open workspace **contoso-data-engineering-{environment}**
+1. Open workspace **tt-data-engineering-{environment}**
 2. Verify clickstream data lands in **lh_bronze** → `Tables/bronze_clickstream`
 3. Create a **Data Pipeline** or **Notebook** that:
    - Reads new rows from `bronze_clickstream` every 5 minutes
-   - Writes them to Eventhouse `contoso_kqldb.WebClickstream`
+   - Writes them to Eventhouse `tt_kqldb.WebClickstream`
 4. Alternatively, create a **KQL Database Shortcut** from Eventhouse to the Lakehouse Delta table for near-real-time access without a pipeline
 
 ---
@@ -107,7 +107,7 @@ After all sources are flowing, register them for discoverability:
 4. For each stream, add descriptive metadata:
    - **Name**: Use the stream names from `hub_topology.json`
    - **Description**: Copy the description field
-   - **Tags**: Add tags like `real-time`, `cdc`, `iot`, `batch`, `contoso`
+   - **Tags**: Add tags like `real-time`, `cdc`, `iot`, `batch`, `tt`
 
 ---
 
@@ -117,9 +117,9 @@ For each stream, connect the downstream consumers:
 
 ### POS Transactions → Real-Time Dashboard
 1. Open the **Store Operations Live** dashboard definition (`src/kql/dashboards/store_operations_live.json`)
-2. In the Fabric portal, navigate to **contoso-real-time-{environment}** workspace
+2. In the Fabric portal, navigate to **tt-real-time-{environment}** workspace
 3. Create a **Real-Time Dashboard** and import tile queries from the JSON definition
-4. Set the data source to `contoso_kqldb`
+4. Set the data source to `tt_kqldb`
 5. Enable auto-refresh (30-second interval)
 
 ### POS Transactions → Anomaly Detection
@@ -128,7 +128,7 @@ For each stream, connect the downstream consumers:
 
 ### IoT Telemetry → Environment Monitoring
 1. Import tile queries from `src/kql/dashboards/iot_monitoring_live.json`
-2. Create a dashboard in the **contoso-real-time-{environment}** workspace
+2. Create a dashboard in the **tt-real-time-{environment}** workspace
 3. Set auto-refresh to 15 seconds for temperature/humidity tiles
 
 ### Inventory Changes → Stock Alerts

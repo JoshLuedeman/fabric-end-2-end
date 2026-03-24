@@ -7,7 +7,7 @@
   "datasetBinding": {
     "datasetReference": {
       "byPath": {
-        "path": "../../semantic-models/contoso_sales.bim"
+        "path": "../../semantic-models/tt_sales.bim"
       }
     }
   },
@@ -57,7 +57,7 @@
       "items": [
         {
           "type": "image",
-          "description": "Contoso logo",
+          "description": "Tales & Timber logo",
           "position": { "left": "0in", "top": "0in", "width": "2in", "height": "0.7in" }
         },
         {
@@ -68,7 +68,7 @@
         },
         {
           "type": "textbox",
-          "value": "='Contoso Global Retail, Inc. | Region: ' & Parameters!Region.Value & ' | Prepared: ' & Format(Now(), 'MMMM d, yyyy')",
+          "value": "='Tales & Timber, Inc. | Region: ' & Parameters!Region.Value & ' | Prepared: ' & Format(Now(), 'MMMM d, yyyy')",
           "position": { "left": "2.5in", "top": "0.5in", "width": "5in", "height": "0.3in" },
           "style": { "font_size": "9pt", "color": "#4A4A4A" }
         }
@@ -181,8 +181,8 @@
   ],
   "subscriptions": {
     "schedule": "monthly, 3rd business day after month-end close",
-    "recipients": ["cfo@contoso.com", "vp-finance@contoso.com", "board-distribution@contoso.com"],
+    "recipients": ["cfo@tt.com", "vp-finance@tt.com", "board-distribution@tt.com"],
     "format": "PDF",
-    "subject": "Contoso Monthly Financial Statement — FY{FiscalYear} M{FiscalMonth}"
+    "subject": "Tales & Timber Monthly Financial Statement — FY{FiscalYear} M{FiscalMonth}"
   }
 }

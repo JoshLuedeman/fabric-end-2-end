@@ -1,5 +1,5 @@
 {
-  "name": "Contoso Sales Analyst",
+  "name": "Tales & Timber Sales Analyst",
   "description": "AI-powered sales analyst that answers questions about sales performance, customer trends, and revenue metrics using natural language.",
   "type": "data_agent",
   "capabilities": [
@@ -10,7 +10,7 @@
   "data_sources": [
     {
       "type": "semantic_model",
-      "name": "contoso_sales",
+      "name": "tt_sales",
       "description": "Sales performance semantic model covering transactions, customers, products, and stores"
     },
     {

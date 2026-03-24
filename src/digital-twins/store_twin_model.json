@@ -2,10 +2,10 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "_comment": [
     "Digital Twin Model — Retail Store",
-    "Contoso Global Retail & Supply Chain",
+    "Tales & Timber",
     "",
     "Defines the entity types, relationships, properties, and telemetry",
-    "bindings for a digital twin of a Contoso retail store.  Use this",
+    "bindings for a digital twin of a Tales & Timber retail store.  Use this",
     "model in the Fabric Digital Twin Builder (Preview) to create live",
     "simulations backed by Eventhouse telemetry.",
     "",
@@ -16,10 +16,10 @@
     "                   Store → RefrigerationUnit"
   ],
 
-  "modelId": "contoso:RetailStore:1",
+  "modelId": "tt:RetailStore:1",
   "modelVersion": "1.0.0",
-  "displayName": "Contoso Retail Store Twin",
-  "description": "Digital twin model for a Contoso retail store — physical layout, equipment, and IoT telemetry bindings.",
+  "displayName": "Tales & Timber Retail Store Twin",
+  "description": "Digital twin model for a Tales & Timber retail store — physical layout, equipment, and IoT telemetry bindings.",
 
   "entityTypes": [
     {
@@ -42,7 +42,7 @@
       "telemetryBindings": [
         {
           "name": "FootTraffic",
-          "source": "contoso_kqldb.RealtimeIoT",
+          "source": "tt_kqldb.RealtimeIoT",
           "filter": "SensorType == 'FootTraffic' and StoreId == '{StoreId}'",
           "valueColumn": "ReadingValue",
           "timestampColumn": "ReadingTimestamp",
@@ -111,7 +111,7 @@
       "telemetryBindings": [
         {
           "name": "TransactionStream",
-          "source": "contoso_kqldb.RealtimeSales",
+          "source": "tt_kqldb.RealtimeSales",
           "filter": "StoreId == '{StoreId}'",
           "valueColumn": "TotalAmount",
           "timestampColumn": "Timestamp",
@@ -153,7 +153,7 @@
       "telemetryBindings": [
         {
           "name": "TemperatureSensor",
-          "source": "contoso_kqldb.RealtimeIoT",
+          "source": "tt_kqldb.RealtimeIoT",
           "filter": "SensorType == 'Temperature' and StoreId == '{StoreId}'",
           "valueColumn": "ReadingValue",
           "timestampColumn": "ReadingTimestamp",
@@ -161,7 +161,7 @@
         },
         {
           "name": "EnergySensor",
-          "source": "contoso_kqldb.RealtimeIoT",
+          "source": "tt_kqldb.RealtimeIoT",
           "filter": "SensorType == 'Energy' and StoreId == '{StoreId}'",
           "valueColumn": "ReadingValue",
           "timestampColumn": "ReadingTimestamp",
@@ -187,7 +187,7 @@
       "telemetryBindings": [
         {
           "name": "TemperatureSensor",
-          "source": "contoso_kqldb.RealtimeIoT",
+          "source": "tt_kqldb.RealtimeIoT",
           "filter": "SensorType == 'Temperature' and StoreId == '{StoreId}'",
           "valueColumn": "ReadingValue",
           "timestampColumn": "ReadingTimestamp",
@@ -268,7 +268,7 @@
     "_comment": "Example twin instance for Store S-0001 (Flagship)",
     "Store": {
       "StoreId": "S-0001",
-      "StoreName": "Contoso Flagship - Downtown",
+      "StoreName": "Tales & Timber Flagship - Downtown",
       "StoreType": "Flagship",
       "OperationalStatus": "open",
       "Capacity": 500,

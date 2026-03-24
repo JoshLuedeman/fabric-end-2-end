@@ -7,7 +7,7 @@
 # MAGIC across the entire customer base, and output a `churn_risk_scores` table
 # MAGIC in the gold Lakehouse.
 # MAGIC
-# MAGIC **Business Context:** The Contoso retention team needs a daily-refreshed
+# MAGIC **Business Context:** The Tales & Timber retention team needs a daily-refreshed
 # MAGIC churn risk table so they can trigger win-back campaigns within 24 hours
 # MAGIC of a customer showing elevated churn risk. This notebook operationalises
 # MAGIC the model trained in `churn_prediction.py`.
@@ -51,7 +51,7 @@ from datetime import datetime
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
-EXPERIMENT_NAME = "contoso-churn-prediction"
+EXPERIMENT_NAME = "tt-churn-prediction"
 MODEL_REGISTRY_NAME = "churn-predictor"
 CHURN_WINDOW_DAYS = 90
 MIN_HISTORY_MONTHS = 6

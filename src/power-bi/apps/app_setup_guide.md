@@ -1,6 +1,6 @@
 # Power BI Apps — Setup & Publishing Guide
 
-This guide covers creating, configuring, publishing, and maintaining Power BI Apps for the Contoso Global Retail & Supply Chain environment.
+This guide covers creating, configuring, publishing, and maintaining Power BI Apps for the Tales & Timber environment.
 
 ## Table of Contents
 
@@ -14,7 +14,7 @@ This guide covers creating, configuring, publishing, and maintaining Power BI Ap
 8. [Mobile Optimization](#mobile-optimization)
 9. [Sensitivity Labels & Security](#sensitivity-labels--security)
 10. [Terraform / API Automation](#terraform--api-automation)
-11. [Contoso App Inventory](#contoso-app-inventory)
+11. [Tales & Timber App Inventory](#tt-app-inventory)
 
 ---
 
@@ -26,7 +26,7 @@ Power BI Apps bundle multiple reports, dashboards, scorecards, and paginated rep
 - **Curated experience:** Users see organized content with custom sections, not a raw workspace file list
 - **Access control:** App permissions are independent of workspace permissions
 - **Auto-install:** Push the app to Entra ID security groups automatically
-- **Branding:** Custom logo, colors, and navigation match the Contoso brand
+- **Branding:** Custom logo, colors, and navigation match the Tales & Timber brand
 - **Update policy:** Choose between automatic updates or user-controlled updates
 
 ---
@@ -51,13 +51,13 @@ Navigate to **Power BI Admin Portal → Tenant settings** and enable:
 
 ### Via Power BI Portal
 
-1. Navigate to the workspace containing your reports (e.g., `contoso-analytics-prod`)
+1. Navigate to the workspace containing your reports (e.g., `tt-analytics-prod`)
 2. Click **Create app** in the top toolbar
 3. Fill in the **Setup** tab:
-   - **App name:** e.g., "Contoso Retail Operations"
+   - **App name:** e.g., "Tales & Timber Retail Operations"
    - **Description:** Brief description for the app marketplace
-   - **App logo:** Upload the Contoso logo (PNG, 45×45px minimum)
-   - **Theme color:** `#0078D4` (Contoso primary blue)
+   - **App logo:** Upload the Tales & Timber logo (PNG, 45×45px minimum)
+   - **Theme color:** `#0078D4` (Tales & Timber primary blue)
    - **Support site:** Link to the support SharePoint page
    - **Contact email:** Team distribution list
 4. Click **Next** to proceed to content configuration
@@ -70,7 +70,7 @@ POST https://api.powerbi.com/v1.0/myorg/groups/{workspace_id}/CreateApp
 
 # Request body
 {
-  "name": "Contoso Retail Operations",
+  "name": "Tales & Timber Retail Operations",
   "description": "Complete operational intelligence for store managers and regional directors.",
   "targetWorkspaceId": "{workspace_id}"
 }
@@ -103,7 +103,7 @@ In the **Content** tab of the app editor:
 - **Default landing:** Set which item appears when the app first opens
 - **Section icons:** Choose icons that represent each section's purpose
 
-### Example: Contoso Retail Operations Sections
+### Example: Tales & Timber Retail Operations Sections
 
 | Section | Icon | Items |
 |---------|------|-------|
@@ -122,7 +122,7 @@ In the **Audience** tab:
 1. Click **+ New audience** (or use the default audience)
 2. Name the audience (e.g., "Store Managers")
 3. Add Entra ID security groups:
-   - Search by group name (e.g., `contoso-store-managers`)
+   - Search by group name (e.g., `tt-store-managers`)
    - Select and add the group
 4. Set permissions for the audience:
    - **Viewer:** Can view all content in the app
@@ -134,9 +134,9 @@ You can create different audiences with different content visibility:
 
 | Audience | Groups | Visible Sections |
 |----------|--------|-----------------|
-| Store Managers | contoso-store-managers | Daily Operations, Inventory |
-| Regional Directors | contoso-regional-directors | All sections |
-| VP Operations | contoso-vp-operations | All sections |
+| Store Managers | tt-store-managers | Daily Operations, Inventory |
+| Regional Directors | tt-regional-directors | All sections |
+| VP Operations | tt-vp-operations | All sections |
 
 > **Note:** Different audiences can see different subsets of content. Configure this in the audience settings by toggling section visibility per audience.
 
@@ -187,7 +187,7 @@ Auto-install pushes the app directly to users' Power BI home without requiring t
 | **Automatic** (recommended) | Users always see the latest version immediately after publishing |
 | **Allow users to get the old and new version** | Users are notified and can choose when to update |
 
-For Contoso, we use **Automatic** for all apps — executives and field workers should always see current data.
+For Tales & Timber, we use **Automatic** for all apps — executives and field workers should always see current data.
 
 ---
 
@@ -226,18 +226,18 @@ To enable offline access in the Power BI mobile app:
 
 1. In the **Setup** tab, select the sensitivity label:
    - **Public:** No restrictions
-   - **Internal:** Contoso employees only
+   - **Internal:** Tales & Timber employees only
    - **Confidential:** Restricted to specific groups
    - **Highly Confidential:** Executive only, watermarked, encrypted
 2. The label inherits from Microsoft Purview Information Protection
 
-### Contoso App Labels
+### Tales & Timber App Labels
 
 | App | Sensitivity Label |
 |-----|------------------|
-| Contoso Retail Operations | Internal |
-| Contoso Executive Suite | Highly Confidential |
-| Contoso Field Operations | Internal |
+| Tales & Timber Retail Operations | Internal |
+| Tales & Timber Executive Suite | Highly Confidential |
+| Tales & Timber Field Operations | Internal |
 
 ---
 
@@ -280,10 +280,10 @@ See `.github/workflows/` for CI/CD integration patterns.
 
 ---
 
-## Contoso App Inventory
+## Tales & Timber App Inventory
 
 | App | File | Audience | Sensitivity |
 |-----|------|----------|-------------|
-| Contoso Retail Operations | `contoso_retail_app.json` | Store Managers, Regional Directors, VP Ops | Internal |
-| Contoso Executive Suite | `contoso_executive_app.json` | C-Suite, SVP Leadership | Highly Confidential |
-| Contoso Field Operations | `contoso_field_app.json` | Technicians, Drivers, Warehouse Workers | Internal |
+| Tales & Timber Retail Operations | `tt_retail_app.json` | Store Managers, Regional Directors, VP Ops | Internal |
+| Tales & Timber Executive Suite | `tt_executive_app.json` | C-Suite, SVP Leadership | Highly Confidential |
+| Tales & Timber Field Operations | `tt_field_app.json` | Technicians, Drivers, Warehouse Workers | Internal |

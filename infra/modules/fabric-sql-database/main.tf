@@ -8,7 +8,7 @@
 # inventory updates directly to this SQL Database.  Fabric SQL Database's
 # built-in "Change Event Streaming" feature pushes those changes as CDC
 # events to an Eventstream, which routes them to:
-#   - Eventhouse (contoso_kqldb)  — real-time KQL analytics
+#   - Eventhouse (tt_kqldb)  — real-time KQL analytics
 #   - Lakehouse  (bronze layer)   — near-real-time batch analytics
 #
 # This eliminates the need for a separate POS/inventory event generator.

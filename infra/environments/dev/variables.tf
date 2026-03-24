@@ -40,14 +40,14 @@ variable "admin_members" {
 variable "project_prefix" {
   description = "Prefix for Fabric resource display names"
   type        = string
-  default     = "contoso"
+  default     = "tt"
 }
 
 variable "tags" {
   description = "Tags to apply to all resources."
   type        = map(string)
   default = {
-    project     = "contoso-fabric-e2e"
+    project     = "tt-fabric-e2e"
     environment = "dev"
     managed_by  = "terraform"
   }

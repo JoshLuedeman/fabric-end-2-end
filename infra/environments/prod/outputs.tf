@@ -20,36 +20,36 @@ output "lakehouse_ids" {
 
 # Warehouse
 output "warehouse_id" {
-  description = "The ID of the Contoso data warehouse."
+  description = "The ID of the Tales & Timber data warehouse."
   value       = module.warehouse.warehouse_id
 }
 
 output "warehouse_connection_string" {
-  description = "The SQL connection string for the Contoso data warehouse."
+  description = "The SQL connection string for the Tales & Timber data warehouse."
   value       = module.warehouse.connection_string
   sensitive   = true
 }
 
 # SQL Database (OLTP)
 output "sql_database_id" {
-  description = "The ID of the Contoso OLTP operational SQL Database."
+  description = "The ID of the Tales & Timber OLTP operational SQL Database."
   value       = module.sql_database.id
 }
 
 output "sql_database_connection_string" {
-  description = "The SQL connection string for the Contoso OLTP operational database."
+  description = "The SQL connection string for the Tales & Timber OLTP operational database."
   value       = module.sql_database.connection_string
   sensitive   = true
 }
 
 # Eventhouse
 output "eventhouse_id" {
-  description = "The ID of the Contoso real-time eventhouse."
+  description = "The ID of the Tales & Timber real-time eventhouse."
   value       = module.eventhouse.eventhouse_id
 }
 
 output "kql_database_id" {
-  description = "The ID of the Contoso KQL database."
+  description = "The ID of the Tales & Timber KQL database."
   value       = fabric_kql_database.realtime_db.id
 }
 
@@ -72,7 +72,7 @@ output "capacity_id" {
 
 # Cosmos DB (placeholder — uncomment when provider adds native support)
 # output "cosmos_db_id" {
-#   description = "The ID of the Contoso Cosmos DB in Fabric."
+#   description = "The ID of the Tales & Timber Cosmos DB in Fabric."
 #   value       = module.cosmos_db.id
 # }
 

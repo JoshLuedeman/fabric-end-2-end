@@ -1,6 +1,6 @@
 {
   "$schema": "https://learn.microsoft.com/azure/cosmos-db/nosql/schema",
-  "_comment": "Contoso Global Retail — Order Events / Event Sourcing (Cosmos DB NoSQL)",
+  "_comment": "Tales & Timber — Order Events / Event Sourcing (Cosmos DB NoSQL)",
   "containerConfig": {
     "containerName": "order_events",
     "partitionKey": {
@@ -49,7 +49,7 @@
       "items": [
         {
           "product_id": "PRD-00587",
-          "name": "Contoso SmartHome Hub Pro 3rd Gen",
+          "name": "Tales & Timber SmartHome Hub Pro 3rd Gen",
           "quantity": 1,
           "unit_price": 249.99,
           "line_total": 249.99
@@ -209,7 +209,7 @@
         "delivery_time": "11:42:00",
         "signed_by": "J. O'BRIEN",
         "delivery_location": "Front Door",
-        "delivery_photo_url": "https://contoso-delivery.blob.core.windows.net/proof/2025/06/05/PKG-20250602-001847.jpg",
+        "delivery_photo_url": "https://tt-delivery.blob.core.windows.net/proof/2025/06/05/PKG-20250602-001847.jpg",
         "days_in_transit": 3,
         "on_time": true
       },

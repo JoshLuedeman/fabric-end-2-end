@@ -59,12 +59,12 @@ stream-run: ## Run the streaming event generator locally (DRY_RUN=true)
 	cd streaming && DRY_RUN=true npm start
 
 stream-docker: ## Build streaming Docker image
-	docker build -t contoso-event-generator ./streaming
+	docker build -t tt-event-generator ./streaming
 
 # --- OLTP Simulator ---
 
 sim-build: ## Build the OLTP simulator Docker image
-	docker build -t contoso-oltp-simulator ./simulator
+	docker build -t tt-oltp-simulator ./simulator
 
 sim-run: ## Run the OLTP simulator locally (DRY_RUN mode, no DB required)
 	cd simulator && python oltp_simulator.py --dry-run

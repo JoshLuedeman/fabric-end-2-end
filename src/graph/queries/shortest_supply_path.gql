@@ -1,6 +1,6 @@
 // =====================================================
 // Shortest Supply Path Queries
-// Contoso Global Retail - Microsoft Fabric Graph
+// Tales & Timber - Microsoft Fabric Graph
 // =====================================================
 // Finds the shortest / most efficient paths through the
 // supply chain from Supplier → Warehouse → Store.

@@ -1,5 +1,5 @@
 -- ===========================================================================
--- Contoso Operational POS Database — Seed Data
+-- Tales & Timber Operational POS Database — Seed Data
 -- Inserts initial reference data into the OLTP tables.
 --
 -- ID formats match the data generators:
@@ -12,16 +12,16 @@
 -- ---------------------------------------------------------------------------
 INSERT INTO dbo.Stores (store_id, name, store_type, address, city, state_province, country, latitude, longitude, manager_employee_id, opened_date, is_active)
 VALUES
-    ('S-0001', 'Contoso Flagship NYC',       'Flagship', '5th Avenue 1000',     'New York',      'New York',        'US', 40.758896, -73.985130, 'E-000001', '2019-03-15', 1),
-    ('S-0002', 'Contoso Standard Chicago',   'Standard', '123 Michigan Ave',    'Chicago',       'Illinois',        'US', 41.878113, -87.629799, 'E-000002', '2020-06-01', 1),
-    ('S-0003', 'Contoso Express LA',         'Express',  '456 Sunset Blvd',     'Los Angeles',   'California',      'US', 34.052235, -118.243683,'E-000003', '2021-01-10', 1),
-    ('S-0004', 'Contoso Outlet Dallas',      'Outlet',   '789 Commerce St',     'Dallas',        'Texas',           'US', 32.776664, -96.796988, 'E-000004', '2020-11-20', 1),
-    ('S-0005', 'Contoso Standard London',    'Standard', '10 Oxford Street',    'London',        'Greater London',  'UK', 51.507351, -0.127758,  'E-000005', '2019-08-25', 1),
-    ('S-0006', 'Contoso Express Berlin',     'Express',  'Friedrichstraße 50',  'Berlin',        'Berlin',          'DE', 52.520007, 13.404954,  'E-000006', '2021-04-12', 1),
-    ('S-0007', 'Contoso Standard Tokyo',     'Standard', '1-1 Shibuya',         'Tokyo',         'Tokyo',           'JP', 35.689487, 139.691711, 'E-000007', '2020-02-28', 1),
-    ('S-0008', 'Contoso Flagship Sydney',    'Flagship', '200 George St',       'Sydney',        'New South Wales', 'AU',-33.868820, 151.209290, 'E-000008', '2019-12-01', 1),
-    ('S-0009', 'Contoso Express Miami',      'Express',  '321 Ocean Drive',     'Miami',         'Florida',         'US', 25.761680, -80.191790, 'E-000009', '2022-03-15', 1),
-    ('S-0010', 'Contoso Online',             'Online',   NULL,                  NULL,            NULL,              'US', NULL,       NULL,       'E-000010', '2018-01-01', 1);
+    ('S-0001', 'Tales & Timber Flagship NYC',       'Flagship', '5th Avenue 1000',     'New York',      'New York',        'US', 40.758896, -73.985130, 'E-000001', '2019-03-15', 1),
+    ('S-0002', 'Tales & Timber Standard Chicago',   'Standard', '123 Michigan Ave',    'Chicago',       'Illinois',        'US', 41.878113, -87.629799, 'E-000002', '2020-06-01', 1),
+    ('S-0003', 'Tales & Timber Express LA',         'Express',  '456 Sunset Blvd',     'Los Angeles',   'California',      'US', 34.052235, -118.243683,'E-000003', '2021-01-10', 1),
+    ('S-0004', 'Tales & Timber Outlet Dallas',      'Outlet',   '789 Commerce St',     'Dallas',        'Texas',           'US', 32.776664, -96.796988, 'E-000004', '2020-11-20', 1),
+    ('S-0005', 'Tales & Timber Standard London',    'Standard', '10 Oxford Street',    'London',        'Greater London',  'UK', 51.507351, -0.127758,  'E-000005', '2019-08-25', 1),
+    ('S-0006', 'Tales & Timber Express Berlin',     'Express',  'Friedrichstraße 50',  'Berlin',        'Berlin',          'DE', 52.520007, 13.404954,  'E-000006', '2021-04-12', 1),
+    ('S-0007', 'Tales & Timber Standard Tokyo',     'Standard', '1-1 Shibuya',         'Tokyo',         'Tokyo',           'JP', 35.689487, 139.691711, 'E-000007', '2020-02-28', 1),
+    ('S-0008', 'Tales & Timber Flagship Sydney',    'Flagship', '200 George St',       'Sydney',        'New South Wales', 'AU',-33.868820, 151.209290, 'E-000008', '2019-12-01', 1),
+    ('S-0009', 'Tales & Timber Express Miami',      'Express',  '321 Ocean Drive',     'Miami',         'Florida',         'US', 25.761680, -80.191790, 'E-000009', '2022-03-15', 1),
+    ('S-0010', 'Tales & Timber Online',             'Online',   NULL,                  NULL,            NULL,              'US', NULL,       NULL,       'E-000010', '2018-01-01', 1);
 
 -- ---------------------------------------------------------------------------
 -- Products — 20 representative products across categories
@@ -54,21 +54,21 @@ VALUES
 -- ---------------------------------------------------------------------------
 INSERT INTO dbo.Customers (customer_id, first_name, last_name, email, phone, loyalty_tier, loyalty_points, preferred_store_id, is_active)
 VALUES
-    ('C-0000001', 'Emma',     'Johnson',  'emma.johnson1@contoso.com',     '+1-212-555-0101', 'Platinum', 15200, 'S-0001', 1),
-    ('C-0000002', 'Liam',     'Williams', 'liam.williams2@contoso.com',    '+1-312-555-0102', 'Gold',      8750, 'S-0002', 1),
-    ('C-0000003', 'Olivia',   'Brown',    'olivia.brown3@contoso.com',     '+1-213-555-0103', 'Gold',      6200, 'S-0003', 1),
-    ('C-0000004', 'Noah',     'Jones',    'noah.jones4@contoso.com',       '+1-214-555-0104', 'Silver',    3100, 'S-0004', 1),
-    ('C-0000005', 'Sophie',   'Taylor',   'sophie.taylor5@contoso.com',    '+44-20-5555-0105','Silver',    2800, 'S-0005', 1),
-    ('C-0000006', 'Lukas',    'Müller',   'lukas.mueller6@contoso.com',    '+49-30-5555-0106','Silver',    2400, 'S-0006', 1),
-    ('C-0000007', 'Yuki',     'Tanaka',   'yuki.tanaka7@contoso.com',     '+81-3-5555-0107', 'Gold',      7100, 'S-0007', 1),
-    ('C-0000008', 'James',    'Wilson',   'james.wilson8@contoso.com',     '+61-2-5555-0108', 'Platinum', 12800, 'S-0008', 1),
-    ('C-0000009', 'Isabella', 'Garcia',   'isabella.garcia9@contoso.com',  '+1-305-555-0109', 'Bronze',     450, 'S-0009', 1),
-    ('C-0000010', 'Ethan',    'Martinez', 'ethan.martinez10@contoso.com',  '+1-555-555-0110', 'Bronze',     200, 'S-0010', 1),
-    ('C-0000011', 'Ava',      'Anderson', 'ava.anderson11@contoso.com',    '+1-415-555-0111', 'Bronze',     100, 'S-0001', 1),
-    ('C-0000012', 'William',  'Thomas',   'william.thomas12@contoso.com',  '+1-713-555-0112', 'Silver',    1900, 'S-0004', 1),
-    ('C-0000013', 'Mia',      'Jackson',  'mia.jackson13@contoso.com',     '+44-20-5555-0113','Bronze',     350, 'S-0005', 1),
-    ('C-0000014', 'Alexander','White',    'alexander.white14@contoso.com', '+1-617-555-0114', 'Gold',      5600, 'S-0002', 1),
-    ('C-0000015', 'Charlotte','Harris',   'charlotte.harris15@contoso.com','+61-3-5555-0115', 'Bronze',      75, 'S-0008', 1);
+    ('C-0000001', 'Emma',     'Johnson',  'emma.johnson1@tt.com',     '+1-212-555-0101', 'Platinum', 15200, 'S-0001', 1),
+    ('C-0000002', 'Liam',     'Williams', 'liam.williams2@tt.com',    '+1-312-555-0102', 'Gold',      8750, 'S-0002', 1),
+    ('C-0000003', 'Olivia',   'Brown',    'olivia.brown3@tt.com',     '+1-213-555-0103', 'Gold',      6200, 'S-0003', 1),
+    ('C-0000004', 'Noah',     'Jones',    'noah.jones4@tt.com',       '+1-214-555-0104', 'Silver',    3100, 'S-0004', 1),
+    ('C-0000005', 'Sophie',   'Taylor',   'sophie.taylor5@tt.com',    '+44-20-5555-0105','Silver',    2800, 'S-0005', 1),
+    ('C-0000006', 'Lukas',    'Müller',   'lukas.mueller6@tt.com',    '+49-30-5555-0106','Silver',    2400, 'S-0006', 1),
+    ('C-0000007', 'Yuki',     'Tanaka',   'yuki.tanaka7@tt.com',     '+81-3-5555-0107', 'Gold',      7100, 'S-0007', 1),
+    ('C-0000008', 'James',    'Wilson',   'james.wilson8@tt.com',     '+61-2-5555-0108', 'Platinum', 12800, 'S-0008', 1),
+    ('C-0000009', 'Isabella', 'Garcia',   'isabella.garcia9@tt.com',  '+1-305-555-0109', 'Bronze',     450, 'S-0009', 1),
+    ('C-0000010', 'Ethan',    'Martinez', 'ethan.martinez10@tt.com',  '+1-555-555-0110', 'Bronze',     200, 'S-0010', 1),
+    ('C-0000011', 'Ava',      'Anderson', 'ava.anderson11@tt.com',    '+1-415-555-0111', 'Bronze',     100, 'S-0001', 1),
+    ('C-0000012', 'William',  'Thomas',   'william.thomas12@tt.com',  '+1-713-555-0112', 'Silver',    1900, 'S-0004', 1),
+    ('C-0000013', 'Mia',      'Jackson',  'mia.jackson13@tt.com',     '+44-20-5555-0113','Bronze',     350, 'S-0005', 1),
+    ('C-0000014', 'Alexander','White',    'alexander.white14@tt.com', '+1-617-555-0114', 'Gold',      5600, 'S-0002', 1),
+    ('C-0000015', 'Charlotte','Harris',   'charlotte.harris15@tt.com','+61-3-5555-0115', 'Bronze',      75, 'S-0008', 1);
 
 -- ---------------------------------------------------------------------------
 -- Inventory — stock levels for seed products at seed stores

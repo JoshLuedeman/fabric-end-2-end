@@ -1,5 +1,5 @@
 """
-Contoso Daily ETL Orchestration DAG
+Tales & Timber Daily ETL Orchestration DAG
 
 Runs daily at 2:00 AM UTC. Orchestrates the full data pipeline:
 OLTP CDC Extract → Bronze Ingest → Silver Transform → Gold Build → Warehouse Load → ML Refresh
@@ -44,9 +44,9 @@ from airflow.providers.microsoft.fabric.operators.fabric import (
 from airflow.utils.task_group import TaskGroup
 
 default_args = {
-    "owner": "contoso-data-team",
+    "owner": "tt-data-team",
     "depends_on_past": False,
-    "email": ["data-team@contoso.com"],
+    "email": ["data-team@tt.com"],
     "email_on_failure": True,
     "email_on_retry": False,
     "retries": 2,
@@ -54,13 +54,13 @@ default_args = {
 }
 
 with DAG(
-    dag_id="contoso_daily_etl",
+    dag_id="tt_daily_etl",
     default_args=default_args,
     description="Daily ETL: OLTP → Bronze → Silver → Gold → Warehouse → ML",
     schedule_interval="0 2 * * *",
     start_date=datetime(2025, 1, 1),
     catchup=False,
-    tags=["contoso", "etl", "daily", "production"],
+    tags=["tt", "etl", "daily", "production"],
     max_active_runs=1,
 ) as dag:
 

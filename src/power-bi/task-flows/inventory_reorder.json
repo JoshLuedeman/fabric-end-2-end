@@ -41,7 +41,7 @@
   "action": {
     "type": "user_data_function",
     "function_name": "fn_reorder_inventory",
-    "workspace": "contoso-analytics",
+    "workspace": "tt-analytics",
     "write_target": {
       "type": "warehouse_table",
       "schema": "operations",

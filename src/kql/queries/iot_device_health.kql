@@ -1,6 +1,6 @@
 // =====================================================
 // IoT Device Health Monitoring
-// Contoso Global Retail - Fabric Eventhouse
+// Tales & Timber - Fabric Eventhouse
 // =====================================================
 // Monitors sensor health: silent devices, low battery,
 // anomalous readings, and overall fleet status.

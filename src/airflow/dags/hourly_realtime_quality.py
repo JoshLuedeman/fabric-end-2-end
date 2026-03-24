@@ -1,5 +1,5 @@
 """
-Contoso Hourly Real-Time Data Quality DAG
+Tales & Timber Hourly Real-Time Data Quality DAG
 
 Runs every hour. Validates the health and quality of real-time data
 streams flowing through the Fabric Eventhouse:
@@ -22,9 +22,9 @@ from airflow.operators.python import PythonOperator
 from airflow.utils.task_group import TaskGroup
 
 default_args = {
-    "owner": "contoso-data-team",
+    "owner": "tt-data-team",
     "depends_on_past": False,
-    "email": ["data-team@contoso.com"],
+    "email": ["data-team@tt.com"],
     "email_on_failure": True,
     "email_on_retry": False,
     "retries": 1,
@@ -228,13 +228,13 @@ def quality_report(**context):
 # DAG definition
 # ---------------------------------------------------------------------------
 with DAG(
-    dag_id="contoso_hourly_realtime_quality",
+    dag_id="tt_hourly_realtime_quality",
     default_args=default_args,
     description="Hourly real-time data quality: freshness, volume, schema",
     schedule_interval="@hourly",
     start_date=datetime(2025, 1, 1),
     catchup=False,
-    tags=["contoso", "data-quality", "hourly", "real-time"],
+    tags=["tt", "data-quality", "hourly", "real-time"],
     max_active_runs=1,
 ) as dag:
 

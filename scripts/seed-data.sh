@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # seed-data.sh
-# Generates synthetic data for the Contoso Global Retail & Supply Chain demo
+# Generates synthetic data for the Tales & Timber demo
 # and uploads the resulting Parquet files to the Fabric Lakehouse bronze layer.
 #
 # FabCon / SQLCon 2026 — populates data for:

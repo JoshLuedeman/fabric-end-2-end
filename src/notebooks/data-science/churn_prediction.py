@@ -5,7 +5,7 @@
 # MAGIC **Purpose:** Predict which customers are likely to churn in the next 90 days using
 # MAGIC gradient boosting classification.
 # MAGIC
-# MAGIC **Business Context:** Customer acquisition costs at Contoso Global Retail are 5-7×
+# MAGIC **Business Context:** Customer acquisition costs at Tales & Timber are 5-7×
 # MAGIC higher than retention costs. Identifying at-risk customers early enables the
 # MAGIC retention team to deploy targeted win-back campaigns (personalised offers, loyalty
 # MAGIC bonuses, outreach calls) before the customer lapses.
@@ -19,7 +19,7 @@
 # MAGIC - `dim_product` — product category for diversity features
 # MAGIC
 # MAGIC **Output:** `ml_churn_predictions` gold table + MLflow experiment
-# MAGIC `contoso-churn-prediction` + registered model `churn-predictor`
+# MAGIC `tt-churn-prediction` + registered model `churn-predictor`
 
 # MAGIC %md
 # MAGIC ## 0. Install Dependencies
@@ -78,7 +78,7 @@ CHURN_WINDOW_DAYS = 90
 MIN_HISTORY_MONTHS = 6
 TEST_SIZE = 0.20
 RANDOM_STATE = 42
-EXPERIMENT_NAME = "contoso-churn-prediction"
+EXPERIMENT_NAME = "tt-churn-prediction"
 MODEL_REGISTRY_NAME = "churn-predictor"
 
 print("Imports and configuration loaded.")
@@ -480,7 +480,7 @@ print(f"   Customers at risk (prob ≥ 0.5): {at_risk:,} ({at_risk/row_count*100
 # MAGIC | Split | 80/20 stratified |
 # MAGIC | Evaluation metrics | AUC, Precision, Recall, F1, Confusion Matrix |
 # MAGIC | Output table | `ml_churn_predictions` |
-# MAGIC | MLflow experiment | `contoso-churn-prediction` |
+# MAGIC | MLflow experiment | `tt-churn-prediction` |
 # MAGIC | Registered model | `churn-predictor` |
 
 print("Churn prediction notebook complete.")

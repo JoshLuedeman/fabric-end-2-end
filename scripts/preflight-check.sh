@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # preflight-check.sh
-# Validates that ALL prerequisites are met before deploying the Contoso demo.
+# Validates that ALL prerequisites are met before deploying the Tales & Timber demo.
 #
 # Checks:
 #   1. Required CLI tools installed (az, fab, terraform, python, node, docker, jq)

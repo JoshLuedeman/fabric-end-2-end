@@ -5,7 +5,7 @@
 # MAGIC **Purpose:** Analyse which promotions drive incremental revenue versus mere
 # MAGIC cannibalisation, using causal inference via propensity score matching.
 # MAGIC
-# MAGIC **Business Context:** Contoso Global Retail runs hundreds of promotions per year
+# MAGIC **Business Context:** Tales & Timber runs hundreds of promotions per year
 # MAGIC but historically has not measured true incrementality. A "successful" promotion
 # MAGIC that appears to lift revenue may simply be attracting customers who would have
 # MAGIC purchased anyway (selection bias). This notebook applies propensity score matching
@@ -26,7 +26,7 @@
 # MAGIC - `dim_store` — store attributes for segmentation
 # MAGIC
 # MAGIC **Output:** `ml_promotion_effectiveness` gold table + MLflow experiment
-# MAGIC `contoso-promo-analysis`
+# MAGIC `tt-promo-analysis`
 
 # MAGIC %md
 # MAGIC ## 0. Install Dependencies
@@ -68,7 +68,7 @@ import seaborn as sns
 # Configuration
 # ---------------------------------------------------------------------------
 DISCOUNT_THRESHOLD_PCT = 5.0  # transactions with discount > threshold = "promoted"
-EXPERIMENT_NAME = "contoso-promo-analysis"
+EXPERIMENT_NAME = "tt-promo-analysis"
 TOP_N_PROMOS = 15  # number of top/bottom promotions to visualise
 
 print("Imports and configuration loaded.")
@@ -429,7 +429,7 @@ axes[1].set_title(f"Bottom {n_show} Promotions by ROI", fontsize=12)
 axes[1].axvline(x=0, color="black", linewidth=0.8, linestyle="--")
 
 plt.suptitle(
-    "Contoso Promotion Effectiveness — ROI Analysis\n"
+    "Tales & Timber Promotion Effectiveness — ROI Analysis\n"
     f"(Green = positive ROI, Red = negative ROI)",
     fontsize=14,
 )
@@ -451,6 +451,6 @@ print("✅ Visualisation rendered.")
 # MAGIC | Matching | Nearest Neighbors on propensity score |
 # MAGIC | Key metric | ROI = (incremental_revenue − discount_cost) / discount_cost |
 # MAGIC | Output table | `ml_promotion_effectiveness` |
-# MAGIC | MLflow experiment | `contoso-promo-analysis` |
+# MAGIC | MLflow experiment | `tt-promo-analysis` |
 
 print("Promotion effectiveness analysis notebook complete.")

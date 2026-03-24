@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # deploy-fab-cli.sh
-# Deploys the Contoso Global Retail & Supply Chain demo to Microsoft Fabric
+# Deploys the Tales & Timber demo to Microsoft Fabric
 # using the Fabric CLI (fab).
 #
 # FabCon / SQLCon 2026 — demonstrates automated deployment of:
@@ -106,10 +106,10 @@ done
 # Step 4 — Deploy Warehouse
 # ---------------------------------------------------------------------------
 log "Deploying Warehouse"
-if ! fab item show --workspace "$FABRIC_WORKSPACE" --name "contoso_warehouse" --type Warehouse >/dev/null 2>&1; then
+if ! fab item show --workspace "$FABRIC_WORKSPACE" --name "tt_warehouse" --type Warehouse >/dev/null 2>&1; then
   fab item create \
     --workspace "$FABRIC_WORKSPACE" \
-    --name "contoso_warehouse" \
+    --name "tt_warehouse" \
     --type Warehouse
 fi
 
@@ -192,7 +192,7 @@ if [ -f "$EVENTSTREAM_DIR/change_event_config.json" ]; then
   log "  Deploying Change Event Streaming eventstream"
   fab item create-or-update \
     --workspace "$FABRIC_WORKSPACE" \
-    --name "contoso-change-events" \
+    --name "tt-change-events" \
     --type Eventstream \
     --path "$EVENTSTREAM_DIR/change_event_config.json"
 fi
@@ -236,7 +236,7 @@ GRAPHQL_SCHEMA="$REPO_ROOT/src/graphql/schema/retail_api.graphql"
 if [ -f "$GRAPHQL_SCHEMA" ]; then
   fab item create-or-update \
     --workspace "$FABRIC_WORKSPACE" \
-    --name "contoso-retail-api" \
+    --name "tt-retail-api" \
     --type GraphQLApi \
     --path "$REPO_ROOT/src/graphql/"
 fi

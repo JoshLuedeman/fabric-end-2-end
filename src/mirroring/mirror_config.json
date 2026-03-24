@@ -1,12 +1,12 @@
 {
   "$schema": "https://learn.microsoft.com/fabric/database/mirrored-database/overview",
-  "_comment": "Mirroring configuration for Contoso ERP (Azure SQL Database) into OneLake",
+  "_comment": "Mirroring configuration for Tales & Timber ERP (Azure SQL Database) into OneLake",
   "properties": {
     "source": {
       "type": "AzureSqlDatabase",
       "typeProperties": {
         "connectionString": "{{ .ERP_CONNECTION_STRING }}",
-        "database": "contoso_erp"
+        "database": "tt_erp"
       }
     },
     "defaultSchema": "dbo",

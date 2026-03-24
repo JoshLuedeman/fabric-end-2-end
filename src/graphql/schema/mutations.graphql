@@ -1,18 +1,18 @@
 # =============================================================================
-# Contoso Global Retail & Supply Chain — GraphQL Mutations
+# Tales & Timber — GraphQL Mutations
 # =============================================================================
 #
 # Write operations for application integration. These mutations map to stored
 # procedures and DML operations against the Fabric Warehouse and SQL Database.
 #
 # Target data sources:
-#   - contoso_warehouse       (Fabric Warehouse — facts/dims)
-#   - contoso_operational_db  (Fabric SQL Database — OLTP tables)
+#   - tt_warehouse       (Fabric Warehouse — facts/dims)
+#   - tt_operational_db  (Fabric SQL Database — OLTP tables)
 #
 # IMPORTANT: Mutations require appropriate Entra ID roles:
-#   - Order operations:     contoso-order-managers (Contributor on warehouse)
-#   - Inventory operations: contoso-warehouse-ops (Contributor on warehouse)
-#   - Customer operations:  contoso-crm-operators (Contributor on SQL database)
+#   - Order operations:     tt-order-managers (Contributor on warehouse)
+#   - Inventory operations: tt-warehouse-ops (Contributor on warehouse)
+#   - Customer operations:  tt-crm-operators (Contributor on SQL database)
 # =============================================================================
 
 type Mutation {

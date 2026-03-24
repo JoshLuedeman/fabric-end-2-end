@@ -1,16 +1,16 @@
 {
   "$schema": "https://learn.microsoft.com/fabric/database/mirrored-database/overview",
   "_comment": "Mirroring configuration — Snowflake supply chain partner data into OneLake",
-  "_use_case": "Contoso receives supplier analytics from their Snowflake-based supply chain partners. This mirror brings partner-shared data into the Fabric Lakehouse for unified analytics alongside internal ERP, POS, and CRM data.",
+  "_use_case": "Tales & Timber receives supplier analytics from their Snowflake-based supply chain partners. This mirror brings partner-shared data into the Fabric Lakehouse for unified analytics alongside internal ERP, POS, and CRM data.",
   "properties": {
     "source": {
       "type": "Snowflake",
       "typeProperties": {
         "connectionString": "{{ .SNOWFLAKE_CONNECTION_STRING }}",
-        "warehouse": "CONTOSO_PARTNER_WH",
+        "warehouse": "TT_PARTNER_WH",
         "database": "SUPPLY_CHAIN_ANALYTICS",
         "schema": "SHARED",
-        "role": "CONTOSO_READER",
+        "role": "TT_READER",
         "authentication": {
           "type": "KeyPair",
           "privateKeyPath": "{{ .SNOWFLAKE_PRIVATE_KEY_PATH }}",
@@ -38,7 +38,7 @@
           "sourceSchema": "SHARED",
           "sourceTable": "RAW_MATERIAL_PRICES",
           "enabled": true,
-          "description": "Daily commodity and raw material price index for Contoso's key inputs: cotton, polyester, leather, electronics components, food ingredients.",
+          "description": "Daily commodity and raw material price index for Tales & Timber's key inputs: cotton, polyester, leather, electronics components, food ingredients.",
           "columns": [
             "material_id", "material_name", "category", "unit_of_measure",
             "price_usd", "price_date", "exchange_rate_to_usd",

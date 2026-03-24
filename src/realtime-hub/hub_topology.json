@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/microsoft/fabric-samples/main/docs-samples/realtime-hub-schema.json",
   "_comment": [
-    "Fabric Real-Time Hub topology for Contoso Global Retail & Supply Chain.",
+    "Fabric Real-Time Hub topology for Tales & Timber.",
     "",
     "This file documents all data streams flowing through the tenant-wide",
     "Real-Time Hub.  It is a reference map — the actual hub configuration",
@@ -12,8 +12,8 @@
     "plan capacity (throughput estimates assume 500 stores, $500 M/year)."
   ],
 
-  "hubName": "contoso-realtime-hub",
-  "tenant": "contoso.onmicrosoft.com",
+  "hubName": "tt-realtime-hub",
+  "tenant": "tt.onmicrosoft.com",
   "environment": "${environment}",
   "lastUpdated": "2025-01-15T00:00:00Z",
 
@@ -23,8 +23,8 @@
       "description": "Point-of-sale transaction headers and line items from all 500 stores, captured via SQL Database Change Event Streaming.",
       "source_type": "FabricSQLDatabaseChangeEventStreaming",
       "source_config": {
-        "workspaceName": "contoso-data-warehouse-${environment}",
-        "sqlDatabaseName": "contoso_operational_db",
+        "workspaceName": "tt-data-warehouse-${environment}",
+        "sqlDatabaseName": "tt_operational_db",
         "tables": [
           {
             "schema": "dbo",
@@ -38,12 +38,12 @@
           }
         ],
         "captureMode": "Incremental",
-        "eventStreamName": "contoso-change-events"
+        "eventStreamName": "tt-change-events"
       },
       "destination": {
         "type": "FabricEventhouse",
-        "eventhouseName": "contoso_eventhouse",
-        "kqlDatabaseName": "contoso_kqldb",
+        "eventhouseName": "tt_eventhouse",
+        "kqlDatabaseName": "tt_kqldb",
         "tables": ["RealtimeSales"]
       },
       "consumers": [
@@ -94,8 +94,8 @@
       "description": "Stock-level changes from sales drawdowns and replenishment cycles across all 500 stores.",
       "source_type": "FabricSQLDatabaseChangeEventStreaming",
       "source_config": {
-        "workspaceName": "contoso-data-warehouse-${environment}",
-        "sqlDatabaseName": "contoso_operational_db",
+        "workspaceName": "tt-data-warehouse-${environment}",
+        "sqlDatabaseName": "tt_operational_db",
         "tables": [
           {
             "schema": "dbo",
@@ -104,12 +104,12 @@
           }
         ],
         "captureMode": "Incremental",
-        "eventStreamName": "contoso-change-events"
+        "eventStreamName": "tt-change-events"
       },
       "destination": {
         "type": "FabricEventhouse",
-        "eventhouseName": "contoso_eventhouse",
-        "kqlDatabaseName": "contoso_kqldb",
+        "eventhouseName": "tt_eventhouse",
+        "kqlDatabaseName": "tt_kqldb",
         "tables": ["InventorySnapshot"]
       },
       "consumers": [
@@ -146,8 +146,8 @@
       "description": "Environmental and operational sensor data from IoT devices across all 500 stores — temperature, humidity, foot traffic, energy, door counters.",
       "source_type": "AzureEventHub",
       "source_config": {
-        "eventHubNamespace": "contoso-eventhub-ns",
-        "eventHubName": "contoso-events",
+        "eventHubNamespace": "tt-eventhub-ns",
+        "eventHubName": "tt-events",
         "consumerGroup": "$Default",
         "dataFormat": "JSON",
         "simulatorPath": "streaming/",
@@ -155,8 +155,8 @@
       },
       "destination": {
         "type": "FabricEventhouse",
-        "eventhouseName": "contoso_eventhouse",
-        "kqlDatabaseName": "contoso_kqldb",
+        "eventhouseName": "tt_eventhouse",
+        "kqlDatabaseName": "tt_kqldb",
         "tables": ["RealtimeIoT"]
       },
       "consumers": [
@@ -200,8 +200,8 @@
       "description": "Customer service interactions — calls, emails, chats, in-store visits, returns, complaints, and feedback.",
       "source_type": "FabricSQLDatabaseChangeEventStreaming",
       "source_config": {
-        "workspaceName": "contoso-data-warehouse-${environment}",
-        "sqlDatabaseName": "contoso_operational_db",
+        "workspaceName": "tt-data-warehouse-${environment}",
+        "sqlDatabaseName": "tt_operational_db",
         "tables": [
           {
             "schema": "dbo",
@@ -210,12 +210,12 @@
           }
         ],
         "captureMode": "Incremental",
-        "eventStreamName": "contoso-change-events"
+        "eventStreamName": "tt-change-events"
       },
       "destination": {
         "type": "FabricEventhouse",
-        "eventhouseName": "contoso_eventhouse",
-        "kqlDatabaseName": "contoso_kqldb",
+        "eventhouseName": "tt_eventhouse",
+        "kqlDatabaseName": "tt_kqldb",
         "tables": ["customer_interactions_realtime"]
       },
       "consumers": [
@@ -258,7 +258,7 @@
       "description": "Website and mobile app user activity — page views, clicks, searches, cart actions. Ingested from Lakehouse bronze in periodic micro-batches.",
       "source_type": "FabricLakehouseBatch",
       "source_config": {
-        "workspaceName": "contoso-data-engineering-${environment}",
+        "workspaceName": "tt-data-engineering-${environment}",
         "lakehouseName": "lh_bronze",
         "tablePath": "Tables/bronze_clickstream",
         "dataFormat": "Delta",
@@ -267,8 +267,8 @@
       },
       "destination": {
         "type": "FabricEventhouse",
-        "eventhouseName": "contoso_eventhouse",
-        "kqlDatabaseName": "contoso_kqldb",
+        "eventhouseName": "tt_eventhouse",
+        "kqlDatabaseName": "tt_kqldb",
         "tables": ["WebClickstream"]
       },
       "consumers": [
@@ -308,7 +308,7 @@
     "total_streams": 5,
     "total_throughput_avg_events_per_second": 154.5,
     "total_daily_volume": "~13.5M events across all streams",
-    "primary_destination": "contoso_eventhouse / contoso_kqldb",
+    "primary_destination": "tt_eventhouse / tt_kqldb",
     "secondary_destination": "lh_bronze (Lakehouse CDC landing zone)",
     "retention_policy": "90 days for real-time tables, 30 days for clickstream"
   }

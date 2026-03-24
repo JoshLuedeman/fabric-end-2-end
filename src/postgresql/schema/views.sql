@@ -1,5 +1,5 @@
 -- ==========================================================================
--- Contoso Global Retail — Marketing Analytical Views (PostgreSQL in Fabric)
+-- Tales & Timber — Marketing Analytical Views (PostgreSQL in Fabric)
 --
 -- Pre-built views for the marketing team's most common analytical queries.
 -- These power dashboards, reports, and ad-hoc analysis in Fabric.
