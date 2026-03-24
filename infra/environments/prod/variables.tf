@@ -32,6 +32,12 @@ variable "admin_members" {
   default     = []
 }
 
+variable "project_prefix" {
+  description = "Prefix for Fabric resource display names"
+  type        = string
+  default     = "contoso"
+}
+
 variable "tags" {
   description = "Tags to apply to all resources."
   type        = map(string)

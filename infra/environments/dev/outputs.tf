@@ -27,6 +27,7 @@ output "warehouse_id" {
 output "warehouse_connection_string" {
   description = "The SQL connection string for the Contoso data warehouse."
   value       = module.warehouse.connection_string
+  sensitive   = true
 }
 
 # Eventhouse

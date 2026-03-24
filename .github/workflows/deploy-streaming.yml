@@ -148,6 +148,7 @@ jobs:
             --registry-password "${{ secrets.GITHUB_TOKEN }}" \
             --environment-variables \
               ENVIRONMENT="${{ env.ENVIRONMENT }}" \
+            --secure-environment-variables \
               EVENTHUB_CONNECTION_STRING="${{ secrets.EVENTHUB_CONNECTION_STRING }}" \
             --cpu 1 \
             --memory 1.5 \

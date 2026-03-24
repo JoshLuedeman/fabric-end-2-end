@@ -68,10 +68,10 @@ jobs:
         working-directory: ${{ env.WORKING_DIR }}
         run: |
           terraform init \
-            -backend-config="storage_account_name=sttfstate7524" \
-            -backend-config="container_name=tfstate" \
-            -backend-config="resource_group_name=rg-terraform-state-prod" \
-            -backend-config="subscription_id=78118340-da1a-4f38-a514-1afe4d4378c0" \
+            -backend-config="storage_account_name=${{ secrets.TF_STATE_STORAGE_ACCOUNT }}" \
+            -backend-config="container_name=${{ secrets.TF_STATE_CONTAINER }}" \
+            -backend-config="resource_group_name=${{ secrets.TF_STATE_RESOURCE_GROUP }}" \
+            -backend-config="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" \
             -backend-config="key=${{ inputs.environment || 'dev' }}.terraform.tfstate" \
             -backend-config="use_oidc=true"
 
@@ -141,10 +141,10 @@ jobs:
         working-directory: ${{ env.WORKING_DIR }}
         run: |
           terraform init \
-            -backend-config="storage_account_name=sttfstate7524" \
-            -backend-config="container_name=tfstate" \
-            -backend-config="resource_group_name=rg-terraform-state-prod" \
-            -backend-config="subscription_id=78118340-da1a-4f38-a514-1afe4d4378c0" \
+            -backend-config="storage_account_name=${{ secrets.TF_STATE_STORAGE_ACCOUNT }}" \
+            -backend-config="container_name=${{ secrets.TF_STATE_CONTAINER }}" \
+            -backend-config="resource_group_name=${{ secrets.TF_STATE_RESOURCE_GROUP }}" \
+            -backend-config="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" \
             -backend-config="key=${{ inputs.environment || 'dev' }}.terraform.tfstate" \
             -backend-config="use_oidc=true"
 

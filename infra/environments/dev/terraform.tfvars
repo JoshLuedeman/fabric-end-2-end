@@ -1,12 +1,13 @@
 # ---------------------------------------------------------------------------
 # Dev Environment — Default Variable Values
 # ---------------------------------------------------------------------------
+# NOTE: subscription_id is not stored here — pass via TF_VAR_subscription_id or -var flag
 
 environment         = "dev"
 location            = "eastus"
 capacity_sku        = "F8"
-subscription_id     = "78118340-da1a-4f38-a514-1afe4d4378c0"
 resource_group_name = "rg-contoso-fabric-dev"
+project_prefix      = "contoso"
 
 admin_members = []
 

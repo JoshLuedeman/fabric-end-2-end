@@ -20,6 +20,8 @@ End-to-end Microsoft Fabric demo showcasing all platform capabilities including 
 
 ## Quick Start
 
+> **CI/CD Setup:** For detailed configuration of GitHub Actions pipelines — including required secrets, variables, OIDC federation, and deployment order — see the [CI/CD Setup Guide](docs/cicd-setup.md).
+
 ```bash
 # 1. Bootstrap (one-time): create SPN and configure permissions
 cd infra/bootstrap && terraform init && terraform apply

@@ -76,7 +76,7 @@ module "warehouse" {
   source = "../../modules/fabric-warehouse"
 
   workspace_id = module.fabric_workspaces["data-warehouse"].workspace_id
-  display_name = "contoso_warehouse"
+  display_name = "${var.project_prefix}_warehouse"
   description  = "Contoso central data warehouse (${var.environment})"
 }
 
@@ -87,12 +87,12 @@ module "eventhouse" {
   source = "../../modules/fabric-eventhouse"
 
   workspace_id = module.fabric_workspaces["real-time"].workspace_id
-  display_name = "contoso_eventhouse"
+  display_name = "${var.project_prefix}_eventhouse"
   description  = "Contoso real-time analytics eventhouse (${var.environment})"
 }
 
 resource "fabric_kql_database" "realtime_db" {
-  display_name = "contoso_kqldb"
+  display_name = "${var.project_prefix}_kqldb"
   description  = "Contoso real-time KQL database (${var.environment})"
   workspace_id = module.fabric_workspaces["real-time"].workspace_id
 
