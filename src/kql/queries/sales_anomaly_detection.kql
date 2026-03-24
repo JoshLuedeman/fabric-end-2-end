@@ -1,0 +1,120 @@
+// =====================================================
+// Sales Anomaly Detection
+// Contoso Global Retail - Fabric Eventhouse
+// =====================================================
+// Uses make-series and series_decompose_anomalies to
+// detect unusual sales volume spikes/drops per store.
+// =====================================================
+
+// ---------------------------------------------------------
+// 1. Sales Volume Anomaly Detection (transactions per hour)
+// ---------------------------------------------------------
+let lookback = 7d;
+let bin_size = 1h;
+let anomaly_threshold = 1.5;  // sensitivity: lower = more sensitive
+RealtimeSales
+| where Timestamp > ago(lookback)
+| summarize SalesCount = count() by StoreId, bin(Timestamp, bin_size)
+| make-series
+    SalesCountSeries = sum(SalesCount) default=0
+    on Timestamp
+    from ago(lookback) to now()
+    step bin_size
+    by StoreId
+| extend (AnomalyFlags, AnomalyScore, ExpectedSales) =
+    series_decompose_anomalies(SalesCountSeries, anomaly_threshold)
+| mv-expand
+    Timestamp to typeof(datetime),
+    SalesCountSeries to typeof(long),
+    AnomalyFlags to typeof(int),
+    AnomalyScore to typeof(real),
+    ExpectedSales to typeof(real)
+| extend AnomalyType = case(
+    AnomalyFlags == 1,  "spike",
+    AnomalyFlags == -1, "dip",
+    "normal"
+  )
+| project
+    StoreId,
+    Timestamp,
+    SalesCount = SalesCountSeries,
+    ExpectedSales = round(ExpectedSales, 1),
+    AnomalyScore = round(AnomalyScore, 2),
+    AnomalyType
+| order by Timestamp desc, StoreId asc
+
+// ---------------------------------------------------------
+// 2. Revenue Anomaly Detection (total revenue per hour)
+// ---------------------------------------------------------
+let lookback = 7d;
+let bin_size = 1h;
+let anomaly_threshold = 1.5;
+RealtimeSales
+| where Timestamp > ago(lookback)
+| summarize HourlyRevenue = sum(TotalAmount) by StoreId, bin(Timestamp, bin_size)
+| make-series
+    RevenueSeries = sum(HourlyRevenue) default=0.0
+    on Timestamp
+    from ago(lookback) to now()
+    step bin_size
+    by StoreId
+| extend (AnomalyFlags, AnomalyScore, ExpectedRevenue) =
+    series_decompose_anomalies(RevenueSeries, anomaly_threshold)
+| mv-expand
+    Timestamp to typeof(datetime),
+    RevenueSeries to typeof(real),
+    AnomalyFlags to typeof(int),
+    AnomalyScore to typeof(real),
+    ExpectedRevenue to typeof(real)
+| extend AnomalyType = case(
+    AnomalyFlags == 1,  "spike",
+    AnomalyFlags == -1, "dip",
+    "normal"
+  )
+| project
+    StoreId,
+    Timestamp,
+    HourlyRevenue = round(RevenueSeries, 2),
+    ExpectedRevenue = round(ExpectedRevenue, 2),
+    AnomalyScore = round(AnomalyScore, 2),
+    AnomalyType
+| order by Timestamp desc, StoreId asc
+
+// ---------------------------------------------------------
+// 3. Active Anomalies Summary (last 24 hours)
+// ---------------------------------------------------------
+let lookback = 7d;
+let bin_size = 1h;
+let anomaly_threshold = 1.5;
+let recent_window = 24h;
+RealtimeSales
+| where Timestamp > ago(lookback)
+| summarize SalesCount = count() by StoreId, bin(Timestamp, bin_size)
+| make-series
+    SalesCountSeries = sum(SalesCount) default=0
+    on Timestamp
+    from ago(lookback) to now()
+    step bin_size
+    by StoreId
+| extend (AnomalyFlags, AnomalyScore, ExpectedSales) =
+    series_decompose_anomalies(SalesCountSeries, anomaly_threshold)
+| mv-expand
+    Timestamp to typeof(datetime),
+    SalesCountSeries to typeof(long),
+    AnomalyFlags to typeof(int),
+    AnomalyScore to typeof(real),
+    ExpectedSales to typeof(real)
+| where AnomalyFlags != 0 and Timestamp > ago(recent_window)
+| extend AnomalyType = case(
+    AnomalyFlags == 1,  "spike",
+    AnomalyFlags == -1, "dip",
+    "normal"
+  )
+| project
+    StoreId,
+    Timestamp,
+    SalesCount = SalesCountSeries,
+    ExpectedSales = round(ExpectedSales, 1),
+    AnomalyScore = round(AnomalyScore, 2),
+    AnomalyType
+| order by abs(AnomalyScore) desc

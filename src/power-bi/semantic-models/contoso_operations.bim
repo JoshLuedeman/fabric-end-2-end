@@ -1,0 +1,260 @@
+{
+  "name": "contoso_operations",
+  "compatibilityLevel": 1604,
+  "description": "Contoso Global Retail operations semantic model — inventory, suppliers, and shipments. FabCon 2026 — supports Translytical Task Flows and AI Agents.",
+  "model": {
+    "culture": "en-US",
+    "defaultPowerBIDataSourceVersion": "powerBI_V3",
+    "tables": [
+      {
+        "name": "fact_inventory",
+        "columns": [
+          { "name": "inventory_key", "dataType": "int64", "sourceColumn": "inventory_key" },
+          { "name": "product_key", "dataType": "int64", "sourceColumn": "product_key" },
+          { "name": "store_key", "dataType": "int64", "sourceColumn": "store_key" },
+          { "name": "date_key", "dataType": "int64", "sourceColumn": "date_key" },
+          { "name": "on_hand_quantity", "dataType": "int64", "sourceColumn": "on_hand_quantity" },
+          { "name": "reorder_point", "dataType": "int64", "sourceColumn": "reorder_point" },
+          { "name": "reorder_quantity", "dataType": "int64", "sourceColumn": "reorder_quantity" },
+          { "name": "is_below_reorder", "dataType": "boolean", "sourceColumn": "is_below_reorder" },
+          { "name": "last_restock_date", "dataType": "dateTime", "sourceColumn": "last_restock_date" }
+        ],
+        "partitions": [
+          {
+            "name": "fact_inventory-partition",
+            "mode": "directLake",
+            "source": {
+              "type": "entity",
+              "entityName": "fact_inventory",
+              "schemaName": "gold",
+              "expressionSource": "gold_lakehouse"
+            }
+          }
+        ],
+        "measures": [
+          {
+            "name": "Current On Hand",
+            "expression": "SUM(fact_inventory[on_hand_quantity])",
+            "formatString": "#,##0"
+          },
+          {
+            "name": "Below Reorder Count",
+            "expression": "COUNTROWS(FILTER(fact_inventory, fact_inventory[is_below_reorder] = TRUE()))",
+            "formatString": "#,##0"
+          },
+          {
+            "name": "Inventory Turnover",
+            "expression": "DIVIDE(SUM(fact_inventory[reorder_quantity]), AVERAGE(fact_inventory[on_hand_quantity]))",
+            "formatString": "0.00"
+          }
+        ]
+      },
+      {
+        "name": "dim_product",
+        "columns": [
+          { "name": "product_key", "dataType": "int64", "sourceColumn": "product_key" },
+          { "name": "product_id", "dataType": "string", "sourceColumn": "product_id" },
+          { "name": "product_name", "dataType": "string", "sourceColumn": "product_name" },
+          { "name": "category", "dataType": "string", "sourceColumn": "category" },
+          { "name": "subcategory", "dataType": "string", "sourceColumn": "subcategory" },
+          { "name": "brand", "dataType": "string", "sourceColumn": "brand" },
+          { "name": "unit_cost", "dataType": "decimal", "sourceColumn": "unit_cost" },
+          { "name": "list_price", "dataType": "decimal", "sourceColumn": "list_price" }
+        ],
+        "partitions": [
+          {
+            "name": "dim_product-partition",
+            "mode": "directLake",
+            "source": {
+              "type": "entity",
+              "entityName": "dim_product",
+              "schemaName": "gold",
+              "expressionSource": "gold_lakehouse"
+            }
+          }
+        ],
+        "hierarchies": [
+          {
+            "name": "Product Hierarchy",
+            "levels": [
+              { "name": "Category", "ordinal": 0, "column": "category" },
+              { "name": "Subcategory", "ordinal": 1, "column": "subcategory" },
+              { "name": "Product", "ordinal": 2, "column": "product_name" }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "dim_store",
+        "columns": [
+          { "name": "store_key", "dataType": "int64", "sourceColumn": "store_key" },
+          { "name": "store_id", "dataType": "string", "sourceColumn": "store_id" },
+          { "name": "store_name", "dataType": "string", "sourceColumn": "store_name" },
+          { "name": "city", "dataType": "string", "sourceColumn": "city" },
+          { "name": "state", "dataType": "string", "sourceColumn": "state" },
+          { "name": "country", "dataType": "string", "sourceColumn": "country" },
+          { "name": "region", "dataType": "string", "sourceColumn": "region" }
+        ],
+        "partitions": [
+          {
+            "name": "dim_store-partition",
+            "mode": "directLake",
+            "source": {
+              "type": "entity",
+              "entityName": "dim_store",
+              "schemaName": "gold",
+              "expressionSource": "gold_lakehouse"
+            }
+          }
+        ]
+      },
+      {
+        "name": "dim_date",
+        "columns": [
+          { "name": "date_key", "dataType": "int64", "sourceColumn": "date_key" },
+          { "name": "date", "dataType": "dateTime", "sourceColumn": "date" },
+          { "name": "day_of_week", "dataType": "string", "sourceColumn": "day_of_week" },
+          { "name": "day_of_month", "dataType": "int64", "sourceColumn": "day_of_month" },
+          { "name": "month_name", "dataType": "string", "sourceColumn": "month_name" },
+          { "name": "month_number", "dataType": "int64", "sourceColumn": "month_number" },
+          { "name": "quarter", "dataType": "string", "sourceColumn": "quarter" },
+          { "name": "year", "dataType": "int64", "sourceColumn": "year" },
+          { "name": "fiscal_year", "dataType": "int64", "sourceColumn": "fiscal_year" }
+        ],
+        "partitions": [
+          {
+            "name": "dim_date-partition",
+            "mode": "directLake",
+            "source": {
+              "type": "entity",
+              "entityName": "dim_date",
+              "schemaName": "gold",
+              "expressionSource": "gold_lakehouse"
+            }
+          }
+        ],
+        "hierarchies": [
+          {
+            "name": "Date Hierarchy",
+            "levels": [
+              { "name": "Year", "ordinal": 0, "column": "year" },
+              { "name": "Quarter", "ordinal": 1, "column": "quarter" },
+              { "name": "Month", "ordinal": 2, "column": "month_name" },
+              { "name": "Day", "ordinal": 3, "column": "day_of_month" }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "suppliers",
+        "columns": [
+          { "name": "supplier_id", "dataType": "string", "sourceColumn": "supplier_id" },
+          { "name": "supplier_name", "dataType": "string", "sourceColumn": "supplier_name" },
+          { "name": "country", "dataType": "string", "sourceColumn": "country" },
+          { "name": "lead_time_days", "dataType": "int64", "sourceColumn": "lead_time_days" },
+          { "name": "reliability_score", "dataType": "decimal", "sourceColumn": "reliability_score" },
+          { "name": "contract_end_date", "dataType": "dateTime", "sourceColumn": "contract_end_date" }
+        ],
+        "partitions": [
+          {
+            "name": "suppliers-partition",
+            "mode": "directLake",
+            "source": {
+              "type": "entity",
+              "entityName": "suppliers",
+              "schemaName": "gold",
+              "expressionSource": "gold_lakehouse"
+            }
+          }
+        ],
+        "measures": [
+          {
+            "name": "Avg Lead Time",
+            "expression": "AVERAGE(suppliers[lead_time_days])",
+            "formatString": "0.0 days"
+          }
+        ]
+      },
+      {
+        "name": "shipments",
+        "columns": [
+          { "name": "shipment_id", "dataType": "string", "sourceColumn": "shipment_id" },
+          { "name": "supplier_id", "dataType": "string", "sourceColumn": "supplier_id" },
+          { "name": "store_id", "dataType": "string", "sourceColumn": "store_id" },
+          { "name": "product_id", "dataType": "string", "sourceColumn": "product_id" },
+          { "name": "shipped_date", "dataType": "dateTime", "sourceColumn": "shipped_date" },
+          { "name": "expected_delivery", "dataType": "dateTime", "sourceColumn": "expected_delivery" },
+          { "name": "actual_delivery", "dataType": "dateTime", "sourceColumn": "actual_delivery" },
+          { "name": "quantity", "dataType": "int64", "sourceColumn": "quantity" },
+          { "name": "status", "dataType": "string", "sourceColumn": "status" },
+          { "name": "is_on_time", "dataType": "boolean", "sourceColumn": "is_on_time" }
+        ],
+        "partitions": [
+          {
+            "name": "shipments-partition",
+            "mode": "directLake",
+            "source": {
+              "type": "entity",
+              "entityName": "shipments",
+              "schemaName": "gold",
+              "expressionSource": "gold_lakehouse"
+            }
+          }
+        ],
+        "measures": [
+          {
+            "name": "On-Time Delivery %",
+            "expression": "DIVIDE(COUNTROWS(FILTER(shipments, shipments[is_on_time] = TRUE())), COUNTROWS(shipments))",
+            "formatString": "0.0%"
+          }
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "name": "fact_inventory_to_dim_product",
+        "fromTable": "fact_inventory",
+        "fromColumn": "product_key",
+        "toTable": "dim_product",
+        "toColumn": "product_key",
+        "crossFilteringBehavior": "oneDirection"
+      },
+      {
+        "name": "fact_inventory_to_dim_store",
+        "fromTable": "fact_inventory",
+        "fromColumn": "store_key",
+        "toTable": "dim_store",
+        "toColumn": "store_key",
+        "crossFilteringBehavior": "oneDirection"
+      },
+      {
+        "name": "fact_inventory_to_dim_date",
+        "fromTable": "fact_inventory",
+        "fromColumn": "date_key",
+        "toTable": "dim_date",
+        "toColumn": "date_key",
+        "crossFilteringBehavior": "oneDirection"
+      },
+      {
+        "name": "shipments_to_suppliers",
+        "fromTable": "shipments",
+        "fromColumn": "supplier_id",
+        "toTable": "suppliers",
+        "toColumn": "supplier_id",
+        "crossFilteringBehavior": "oneDirection"
+      }
+    ],
+    "expressions": [
+      {
+        "name": "gold_lakehouse",
+        "kind": "m",
+        "expression": "let\n    Source = #\"gold_lakehouse\"\nin\n    Source",
+        "description": "Direct Lake connection to the gold-layer Lakehouse"
+      }
+    ],
+    "annotations": [
+      { "name": "fabric_feature_demo", "value": "FabCon 2026 — Operations model with Translytical Task Flow write-back support" },
+      { "name": "dataset_type", "value": "operations_analytics" }
+    ]
+  }
+}

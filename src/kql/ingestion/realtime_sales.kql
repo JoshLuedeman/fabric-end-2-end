@@ -1,0 +1,69 @@
+// =====================================================
+// Real-Time Sales Ingestion Setup
+// Contoso Global Retail - Fabric Eventhouse
+// =====================================================
+
+// Create table for real-time POS (Point of Sale) events
+.create table RealtimeSales (
+    TransactionId: string,
+    Timestamp: datetime,
+    StoreId: string,
+    StoreName: string,
+    CustomerId: string,
+    ProductId: string,
+    ProductName: string,
+    Category: string,
+    Quantity: int,
+    UnitPrice: real,
+    DiscountPct: real,
+    TotalAmount: real,
+    PaymentMethod: string,
+    Channel: string
+)
+
+// Create JSON ingestion mapping for EventStream/Event Hub
+.create table RealtimeSales ingestion json mapping 'RealtimeSalesMapping'
+'['
+'  {"column": "TransactionId", "path": "$.transactionId", "datatype": "string"},'
+'  {"column": "Timestamp", "path": "$.timestamp", "datatype": "datetime"},'
+'  {"column": "StoreId", "path": "$.storeId", "datatype": "string"},'
+'  {"column": "StoreName", "path": "$.storeName", "datatype": "string"},'
+'  {"column": "CustomerId", "path": "$.customerId", "datatype": "string"},'
+'  {"column": "ProductId", "path": "$.productId", "datatype": "string"},'
+'  {"column": "ProductName", "path": "$.productName", "datatype": "string"},'
+'  {"column": "Category", "path": "$.category", "datatype": "string"},'
+'  {"column": "Quantity", "path": "$.quantity", "datatype": "int"},'
+'  {"column": "UnitPrice", "path": "$.unitPrice", "datatype": "real"},'
+'  {"column": "DiscountPct", "path": "$.discountPct", "datatype": "real"},'
+'  {"column": "TotalAmount", "path": "$.totalAmount", "datatype": "real"},'
+'  {"column": "PaymentMethod", "path": "$.paymentMethod", "datatype": "string"},'
+'  {"column": "Channel", "path": "$.channel", "datatype": "string"}'
+']'
+
+// Also create IoT telemetry table
+.create table RealtimeIoT (
+    ReadingId: string,
+    DeviceId: string,
+    StoreId: string,
+    SensorType: string,
+    ReadingValue: real,
+    ReadingTimestamp: datetime,
+    BatteryLevel: real,
+    IsAnomaly: bool
+)
+
+.create table RealtimeIoT ingestion json mapping 'RealtimeIoTMapping'
+'['
+'  {"column": "ReadingId", "path": "$.readingId", "datatype": "string"},'
+'  {"column": "DeviceId", "path": "$.deviceId", "datatype": "string"},'
+'  {"column": "StoreId", "path": "$.storeId", "datatype": "string"},'
+'  {"column": "SensorType", "path": "$.sensorType", "datatype": "string"},'
+'  {"column": "ReadingValue", "path": "$.readingValue", "datatype": "real"},'
+'  {"column": "ReadingTimestamp", "path": "$.readingTimestamp", "datatype": "datetime"},'
+'  {"column": "BatteryLevel", "path": "$.batteryLevel", "datatype": "real"},'
+'  {"column": "IsAnomaly", "path": "$.isAnomaly", "datatype": "bool"}'
+']'
+
+// Set retention policy (90 days for real-time data)
+.alter table RealtimeSales policy retention '{"SoftDeletePeriod": "90.00:00:00", "Recoverability": "Enabled"}'
+.alter table RealtimeIoT policy retention '{"SoftDeletePeriod": "90.00:00:00", "Recoverability": "Enabled"}'

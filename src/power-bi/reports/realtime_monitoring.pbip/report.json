@@ -1,0 +1,629 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/report/1.0.0/schema.json",
+  "themeCollection": {
+    "baseTheme": {
+      "name": "CY24SU06",
+      "reportVersionAtImport": "5.55",
+      "type": "SharedResources"
+    }
+  },
+  "datasetBinding": {
+    "datasetReference": {
+      "byConnection": {
+        "connectionString": null,
+        "pbiServiceModelId": null,
+        "pbiModelVirtualServerName": "sobe_wowvirtualserver",
+        "pbiModelDatabaseName": "",
+        "name": "EntityDataSource",
+        "connectionType": "pbiServiceXmlaStyleLive"
+      }
+    }
+  },
+  "reportPages": [
+    {
+      "name": "ReportSection_LiveOps",
+      "displayName": "Live Operations",
+      "displayOption": 1,
+      "width": 1280,
+      "height": 720,
+      "visualContainers": [
+        {
+          "x": 20,
+          "y": 20,
+          "z": 1,
+          "width": 250,
+          "height": 120,
+          "config": {
+            "name": "card_events_per_min",
+            "visualType": "card",
+            "singleVisual": {
+              "projections": {
+                "Values": [
+                  {
+                    "queryRef": "Measures.EventsPerMinute",
+                    "active": true
+                  }
+                ]
+              },
+              "objects": {
+                "labels": [
+                  {
+                    "properties": {
+                      "fontSize": { "expr": { "Literal": { "Value": "32D" } } },
+                      "color": { "solid": { "color": "#118DFF" } }
+                    }
+                  }
+                ],
+                "categoryLabels": [
+                  {
+                    "properties": {
+                      "show": { "expr": { "Literal": { "Value": "true" } } },
+                      "text": { "expr": { "Literal": { "Value": "'Events / Min'" } } }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "filters": [],
+          "tabOrder": 0
+        },
+        {
+          "x": 290,
+          "y": 20,
+          "z": 2,
+          "width": 250,
+          "height": 120,
+          "config": {
+            "name": "card_active_anomalies",
+            "visualType": "card",
+            "singleVisual": {
+              "projections": {
+                "Values": [
+                  {
+                    "queryRef": "Measures.ActiveAnomalies",
+                    "active": true
+                  }
+                ]
+              },
+              "objects": {
+                "labels": [
+                  {
+                    "properties": {
+                      "fontSize": { "expr": { "Literal": { "Value": "32D" } } },
+                      "color": { "solid": { "color": "#FD625E" } }
+                    }
+                  }
+                ],
+                "categoryLabels": [
+                  {
+                    "properties": {
+                      "show": { "expr": { "Literal": { "Value": "true" } } },
+                      "text": { "expr": { "Literal": { "Value": "'Active Anomalies'" } } }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "filters": [],
+          "tabOrder": 1
+        },
+        {
+          "x": 560,
+          "y": 20,
+          "z": 3,
+          "width": 250,
+          "height": 120,
+          "config": {
+            "name": "card_iot_health_pct",
+            "visualType": "card",
+            "singleVisual": {
+              "projections": {
+                "Values": [
+                  {
+                    "queryRef": "Measures.IoTHealthPct",
+                    "active": true
+                  }
+                ]
+              },
+              "objects": {
+                "labels": [
+                  {
+                    "properties": {
+                      "fontSize": { "expr": { "Literal": { "Value": "32D" } } },
+                      "color": { "solid": { "color": "#01B8AA" } }
+                    }
+                  }
+                ],
+                "categoryLabels": [
+                  {
+                    "properties": {
+                      "show": { "expr": { "Literal": { "Value": "true" } } },
+                      "text": { "expr": { "Literal": { "Value": "'IoT Health %'" } } }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "filters": [],
+          "tabOrder": 2
+        },
+        {
+          "x": 20,
+          "y": 160,
+          "z": 4,
+          "width": 1240,
+          "height": 540,
+          "config": {
+            "name": "line_realtime_sales_volume",
+            "visualType": "lineChart",
+            "singleVisual": {
+              "projections": {
+                "Category": [
+                  {
+                    "queryRef": "EventStream.EventTimestamp",
+                    "active": true
+                  }
+                ],
+                "Y": [
+                  {
+                    "queryRef": "Measures.SalesVolume",
+                    "active": true
+                  }
+                ]
+              },
+              "objects": {
+                "categoryAxis": [
+                  {
+                    "properties": {
+                      "showAxisTitle": { "expr": { "Literal": { "Value": "true" } } },
+                      "axisType": { "expr": { "Literal": { "Value": "'continuous'" } } }
+                    }
+                  }
+                ],
+                "lineStyles": [
+                  {
+                    "properties": {
+                      "strokeWidth": { "expr": { "Literal": { "Value": "3D" } } }
+                    }
+                  }
+                ],
+                "dataPoint": [
+                  {
+                    "properties": {
+                      "fill": { "solid": { "color": "#118DFF" } }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "filters": [],
+          "tabOrder": 3
+        }
+      ]
+    },
+    {
+      "name": "ReportSection_IoT",
+      "displayName": "IoT Dashboard",
+      "displayOption": 1,
+      "width": 1280,
+      "height": 720,
+      "visualContainers": [
+        {
+          "x": 20,
+          "y": 20,
+          "z": 1,
+          "width": 800,
+          "height": 400,
+          "config": {
+            "name": "table_sensor_alerts",
+            "visualType": "tableEx",
+            "singleVisual": {
+              "projections": {
+                "Values": [
+                  {
+                    "queryRef": "IoTSensors.SensorId",
+                    "active": true
+                  },
+                  {
+                    "queryRef": "IoTSensors.SensorType",
+                    "active": true
+                  },
+                  {
+                    "queryRef": "IoTSensors.AlertMessage",
+                    "active": true
+                  },
+                  {
+                    "queryRef": "IoTSensors.AlertSeverity",
+                    "active": true
+                  },
+                  {
+                    "queryRef": "IoTSensors.AlertTimestamp",
+                    "active": true
+                  },
+                  {
+                    "queryRef": "Measures.StatusIcon",
+                    "active": true
+                  }
+                ]
+              },
+              "objects": {
+                "values": [
+                  {
+                    "properties": {
+                      "backColor": {
+                        "solid": {
+                          "color": {
+                            "expr": {
+                              "ConditionalFormatting": {
+                                "conditions": [
+                                  {
+                                    "column": "IoTSensors.AlertSeverity",
+                                    "value": "Critical",
+                                    "color": "#FD625E"
+                                  },
+                                  {
+                                    "column": "IoTSensors.AlertSeverity",
+                                    "value": "Warning",
+                                    "color": "#F2C80F"
+                                  },
+                                  {
+                                    "column": "IoTSensors.AlertSeverity",
+                                    "value": "Info",
+                                    "color": "#E8F5E9"
+                                  }
+                                ]
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                ],
+                "grid": [
+                  {
+                    "properties": {
+                      "gridVertical": { "expr": { "Literal": { "Value": "true" } } },
+                      "gridHorizontal": { "expr": { "Literal": { "Value": "true" } } },
+                      "rowPadding": { "expr": { "Literal": { "Value": "4D" } } }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "filters": [],
+          "tabOrder": 0
+        },
+        {
+          "x": 840,
+          "y": 20,
+          "z": 2,
+          "width": 420,
+          "height": 200,
+          "config": {
+            "name": "gauge_fleet_health",
+            "visualType": "gauge",
+            "singleVisual": {
+              "projections": {
+                "Y": [
+                  {
+                    "queryRef": "Measures.FleetHealthPct",
+                    "active": true
+                  }
+                ],
+                "MinValue": [
+                  {
+                    "queryRef": { "Literal": { "Value": "0D" } }
+                  }
+                ],
+                "MaxValue": [
+                  {
+                    "queryRef": { "Literal": { "Value": "100D" } }
+                  }
+                ]
+              },
+              "objects": {
+                "gaugeBand": [
+                  {
+                    "properties": {
+                      "color1": { "solid": { "color": "#FD625E" } },
+                      "color2": { "solid": { "color": "#F2C80F" } },
+                      "color3": { "solid": { "color": "#01B8AA" } }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "filters": [],
+          "tabOrder": 1
+        },
+        {
+          "x": 840,
+          "y": 240,
+          "z": 3,
+          "width": 420,
+          "height": 180,
+          "config": {
+            "name": "bar_alerts_by_sensor_type",
+            "visualType": "clusteredBarChart",
+            "singleVisual": {
+              "projections": {
+                "Category": [
+                  {
+                    "queryRef": "IoTSensors.SensorType",
+                    "active": true
+                  }
+                ],
+                "Y": [
+                  {
+                    "queryRef": "Measures.AlertCount",
+                    "active": true
+                  }
+                ]
+              },
+              "objects": {
+                "dataPoint": [
+                  {
+                    "properties": {
+                      "fill": { "solid": { "color": "#E66C37" } }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "filters": [],
+          "tabOrder": 2
+        },
+        {
+          "x": 20,
+          "y": 440,
+          "z": 4,
+          "width": 1240,
+          "height": 260,
+          "config": {
+            "name": "text_iot_refresh_note",
+            "visualType": "textbox",
+            "singleVisual": {
+              "objects": {
+                "general": [
+                  {
+                    "properties": {
+                      "paragraphs": [
+                        {
+                          "textRuns": [
+                            {
+                              "value": "⚡ This dashboard uses DirectQuery for near real-time updates. Data refreshes automatically based on the configured interval.",
+                              "textStyle": {
+                                "fontStyle": "italic",
+                                "fontSize": "12px"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "filters": [],
+          "tabOrder": 3
+        }
+      ]
+    },
+    {
+      "name": "ReportSection_Anomaly",
+      "displayName": "Anomaly Tracker",
+      "displayOption": 1,
+      "width": 1280,
+      "height": 720,
+      "visualContainers": [
+        {
+          "x": 20,
+          "y": 20,
+          "z": 1,
+          "width": 800,
+          "height": 350,
+          "config": {
+            "name": "table_detected_anomalies",
+            "visualType": "tableEx",
+            "singleVisual": {
+              "projections": {
+                "Values": [
+                  {
+                    "queryRef": "AnomalyEvents.AnomalyId",
+                    "active": true
+                  },
+                  {
+                    "queryRef": "AnomalyEvents.AnomalyType",
+                    "active": true
+                  },
+                  {
+                    "queryRef": "AnomalyEvents.Severity",
+                    "active": true
+                  },
+                  {
+                    "queryRef": "AnomalyEvents.AffectedStore",
+                    "active": true
+                  },
+                  {
+                    "queryRef": "AnomalyEvents.DetectedAt",
+                    "active": true
+                  },
+                  {
+                    "queryRef": "AnomalyEvents.Description",
+                    "active": true
+                  },
+                  {
+                    "queryRef": "Measures.AnomalyStatus",
+                    "active": true
+                  }
+                ]
+              },
+              "objects": {
+                "values": [
+                  {
+                    "properties": {
+                      "backColor": {
+                        "solid": {
+                          "color": {
+                            "expr": {
+                              "ConditionalFormatting": {
+                                "conditions": [
+                                  {
+                                    "column": "AnomalyEvents.Severity",
+                                    "value": "High",
+                                    "color": "#FD625E"
+                                  },
+                                  {
+                                    "column": "AnomalyEvents.Severity",
+                                    "value": "Medium",
+                                    "color": "#F2C80F"
+                                  },
+                                  {
+                                    "column": "AnomalyEvents.Severity",
+                                    "value": "Low",
+                                    "color": "#C8E6C9"
+                                  }
+                                ]
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                ],
+                "grid": [
+                  {
+                    "properties": {
+                      "gridVertical": { "expr": { "Literal": { "Value": "true" } } },
+                      "gridHorizontal": { "expr": { "Literal": { "Value": "true" } } }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "filters": [],
+          "tabOrder": 0
+        },
+        {
+          "x": 840,
+          "y": 20,
+          "z": 2,
+          "width": 420,
+          "height": 350,
+          "config": {
+            "name": "bar_sparklines_affected_stores",
+            "visualType": "clusteredColumnChart",
+            "singleVisual": {
+              "projections": {
+                "Category": [
+                  {
+                    "queryRef": "AnomalyEvents.AffectedStore",
+                    "active": true
+                  }
+                ],
+                "Y": [
+                  {
+                    "queryRef": "Measures.AnomalyCount",
+                    "active": true
+                  }
+                ]
+              },
+              "objects": {
+                "dataPoint": [
+                  {
+                    "properties": {
+                      "fill": { "solid": { "color": "#FD625E" } }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "filters": [],
+          "tabOrder": 1
+        },
+        {
+          "x": 20,
+          "y": 390,
+          "z": 3,
+          "width": 1240,
+          "height": 310,
+          "config": {
+            "name": "line_anomaly_timeline",
+            "visualType": "lineChart",
+            "singleVisual": {
+              "projections": {
+                "Category": [
+                  {
+                    "queryRef": "AnomalyEvents.DetectedAt",
+                    "active": true
+                  }
+                ],
+                "Y": [
+                  {
+                    "queryRef": "Measures.AnomalyCount",
+                    "active": true
+                  }
+                ],
+                "Series": [
+                  {
+                    "queryRef": "AnomalyEvents.Severity",
+                    "active": true
+                  }
+                ]
+              },
+              "objects": {
+                "legend": [
+                  {
+                    "properties": {
+                      "show": { "expr": { "Literal": { "Value": "true" } } },
+                      "position": { "expr": { "Literal": { "Value": "'Top'" } } }
+                    }
+                  }
+                ],
+                "dataPoint": [
+                  {
+                    "selector": { "data": [{ "dataViewWildcard": { "matchingOption": 0 } }] },
+                    "properties": {}
+                  }
+                ],
+                "categoryAxis": [
+                  {
+                    "properties": {
+                      "axisType": { "expr": { "Literal": { "Value": "'continuous'" } } }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "filters": [],
+          "tabOrder": 2
+        }
+      ]
+    }
+  ],
+  "config": {
+    "version": "5.55",
+    "defaultDrillFilterOtherVisuals": true,
+    "slowDataSourceSettings": {
+      "isCrossHighlightingDisabled": true,
+      "isSlicerSelectionsButtonEnabled": true
+    },
+    "linguisticSchemaSyncVersion": 2
+  },
+  "filters": [],
+  "resourcePackages": []
+}

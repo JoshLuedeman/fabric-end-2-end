@@ -1,0 +1,258 @@
+# ============================================================================
+# Deploy Content — Fabric notebooks, pipelines, and Power BI reports
+# ============================================================================
+# Publishes Fabric workspace content via the Microsoft Fabric REST API.
+# Authenticates as a Service Principal using OIDC-issued tokens.
+# ============================================================================
+
+name: "Deploy Content"
+
+on:
+  push:
+    branches: [main]
+    paths: ["src/**"]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target environment"
+        required: true
+        type: choice
+        options:
+          - dev
+          - prod
+        default: dev
+      content:
+        description: "Content to deploy (all, notebooks, pipelines, reports)"
+        required: true
+        type: choice
+        options:
+          - all
+          - notebooks
+          - pipelines
+          - reports
+        default: all
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: deploy-content-${{ inputs.environment || 'dev' }}
+  cancel-in-progress: false
+
+env:
+  ENVIRONMENT: ${{ inputs.environment || 'dev' }}
+
+jobs:
+  # --------------------------------------------------------------------------
+  # Deploy Notebooks — bronze / silver / gold layers
+  # --------------------------------------------------------------------------
+  deploy-notebooks:
+    name: "Deploy Notebooks (${{ inputs.environment || 'dev' }})"
+    if: inputs.content == 'all' || inputs.content == 'notebooks' || github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment || 'dev' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Get Azure AD token for Fabric API
+        id: token
+        run: |
+          TOKEN=$(az account get-access-token \
+            --resource "https://api.fabric.microsoft.com" \
+            --query accessToken -o tsv)
+          echo "::add-mask::$TOKEN"
+          echo "fabric_token=$TOKEN" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Fabric CLI
+        run: pip install microsoft-fabric-cli
+
+      - name: Upload Bronze notebooks
+        working-directory: src/notebooks/bronze
+        env:
+          FABRIC_TOKEN: ${{ steps.token.outputs.fabric_token }}
+        run: |
+          echo "📓 Deploying Bronze layer notebooks..."
+          for nb in *.py *.ipynb; do
+            [ -e "$nb" ] || continue
+            echo "  → Uploading $nb"
+            fabric notebook upload \
+              --workspace "${{ vars.FABRIC_WORKSPACE_ID }}" \
+              --file "$nb" \
+              --overwrite \
+              --token "$FABRIC_TOKEN" || echo "::warning::Failed to upload $nb"
+          done
+
+      - name: Upload Silver notebooks
+        working-directory: src/notebooks/silver
+        env:
+          FABRIC_TOKEN: ${{ steps.token.outputs.fabric_token }}
+        run: |
+          echo "📓 Deploying Silver layer notebooks..."
+          for nb in *.py *.ipynb; do
+            [ -e "$nb" ] || continue
+            echo "  → Uploading $nb"
+            fabric notebook upload \
+              --workspace "${{ vars.FABRIC_WORKSPACE_ID }}" \
+              --file "$nb" \
+              --overwrite \
+              --token "$FABRIC_TOKEN" || echo "::warning::Failed to upload $nb"
+          done
+
+      - name: Upload Gold notebooks
+        working-directory: src/notebooks/gold
+        env:
+          FABRIC_TOKEN: ${{ steps.token.outputs.fabric_token }}
+        run: |
+          echo "📓 Deploying Gold layer notebooks..."
+          for nb in *.py *.ipynb; do
+            [ -e "$nb" ] || continue
+            echo "  → Uploading $nb"
+            fabric notebook upload \
+              --workspace "${{ vars.FABRIC_WORKSPACE_ID }}" \
+              --file "$nb" \
+              --overwrite \
+              --token "$FABRIC_TOKEN" || echo "::warning::Failed to upload $nb"
+          done
+
+  # --------------------------------------------------------------------------
+  # Deploy Pipelines — Data Factory pipeline definitions
+  # --------------------------------------------------------------------------
+  deploy-pipelines:
+    name: "Deploy Pipelines (${{ inputs.environment || 'dev' }})"
+    if: inputs.content == 'all' || inputs.content == 'pipelines' || github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment || 'dev' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Get Azure AD token for Fabric API
+        id: token
+        run: |
+          TOKEN=$(az account get-access-token \
+            --resource "https://api.fabric.microsoft.com" \
+            --query accessToken -o tsv)
+          echo "::add-mask::$TOKEN"
+          echo "fabric_token=$TOKEN" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Fabric CLI
+        run: pip install microsoft-fabric-cli
+
+      - name: Upload pipeline definitions
+        working-directory: src/pipelines
+        env:
+          FABRIC_TOKEN: ${{ steps.token.outputs.fabric_token }}
+        run: |
+          echo "🔧 Deploying Data Factory pipelines..."
+          for def in *.json; do
+            [ -e "$def" ] || continue
+            echo "  → Uploading $def"
+            fabric pipeline upload \
+              --workspace "${{ vars.FABRIC_WORKSPACE_ID }}" \
+              --file "$def" \
+              --overwrite \
+              --token "$FABRIC_TOKEN" || echo "::warning::Failed to upload $def"
+          done
+
+  # --------------------------------------------------------------------------
+  # Deploy Reports — Power BI reports in PBIP format
+  # --------------------------------------------------------------------------
+  deploy-reports:
+    name: "Deploy Reports (${{ inputs.environment || 'dev' }})"
+    if: inputs.content == 'all' || inputs.content == 'reports' || github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment || 'dev' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Get Azure AD token for Fabric API
+        id: token
+        run: |
+          TOKEN=$(az account get-access-token \
+            --resource "https://api.fabric.microsoft.com" \
+            --query accessToken -o tsv)
+          echo "::add-mask::$TOKEN"
+          echo "fabric_token=$TOKEN" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Fabric CLI
+        run: pip install microsoft-fabric-cli
+
+      - name: Deploy semantic models
+        working-directory: src/power-bi/semantic-models
+        env:
+          FABRIC_TOKEN: ${{ steps.token.outputs.fabric_token }}
+        run: |
+          echo "📊 Deploying semantic models..."
+          for model_dir in */; do
+            [ -d "$model_dir" ] || continue
+            echo "  → Deploying semantic model: $model_dir"
+            fabric semantic-model upload \
+              --workspace "${{ vars.FABRIC_WORKSPACE_ID }}" \
+              --path "$model_dir" \
+              --overwrite \
+              --token "$FABRIC_TOKEN" || echo "::warning::Failed to deploy $model_dir"
+          done
+
+      - name: Deploy reports (PBIP)
+        working-directory: src/power-bi/reports
+        env:
+          FABRIC_TOKEN: ${{ steps.token.outputs.fabric_token }}
+        run: |
+          echo "📈 Deploying Power BI reports..."
+          for report_dir in */; do
+            [ -d "$report_dir" ] || continue
+            echo "  → Deploying report: $report_dir"
+            fabric report upload \
+              --workspace "${{ vars.FABRIC_WORKSPACE_ID }}" \
+              --path "$report_dir" \
+              --overwrite \
+              --token "$FABRIC_TOKEN" || echo "::warning::Failed to deploy $report_dir"
+          done
+
+      - name: Deployment summary
+        if: always()
+        run: |
+          echo "### Content Deployment — \`${{ env.ENVIRONMENT }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Component | Status |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|-----------|--------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Semantic Models | Attempted |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Reports | Attempted |" >> "$GITHUB_STEP_SUMMARY"

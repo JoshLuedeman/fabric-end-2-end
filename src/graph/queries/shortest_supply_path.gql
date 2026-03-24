@@ -1,0 +1,114 @@
+// =====================================================
+// Shortest Supply Path Queries
+// Contoso Global Retail - Microsoft Fabric Graph
+// =====================================================
+// Finds the shortest / most efficient paths through the
+// supply chain from Supplier → Warehouse → Store.
+// =====================================================
+
+
+// ---------------------------------------------------------
+// Query 1: Shortest path from a specific Supplier to a
+//          specific Store through any Warehouse.
+//
+// Parameters:
+//   $supplier_id  - The supplier_id to start from
+//   $store_id     - The store_id to reach
+//
+// Returns the route with the fewest total estimated days.
+// ---------------------------------------------------------
+MATCH (supplier:Supplier)-[ships:SHIPS_TO]->(wh:Warehouse)-[dist:DISTRIBUTES]->(store:Store)
+WHERE supplier.supplier_id = $supplier_id
+  AND store.store_id = $store_id
+  AND ships.is_active = true
+  AND dist.is_active = true
+RETURN
+    supplier.supplier_id   AS supplier_id,
+    supplier.supplier_name AS supplier_name,
+    wh.warehouse_id        AS warehouse_id,
+    wh.warehouse_name      AS warehouse_name,
+    store.store_id         AS store_id,
+    store.store_name       AS store_name,
+    ships.avg_lead_time_days                             AS lead_time_days,
+    dist.avg_delivery_days                               AS delivery_days,
+    ships.avg_lead_time_days + dist.avg_delivery_days    AS total_estimated_days,
+    ships.preferred_transport                             AS transport_mode,
+    dist.distance_km                                     AS last_mile_km
+ORDER BY total_estimated_days ASC
+LIMIT 1;
+
+
+// ---------------------------------------------------------
+// Query 2: All reachable paths from a specific Supplier
+//          to every Store it can serve.
+//
+// Parameters:
+//   $supplier_id  - The supplier_id to start from
+//
+// Useful for understanding the full distribution footprint
+// of a single supplier.
+// ---------------------------------------------------------
+MATCH (supplier:Supplier)-[ships:SHIPS_TO]->(wh:Warehouse)-[dist:DISTRIBUTES]->(store:Store)
+WHERE supplier.supplier_id = $supplier_id
+  AND ships.is_active = true
+  AND dist.is_active = true
+RETURN
+    supplier.supplier_id   AS supplier_id,
+    supplier.supplier_name AS supplier_name,
+    wh.warehouse_id        AS via_warehouse_id,
+    wh.warehouse_name      AS via_warehouse_name,
+    store.store_id         AS reachable_store_id,
+    store.store_name       AS reachable_store_name,
+    store.city             AS store_city,
+    store.region           AS store_region,
+    ships.avg_lead_time_days + dist.avg_delivery_days AS total_estimated_days,
+    dist.distance_km                                  AS last_mile_km
+ORDER BY total_estimated_days ASC;
+
+
+// ---------------------------------------------------------
+// Query 3: All Suppliers that can reach a specific Store,
+//          ranked by speed.
+//
+// Parameters:
+//   $store_id  - The store_id to find suppliers for
+//
+// Useful for procurement planning — which suppliers
+// can restock a specific store the fastest?
+// ---------------------------------------------------------
+MATCH (supplier:Supplier)-[ships:SHIPS_TO]->(wh:Warehouse)-[dist:DISTRIBUTES]->(store:Store)
+WHERE store.store_id = $store_id
+  AND ships.is_active = true
+  AND dist.is_active = true
+  AND supplier.is_active = true
+RETURN
+    supplier.supplier_id     AS supplier_id,
+    supplier.supplier_name   AS supplier_name,
+    supplier.country         AS supplier_country,
+    supplier.reliability_score AS reliability_score,
+    wh.warehouse_id          AS via_warehouse_id,
+    wh.warehouse_name        AS via_warehouse_name,
+    ships.avg_lead_time_days + dist.avg_delivery_days AS total_estimated_days,
+    ships.avg_cost           AS shipping_cost,
+    ships.preferred_transport AS transport_mode,
+    dist.distance_km         AS last_mile_km
+ORDER BY total_estimated_days ASC, supplier.reliability_score DESC;
+
+
+// ---------------------------------------------------------
+// Query 4: Top-N fastest supply routes across the entire
+//          network (global leaderboard).
+//
+// No parameters — scans the whole graph.
+// ---------------------------------------------------------
+MATCH (supplier:Supplier)-[ships:SHIPS_TO]->(wh:Warehouse)-[dist:DISTRIBUTES]->(store:Store)
+WHERE ships.is_active = true
+  AND dist.is_active = true
+RETURN
+    supplier.supplier_name AS supplier,
+    wh.warehouse_name      AS warehouse,
+    store.store_name       AS store,
+    ships.avg_lead_time_days + dist.avg_delivery_days AS total_estimated_days,
+    dist.distance_km       AS last_mile_km
+ORDER BY total_estimated_days ASC
+LIMIT 20;

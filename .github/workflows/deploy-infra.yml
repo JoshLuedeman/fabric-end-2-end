@@ -1,0 +1,169 @@
+# ============================================================================
+# Deploy Infrastructure — Terraform plan & apply for Fabric demo environment
+# ============================================================================
+# Triggers on changes to infra/** on main, or manual dispatch.
+# Two-stage pipeline: plan (always) → apply (requires environment approval).
+# Uses Azure OIDC — no stored credentials.
+# ============================================================================
+
+name: "Deploy Infrastructure"
+
+on:
+  push:
+    branches: [main]
+    paths: ["infra/**"]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target environment"
+        required: true
+        type: choice
+        options:
+          - dev
+          - prod
+        default: dev
+
+permissions:
+  id-token: write   # OIDC token for Azure login
+  contents: read     # Checkout repo
+
+concurrency:
+  group: deploy-infra-${{ inputs.environment || 'dev' }}
+  cancel-in-progress: false   # Never cancel an in-flight infra run
+
+env:
+  TF_VERSION: "1.9"
+  ARM_USE_OIDC: "true"
+  ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  WORKING_DIR: infra/environments/${{ inputs.environment || 'dev' }}
+
+jobs:
+  # --------------------------------------------------------------------------
+  # Plan — generate an execution plan and store it as an artifact
+  # --------------------------------------------------------------------------
+  plan:
+    name: "Terraform Plan (${{ inputs.environment || 'dev' }})"
+    runs-on: ubuntu-latest
+    outputs:
+      plan-exit-code: ${{ steps.plan.outputs.exitcode }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Terraform Init
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          terraform init \
+            -backend-config="storage_account_name=sttfstate7524" \
+            -backend-config="container_name=tfstate" \
+            -backend-config="resource_group_name=rg-terraform-state-prod" \
+            -backend-config="subscription_id=78118340-da1a-4f38-a514-1afe4d4378c0" \
+            -backend-config="key=${{ inputs.environment || 'dev' }}.terraform.tfstate" \
+            -backend-config="use_oidc=true"
+
+      - name: Terraform Plan
+        id: plan
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          terraform plan \
+            -detailed-exitcode \
+            -out=tfplan \
+            -input=false
+        continue-on-error: true
+
+      - name: Check plan result
+        if: steps.plan.outcome == 'failure' && steps.plan.outputs.exitcode != '2'
+        run: |
+          echo "::error::Terraform plan failed"
+          exit 1
+
+      - name: Upload plan artifact
+        if: steps.plan.outputs.exitcode == '2'   # changes detected
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-${{ inputs.environment || 'dev' }}
+          path: ${{ env.WORKING_DIR }}/tfplan
+          retention-days: 5
+
+      - name: Plan summary
+        if: always()
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          echo "### Terraform Plan — \`${{ inputs.environment || 'dev' }}\`" >> "$GITHUB_STEP_SUMMARY"
+          if [ "${{ steps.plan.outputs.exitcode }}" = "0" ]; then
+            echo "✅ No changes detected." >> "$GITHUB_STEP_SUMMARY"
+          elif [ "${{ steps.plan.outputs.exitcode }}" = "2" ]; then
+            echo "⚠️ Changes detected — review the plan before approving apply." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "❌ Plan failed — see logs above." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+  # --------------------------------------------------------------------------
+  # Apply — execute the plan (gated by GitHub environment approval)
+  # --------------------------------------------------------------------------
+  apply:
+    name: "Terraform Apply (${{ inputs.environment || 'dev' }})"
+    needs: plan
+    if: needs.plan.outputs.plan-exit-code == '2'   # only when changes exist
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment || 'dev' }}  # approval gate
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Terraform Init
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          terraform init \
+            -backend-config="storage_account_name=sttfstate7524" \
+            -backend-config="container_name=tfstate" \
+            -backend-config="resource_group_name=rg-terraform-state-prod" \
+            -backend-config="subscription_id=78118340-da1a-4f38-a514-1afe4d4378c0" \
+            -backend-config="key=${{ inputs.environment || 'dev' }}.terraform.tfstate" \
+            -backend-config="use_oidc=true"
+
+      - name: Download plan artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan-${{ inputs.environment || 'dev' }}
+          path: ${{ env.WORKING_DIR }}
+
+      - name: Terraform Apply
+        working-directory: ${{ env.WORKING_DIR }}
+        run: terraform apply -input=false tfplan
+
+      - name: Apply summary
+        if: always()
+        run: |
+          echo "### Terraform Apply — \`${{ inputs.environment || 'dev' }}\`" >> "$GITHUB_STEP_SUMMARY"
+          if [ "${{ job.status }}" = "success" ]; then
+            echo "✅ Infrastructure deployed successfully." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "❌ Apply failed — check logs and consider rollback." >> "$GITHUB_STEP_SUMMARY"
+          fi

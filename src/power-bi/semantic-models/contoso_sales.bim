@@ -1,0 +1,246 @@
+{
+  "name": "contoso_sales",
+  "compatibilityLevel": 1604,
+  "description": "Contoso Global Retail sales analytics semantic model. FabCon 2026 — supports AI Agents and Translytical Task Flows.",
+  "model": {
+    "culture": "en-US",
+    "defaultPowerBIDataSourceVersion": "powerBI_V3",
+    "tables": [
+      {
+        "name": "fact_sales",
+        "columns": [
+          { "name": "sales_key", "dataType": "int64", "isHidden": false, "sourceColumn": "sales_key" },
+          { "name": "transaction_id", "dataType": "string", "sourceColumn": "transaction_id" },
+          { "name": "customer_key", "dataType": "int64", "sourceColumn": "customer_key" },
+          { "name": "product_key", "dataType": "int64", "sourceColumn": "product_key" },
+          { "name": "store_key", "dataType": "int64", "sourceColumn": "store_key" },
+          { "name": "date_key", "dataType": "int64", "sourceColumn": "date_key" },
+          { "name": "quantity", "dataType": "int64", "sourceColumn": "quantity" },
+          { "name": "unit_price", "dataType": "decimal", "sourceColumn": "unit_price" },
+          { "name": "discount_pct", "dataType": "decimal", "sourceColumn": "discount_pct" },
+          { "name": "total_amount", "dataType": "decimal", "sourceColumn": "total_amount" },
+          { "name": "payment_method", "dataType": "string", "sourceColumn": "payment_method" }
+        ],
+        "partitions": [
+          {
+            "name": "fact_sales-partition",
+            "mode": "directLake",
+            "source": {
+              "type": "entity",
+              "entityName": "fact_sales",
+              "schemaName": "gold",
+              "expressionSource": "gold_lakehouse"
+            }
+          }
+        ],
+        "measures": [
+          {
+            "name": "Total Revenue",
+            "expression": "SUM(fact_sales[total_amount])",
+            "formatString": "$#,##0.00"
+          },
+          {
+            "name": "Total Quantity",
+            "expression": "SUM(fact_sales[quantity])",
+            "formatString": "#,##0"
+          },
+          {
+            "name": "Avg Order Value",
+            "expression": "DIVIDE([Total Revenue], DISTINCTCOUNT(fact_sales[transaction_id]))",
+            "formatString": "$#,##0.00"
+          },
+          {
+            "name": "YoY Growth",
+            "expression": "VAR _currentYear = [Total Revenue]\nVAR _priorYear = CALCULATE([Total Revenue], SAMEPERIODLASTYEAR(dim_date[date]))\nRETURN DIVIDE(_currentYear - _priorYear, _priorYear)",
+            "formatString": "0.00%"
+          },
+          {
+            "name": "Customer Count",
+            "expression": "DISTINCTCOUNT(fact_sales[customer_key])",
+            "formatString": "#,##0"
+          }
+        ]
+      },
+      {
+        "name": "dim_customer",
+        "columns": [
+          { "name": "customer_key", "dataType": "int64", "sourceColumn": "customer_key" },
+          { "name": "customer_id", "dataType": "string", "sourceColumn": "customer_id" },
+          { "name": "customer_name", "dataType": "string", "sourceColumn": "customer_name" },
+          { "name": "email", "dataType": "string", "sourceColumn": "email" },
+          { "name": "segment", "dataType": "string", "sourceColumn": "segment" },
+          { "name": "city", "dataType": "string", "sourceColumn": "city" },
+          { "name": "state", "dataType": "string", "sourceColumn": "state" },
+          { "name": "country", "dataType": "string", "sourceColumn": "country" },
+          { "name": "lifetime_value", "dataType": "decimal", "sourceColumn": "lifetime_value" }
+        ],
+        "partitions": [
+          {
+            "name": "dim_customer-partition",
+            "mode": "directLake",
+            "source": {
+              "type": "entity",
+              "entityName": "dim_customer",
+              "schemaName": "gold",
+              "expressionSource": "gold_lakehouse"
+            }
+          }
+        ],
+        "hierarchies": [
+          {
+            "name": "Geography",
+            "levels": [
+              { "name": "Country", "ordinal": 0, "column": "country" },
+              { "name": "State", "ordinal": 1, "column": "state" },
+              { "name": "City", "ordinal": 2, "column": "city" }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "dim_product",
+        "columns": [
+          { "name": "product_key", "dataType": "int64", "sourceColumn": "product_key" },
+          { "name": "product_id", "dataType": "string", "sourceColumn": "product_id" },
+          { "name": "product_name", "dataType": "string", "sourceColumn": "product_name" },
+          { "name": "category", "dataType": "string", "sourceColumn": "category" },
+          { "name": "subcategory", "dataType": "string", "sourceColumn": "subcategory" },
+          { "name": "brand", "dataType": "string", "sourceColumn": "brand" },
+          { "name": "unit_cost", "dataType": "decimal", "sourceColumn": "unit_cost" },
+          { "name": "list_price", "dataType": "decimal", "sourceColumn": "list_price" }
+        ],
+        "partitions": [
+          {
+            "name": "dim_product-partition",
+            "mode": "directLake",
+            "source": {
+              "type": "entity",
+              "entityName": "dim_product",
+              "schemaName": "gold",
+              "expressionSource": "gold_lakehouse"
+            }
+          }
+        ],
+        "hierarchies": [
+          {
+            "name": "Product Hierarchy",
+            "levels": [
+              { "name": "Category", "ordinal": 0, "column": "category" },
+              { "name": "Subcategory", "ordinal": 1, "column": "subcategory" },
+              { "name": "Product", "ordinal": 2, "column": "product_name" }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "dim_store",
+        "columns": [
+          { "name": "store_key", "dataType": "int64", "sourceColumn": "store_key" },
+          { "name": "store_id", "dataType": "string", "sourceColumn": "store_id" },
+          { "name": "store_name", "dataType": "string", "sourceColumn": "store_name" },
+          { "name": "city", "dataType": "string", "sourceColumn": "city" },
+          { "name": "state", "dataType": "string", "sourceColumn": "state" },
+          { "name": "country", "dataType": "string", "sourceColumn": "country" },
+          { "name": "region", "dataType": "string", "sourceColumn": "region" },
+          { "name": "store_type", "dataType": "string", "sourceColumn": "store_type" }
+        ],
+        "partitions": [
+          {
+            "name": "dim_store-partition",
+            "mode": "directLake",
+            "source": {
+              "type": "entity",
+              "entityName": "dim_store",
+              "schemaName": "gold",
+              "expressionSource": "gold_lakehouse"
+            }
+          }
+        ]
+      },
+      {
+        "name": "dim_date",
+        "columns": [
+          { "name": "date_key", "dataType": "int64", "sourceColumn": "date_key" },
+          { "name": "date", "dataType": "dateTime", "sourceColumn": "date" },
+          { "name": "day_of_week", "dataType": "string", "sourceColumn": "day_of_week" },
+          { "name": "day_of_month", "dataType": "int64", "sourceColumn": "day_of_month" },
+          { "name": "month_name", "dataType": "string", "sourceColumn": "month_name" },
+          { "name": "month_number", "dataType": "int64", "sourceColumn": "month_number" },
+          { "name": "quarter", "dataType": "string", "sourceColumn": "quarter" },
+          { "name": "year", "dataType": "int64", "sourceColumn": "year" },
+          { "name": "fiscal_year", "dataType": "int64", "sourceColumn": "fiscal_year" },
+          { "name": "is_holiday", "dataType": "boolean", "sourceColumn": "is_holiday" }
+        ],
+        "partitions": [
+          {
+            "name": "dim_date-partition",
+            "mode": "directLake",
+            "source": {
+              "type": "entity",
+              "entityName": "dim_date",
+              "schemaName": "gold",
+              "expressionSource": "gold_lakehouse"
+            }
+          }
+        ],
+        "hierarchies": [
+          {
+            "name": "Date Hierarchy",
+            "levels": [
+              { "name": "Year", "ordinal": 0, "column": "year" },
+              { "name": "Quarter", "ordinal": 1, "column": "quarter" },
+              { "name": "Month", "ordinal": 2, "column": "month_name" },
+              { "name": "Day", "ordinal": 3, "column": "day_of_month" }
+            ]
+          }
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "name": "fact_sales_to_dim_customer",
+        "fromTable": "fact_sales",
+        "fromColumn": "customer_key",
+        "toTable": "dim_customer",
+        "toColumn": "customer_key",
+        "crossFilteringBehavior": "oneDirection"
+      },
+      {
+        "name": "fact_sales_to_dim_product",
+        "fromTable": "fact_sales",
+        "fromColumn": "product_key",
+        "toTable": "dim_product",
+        "toColumn": "product_key",
+        "crossFilteringBehavior": "oneDirection"
+      },
+      {
+        "name": "fact_sales_to_dim_store",
+        "fromTable": "fact_sales",
+        "fromColumn": "store_key",
+        "toTable": "dim_store",
+        "toColumn": "store_key",
+        "crossFilteringBehavior": "oneDirection"
+      },
+      {
+        "name": "fact_sales_to_dim_date",
+        "fromTable": "fact_sales",
+        "fromColumn": "date_key",
+        "toTable": "dim_date",
+        "toColumn": "date_key",
+        "crossFilteringBehavior": "oneDirection"
+      }
+    ],
+    "expressions": [
+      {
+        "name": "gold_lakehouse",
+        "kind": "m",
+        "expression": "let\n    Source = #\"gold_lakehouse\"\nin\n    Source",
+        "description": "Direct Lake connection to the gold-layer Lakehouse"
+      }
+    ],
+    "annotations": [
+      { "name": "fabric_feature_demo", "value": "FabCon 2026 — Direct Lake semantic model with AI Agent integration" },
+      { "name": "dataset_type", "value": "sales_analytics" }
+    ]
+  }
+}

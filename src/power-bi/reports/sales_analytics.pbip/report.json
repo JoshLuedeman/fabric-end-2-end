@@ -1,0 +1,502 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/report/1.0.0/schema.json",
+  "themeCollection": {
+    "baseTheme": {
+      "name": "CY24SU06",
+      "reportVersionAtImport": "5.55",
+      "type": "SharedResources"
+    }
+  },
+  "datasetBinding": {
+    "datasetReference": {
+      "byPath": {
+        "path": "../../semantic-models/contoso_sales.bim"
+      }
+    }
+  },
+  "reportPages": [
+    {
+      "name": "ReportSection_CustomerSeg",
+      "displayName": "Customer Segmentation",
+      "displayOption": 1,
+      "width": 1280,
+      "height": 720,
+      "visualContainers": [
+        {
+          "x": 20,
+          "y": 20,
+          "z": 1,
+          "width": 400,
+          "height": 340,
+          "config": {
+            "name": "bar_loyalty_tier",
+            "visualType": "clusteredBarChart",
+            "singleVisual": {
+              "projections": {
+                "Category": [
+                  {
+                    "queryRef": "DimCustomer.LoyaltyTier",
+                    "active": true
+                  }
+                ],
+                "Y": [
+                  {
+                    "queryRef": "Measures.TotalRevenue",
+                    "active": true
+                  }
+                ]
+              },
+              "objects": {
+                "dataPoint": [
+                  {
+                    "properties": {
+                      "fill": { "solid": { "color": "#118DFF" } }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "filters": [],
+          "tabOrder": 0
+        },
+        {
+          "x": 440,
+          "y": 20,
+          "z": 2,
+          "width": 500,
+          "height": 340,
+          "config": {
+            "name": "scatter_ltv_vs_frequency",
+            "visualType": "scatterChart",
+            "singleVisual": {
+              "projections": {
+                "Category": [
+                  {
+                    "queryRef": "DimCustomer.CustomerName",
+                    "active": true
+                  }
+                ],
+                "X": [
+                  {
+                    "queryRef": "Measures.OrderFrequency",
+                    "active": true
+                  }
+                ],
+                "Y": [
+                  {
+                    "queryRef": "Measures.CustomerLifetimeValue",
+                    "active": true
+                  }
+                ],
+                "Size": [
+                  {
+                    "queryRef": "Measures.TotalRevenue",
+                    "active": true
+                  }
+                ]
+              },
+              "objects": {
+                "categoryAxis": [
+                  {
+                    "properties": {
+                      "showAxisTitle": { "expr": { "Literal": { "Value": "true" } } }
+                    }
+                  }
+                ],
+                "valueAxis": [
+                  {
+                    "properties": {
+                      "showAxisTitle": { "expr": { "Literal": { "Value": "true" } } }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "filters": [],
+          "tabOrder": 1
+        },
+        {
+          "x": 960,
+          "y": 20,
+          "z": 3,
+          "width": 300,
+          "height": 340,
+          "config": {
+            "name": "text_report_title",
+            "visualType": "textbox",
+            "singleVisual": {
+              "objects": {
+                "general": [
+                  {
+                    "properties": {
+                      "paragraphs": [
+                        {
+                          "textRuns": [
+                            {
+                              "value": "Customer Segmentation Analysis",
+                              "textStyle": {
+                                "fontWeight": "bold",
+                                "fontSize": "20px"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "filters": [],
+          "tabOrder": 2
+        },
+        {
+          "x": 20,
+          "y": 380,
+          "z": 4,
+          "width": 1240,
+          "height": 320,
+          "config": {
+            "name": "table_top_customers",
+            "visualType": "tableEx",
+            "singleVisual": {
+              "projections": {
+                "Values": [
+                  {
+                    "queryRef": "DimCustomer.CustomerName",
+                    "active": true
+                  },
+                  {
+                    "queryRef": "DimCustomer.LoyaltyTier",
+                    "active": true
+                  },
+                  {
+                    "queryRef": "Measures.TotalRevenue",
+                    "active": true
+                  },
+                  {
+                    "queryRef": "Measures.OrderCount",
+                    "active": true
+                  },
+                  {
+                    "queryRef": "Measures.CustomerLifetimeValue",
+                    "active": true
+                  }
+                ]
+              },
+              "objects": {
+                "grid": [
+                  {
+                    "properties": {
+                      "gridVertical": { "expr": { "Literal": { "Value": "true" } } },
+                      "gridHorizontal": { "expr": { "Literal": { "Value": "true" } } }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "filters": [],
+          "tabOrder": 3
+        }
+      ]
+    },
+    {
+      "name": "ReportSection_PaymentChannel",
+      "displayName": "Payment & Channel Analysis",
+      "displayOption": 1,
+      "width": 1280,
+      "height": 720,
+      "visualContainers": [
+        {
+          "x": 20,
+          "y": 20,
+          "z": 1,
+          "width": 620,
+          "height": 340,
+          "config": {
+            "name": "stacked_bar_payment_methods",
+            "visualType": "clusteredColumnChart",
+            "singleVisual": {
+              "projections": {
+                "Category": [
+                  {
+                    "queryRef": "DimDate.MonthYear",
+                    "active": true
+                  }
+                ],
+                "Y": [
+                  {
+                    "queryRef": "Measures.TotalRevenue",
+                    "active": true
+                  }
+                ],
+                "Series": [
+                  {
+                    "queryRef": "FactSales.PaymentType",
+                    "active": true
+                  }
+                ]
+              },
+              "objects": {
+                "legend": [
+                  {
+                    "properties": {
+                      "show": { "expr": { "Literal": { "Value": "true" } } },
+                      "position": { "expr": { "Literal": { "Value": "'Bottom'" } } }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "filters": [],
+          "tabOrder": 0
+        },
+        {
+          "x": 660,
+          "y": 20,
+          "z": 2,
+          "width": 600,
+          "height": 340,
+          "config": {
+            "name": "donut_channel_split",
+            "visualType": "donutChart",
+            "singleVisual": {
+              "projections": {
+                "Category": [
+                  {
+                    "queryRef": "FactSales.SalesChannel",
+                    "active": true
+                  }
+                ],
+                "Y": [
+                  {
+                    "queryRef": "Measures.TotalRevenue",
+                    "active": true
+                  }
+                ]
+              },
+              "objects": {
+                "legend": [
+                  {
+                    "properties": {
+                      "show": { "expr": { "Literal": { "Value": "true" } } },
+                      "position": { "expr": { "Literal": { "Value": "'Right'" } } }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "filters": [],
+          "tabOrder": 1
+        },
+        {
+          "x": 20,
+          "y": 380,
+          "z": 3,
+          "width": 1240,
+          "height": 320,
+          "config": {
+            "name": "line_digital_wallet_adoption",
+            "visualType": "lineChart",
+            "singleVisual": {
+              "projections": {
+                "Category": [
+                  {
+                    "queryRef": "DimDate.MonthYear",
+                    "active": true
+                  }
+                ],
+                "Y": [
+                  {
+                    "queryRef": "Measures.DigitalWalletPct",
+                    "active": true
+                  }
+                ]
+              },
+              "objects": {
+                "valueAxis": [
+                  {
+                    "properties": {
+                      "showAxisTitle": { "expr": { "Literal": { "Value": "true" } } },
+                      "axisLabel": { "expr": { "Literal": { "Value": "'Digital Wallet Adoption %'" } } }
+                    }
+                  }
+                ],
+                "dataPoint": [
+                  {
+                    "properties": {
+                      "fill": { "solid": { "color": "#E66C37" } }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "filters": [],
+          "tabOrder": 2
+        }
+      ]
+    },
+    {
+      "name": "ReportSection_Seasonal",
+      "displayName": "Seasonal Patterns",
+      "displayOption": 1,
+      "width": 1280,
+      "height": 720,
+      "visualContainers": [
+        {
+          "x": 20,
+          "y": 20,
+          "z": 1,
+          "width": 700,
+          "height": 460,
+          "config": {
+            "name": "matrix_heatmap_day_hour",
+            "visualType": "pivotTable",
+            "singleVisual": {
+              "projections": {
+                "Rows": [
+                  {
+                    "queryRef": "DimDate.DayOfWeek",
+                    "active": true
+                  }
+                ],
+                "Columns": [
+                  {
+                    "queryRef": "DimDate.HourOfDay",
+                    "active": true
+                  }
+                ],
+                "Values": [
+                  {
+                    "queryRef": "Measures.TransactionCount",
+                    "active": true
+                  }
+                ]
+              },
+              "objects": {
+                "values": [
+                  {
+                    "properties": {
+                      "backColor": {
+                        "solid": {
+                          "color": {
+                            "expr": {
+                              "ConditionalFormatting": {
+                                "minColor": "#FFFFFF",
+                                "maxColor": "#118DFF"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "filters": [],
+          "tabOrder": 0
+        },
+        {
+          "x": 740,
+          "y": 20,
+          "z": 2,
+          "width": 520,
+          "height": 460,
+          "config": {
+            "name": "text_heatmap_description",
+            "visualType": "textbox",
+            "singleVisual": {
+              "objects": {
+                "general": [
+                  {
+                    "properties": {
+                      "paragraphs": [
+                        {
+                          "textRuns": [
+                            {
+                              "value": "Sales Heatmap — Darker colors indicate higher transaction volumes. Use this to identify peak shopping hours by day of week.",
+                              "textStyle": {
+                                "fontSize": "14px"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "filters": [],
+          "tabOrder": 1
+        },
+        {
+          "x": 20,
+          "y": 500,
+          "z": 3,
+          "width": 1240,
+          "height": 200,
+          "config": {
+            "name": "line_monthly_yoy_comparison",
+            "visualType": "lineChart",
+            "singleVisual": {
+              "projections": {
+                "Category": [
+                  {
+                    "queryRef": "DimDate.MonthName",
+                    "active": true
+                  }
+                ],
+                "Y": [
+                  {
+                    "queryRef": "Measures.TotalRevenue",
+                    "active": true
+                  }
+                ],
+                "Series": [
+                  {
+                    "queryRef": "DimDate.Year",
+                    "active": true
+                  }
+                ]
+              },
+              "objects": {
+                "legend": [
+                  {
+                    "properties": {
+                      "show": { "expr": { "Literal": { "Value": "true" } } },
+                      "position": { "expr": { "Literal": { "Value": "'Top'" } } }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "filters": [],
+          "tabOrder": 2
+        }
+      ]
+    }
+  ],
+  "config": {
+    "version": "5.55",
+    "defaultDrillFilterOtherVisuals": true,
+    "slowDataSourceSettings": {
+      "isCrossHighlightingDisabled": true,
+      "isSlicerSelectionsButtonEnabled": true
+    },
+    "linguisticSchemaSyncVersion": 2
+  },
+  "filters": [],
+  "resourcePackages": []
+}

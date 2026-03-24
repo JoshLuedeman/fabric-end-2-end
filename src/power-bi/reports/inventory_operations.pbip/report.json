@@ -1,0 +1,558 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/report/1.0.0/schema.json",
+  "themeCollection": {
+    "baseTheme": {
+      "name": "CY24SU06",
+      "reportVersionAtImport": "5.55",
+      "type": "SharedResources"
+    }
+  },
+  "datasetBinding": {
+    "datasetReference": {
+      "byPath": {
+        "path": "../../semantic-models/contoso_operations.bim"
+      }
+    }
+  },
+  "reportPages": [
+    {
+      "name": "ReportSection_StockLevels",
+      "displayName": "Stock Levels",
+      "displayOption": 1,
+      "width": 1280,
+      "height": 720,
+      "visualContainers": [
+        {
+          "x": 20,
+          "y": 20,
+          "z": 1,
+          "width": 250,
+          "height": 130,
+          "config": {
+            "name": "kpi_total_skus",
+            "visualType": "card",
+            "singleVisual": {
+              "projections": {
+                "Values": [
+                  {
+                    "queryRef": "Measures.TotalSKUs",
+                    "active": true
+                  }
+                ]
+              },
+              "objects": {
+                "labels": [
+                  {
+                    "properties": {
+                      "fontSize": { "expr": { "Literal": { "Value": "28D" } } },
+                      "color": { "solid": { "color": "#118DFF" } }
+                    }
+                  }
+                ],
+                "categoryLabels": [
+                  {
+                    "properties": {
+                      "show": { "expr": { "Literal": { "Value": "true" } } }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "filters": [],
+          "tabOrder": 0
+        },
+        {
+          "x": 290,
+          "y": 20,
+          "z": 2,
+          "width": 250,
+          "height": 130,
+          "config": {
+            "name": "kpi_below_reorder",
+            "visualType": "card",
+            "singleVisual": {
+              "projections": {
+                "Values": [
+                  {
+                    "queryRef": "Measures.BelowReorderCount",
+                    "active": true
+                  }
+                ]
+              },
+              "objects": {
+                "labels": [
+                  {
+                    "properties": {
+                      "fontSize": { "expr": { "Literal": { "Value": "28D" } } },
+                      "color": { "solid": { "color": "#E66C37" } }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "filters": [],
+          "tabOrder": 1
+        },
+        {
+          "x": 560,
+          "y": 20,
+          "z": 3,
+          "width": 250,
+          "height": 130,
+          "config": {
+            "name": "kpi_avg_days_supply",
+            "visualType": "card",
+            "singleVisual": {
+              "projections": {
+                "Values": [
+                  {
+                    "queryRef": "Measures.AvgDaysOfSupply",
+                    "active": true
+                  }
+                ]
+              },
+              "objects": {
+                "labels": [
+                  {
+                    "properties": {
+                      "fontSize": { "expr": { "Literal": { "Value": "28D" } } },
+                      "color": { "solid": { "color": "#6B007B" } }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "filters": [],
+          "tabOrder": 2
+        },
+        {
+          "x": 20,
+          "y": 170,
+          "z": 4,
+          "width": 1240,
+          "height": 530,
+          "config": {
+            "name": "table_below_reorder_point",
+            "visualType": "tableEx",
+            "singleVisual": {
+              "projections": {
+                "Values": [
+                  {
+                    "queryRef": "DimProduct.ProductName",
+                    "active": true
+                  },
+                  {
+                    "queryRef": "DimProduct.CategoryName",
+                    "active": true
+                  },
+                  {
+                    "queryRef": "FactInventory.CurrentStock",
+                    "active": true
+                  },
+                  {
+                    "queryRef": "FactInventory.ReorderPoint",
+                    "active": true
+                  },
+                  {
+                    "queryRef": "Measures.DaysOfSupply",
+                    "active": true
+                  },
+                  {
+                    "queryRef": "Measures.StockStatus",
+                    "active": true
+                  }
+                ]
+              },
+              "objects": {
+                "values": [
+                  {
+                    "properties": {
+                      "backColor": {
+                        "solid": {
+                          "color": {
+                            "expr": {
+                              "ConditionalFormatting": {
+                                "conditions": [
+                                  {
+                                    "column": "Measures.StockStatus",
+                                    "value": "Critical",
+                                    "color": "#FD625E"
+                                  },
+                                  {
+                                    "column": "Measures.StockStatus",
+                                    "value": "Low",
+                                    "color": "#F2C80F"
+                                  },
+                                  {
+                                    "column": "Measures.StockStatus",
+                                    "value": "OK",
+                                    "color": "#01B8AA"
+                                  }
+                                ]
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                ],
+                "grid": [
+                  {
+                    "properties": {
+                      "gridVertical": { "expr": { "Literal": { "Value": "true" } } },
+                      "gridHorizontal": { "expr": { "Literal": { "Value": "true" } } },
+                      "rowPadding": { "expr": { "Literal": { "Value": "4D" } } }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "filters": [
+            {
+              "type": "Advanced",
+              "target": {
+                "column": "FactInventory.CurrentStock",
+                "table": "FactInventory"
+              },
+              "logicalOperator": "And",
+              "conditions": [
+                {
+                  "operator": "LessThan",
+                  "value": {
+                    "queryRef": "FactInventory.ReorderPoint"
+                  }
+                }
+              ]
+            }
+          ],
+          "tabOrder": 3
+        }
+      ]
+    },
+    {
+      "name": "ReportSection_SupplyChain",
+      "displayName": "Supply Chain Health",
+      "displayOption": 1,
+      "width": 1280,
+      "height": 720,
+      "visualContainers": [
+        {
+          "x": 20,
+          "y": 20,
+          "z": 1,
+          "width": 300,
+          "height": 300,
+          "config": {
+            "name": "gauge_ontime_delivery",
+            "visualType": "gauge",
+            "singleVisual": {
+              "projections": {
+                "Y": [
+                  {
+                    "queryRef": "Measures.OnTimeDeliveryPct",
+                    "active": true
+                  }
+                ],
+                "MinValue": [
+                  {
+                    "queryRef": { "Literal": { "Value": "0D" } }
+                  }
+                ],
+                "MaxValue": [
+                  {
+                    "queryRef": { "Literal": { "Value": "100D" } }
+                  }
+                ],
+                "TargetValue": [
+                  {
+                    "queryRef": "Measures.OnTimeDeliveryTarget",
+                    "active": true
+                  }
+                ]
+              },
+              "objects": {
+                "gaugeBand": [
+                  {
+                    "properties": {
+                      "color1": { "solid": { "color": "#FD625E" } },
+                      "color2": { "solid": { "color": "#F2C80F" } },
+                      "color3": { "solid": { "color": "#01B8AA" } }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "filters": [],
+          "tabOrder": 0
+        },
+        {
+          "x": 340,
+          "y": 20,
+          "z": 2,
+          "width": 920,
+          "height": 300,
+          "config": {
+            "name": "bar_supplier_performance",
+            "visualType": "clusteredBarChart",
+            "singleVisual": {
+              "projections": {
+                "Category": [
+                  {
+                    "queryRef": "DimSupplier.SupplierName",
+                    "active": true
+                  }
+                ],
+                "Y": [
+                  {
+                    "queryRef": "Measures.OnTimeDeliveryPct",
+                    "active": true
+                  }
+                ]
+              },
+              "objects": {
+                "dataPoint": [
+                  {
+                    "properties": {
+                      "fill": { "solid": { "color": "#118DFF" } }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "filters": [],
+          "tabOrder": 1
+        },
+        {
+          "x": 20,
+          "y": 340,
+          "z": 3,
+          "width": 1240,
+          "height": 360,
+          "config": {
+            "name": "line_lead_time_trends",
+            "visualType": "lineChart",
+            "singleVisual": {
+              "projections": {
+                "Category": [
+                  {
+                    "queryRef": "DimDate.MonthYear",
+                    "active": true
+                  }
+                ],
+                "Y": [
+                  {
+                    "queryRef": "Measures.AvgLeadTimeDays",
+                    "active": true
+                  }
+                ],
+                "Series": [
+                  {
+                    "queryRef": "DimSupplier.SupplierName",
+                    "active": true
+                  }
+                ]
+              },
+              "objects": {
+                "legend": [
+                  {
+                    "properties": {
+                      "show": { "expr": { "Literal": { "Value": "true" } } },
+                      "position": { "expr": { "Literal": { "Value": "'Bottom'" } } }
+                    }
+                  }
+                ],
+                "valueAxis": [
+                  {
+                    "properties": {
+                      "showAxisTitle": { "expr": { "Literal": { "Value": "true" } } }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "filters": [],
+          "tabOrder": 2
+        }
+      ]
+    },
+    {
+      "name": "ReportSection_Reorder",
+      "displayName": "Reorder Management",
+      "displayOption": 1,
+      "width": 1280,
+      "height": 720,
+      "visualContainers": [
+        {
+          "x": 20,
+          "y": 20,
+          "z": 1,
+          "width": 200,
+          "height": 40,
+          "config": {
+            "name": "slicer_priority",
+            "visualType": "slicer",
+            "singleVisual": {
+              "projections": {
+                "Values": [
+                  {
+                    "queryRef": "Measures.ReorderPriority",
+                    "active": true
+                  }
+                ]
+              },
+              "objects": {
+                "general": [
+                  {
+                    "properties": {
+                      "orientation": { "expr": { "Literal": { "Value": "'horizontal'" } } }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "filters": [],
+          "tabOrder": 0
+        },
+        {
+          "x": 240,
+          "y": 20,
+          "z": 2,
+          "width": 200,
+          "height": 40,
+          "config": {
+            "name": "slicer_region",
+            "visualType": "slicer",
+            "singleVisual": {
+              "projections": {
+                "Values": [
+                  {
+                    "queryRef": "DimStore.Region",
+                    "active": true
+                  }
+                ]
+              },
+              "objects": {
+                "general": [
+                  {
+                    "properties": {
+                      "orientation": { "expr": { "Literal": { "Value": "'horizontal'" } } }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "filters": [],
+          "tabOrder": 1
+        },
+        {
+          "x": 20,
+          "y": 80,
+          "z": 3,
+          "width": 1240,
+          "height": 620,
+          "config": {
+            "name": "table_reorder_actions",
+            "visualType": "tableEx",
+            "singleVisual": {
+              "projections": {
+                "Values": [
+                  {
+                    "queryRef": "DimProduct.ProductName",
+                    "active": true
+                  },
+                  {
+                    "queryRef": "DimProduct.CategoryName",
+                    "active": true
+                  },
+                  {
+                    "queryRef": "DimSupplier.SupplierName",
+                    "active": true
+                  },
+                  {
+                    "queryRef": "FactInventory.CurrentStock",
+                    "active": true
+                  },
+                  {
+                    "queryRef": "FactInventory.ReorderPoint",
+                    "active": true
+                  },
+                  {
+                    "queryRef": "Measures.SuggestedReorderQty",
+                    "active": true
+                  },
+                  {
+                    "queryRef": "Measures.ReorderPriority",
+                    "active": true
+                  },
+                  {
+                    "queryRef": "DimStore.Region",
+                    "active": true
+                  },
+                  {
+                    "queryRef": "Measures.EstimatedLeadTimeDays",
+                    "active": true
+                  }
+                ]
+              },
+              "objects": {
+                "values": [
+                  {
+                    "properties": {
+                      "urlIcon": { "expr": { "Literal": { "Value": "true" } } },
+                      "webUrl": {
+                        "expr": {
+                          "Literal": {
+                            "Value": "'<!-- Placeholder: Translytical task flow integration for reorder button -->'"
+                          }
+                        }
+                      }
+                    }
+                  }
+                ],
+                "grid": [
+                  {
+                    "properties": {
+                      "gridVertical": { "expr": { "Literal": { "Value": "true" } } },
+                      "gridHorizontal": { "expr": { "Literal": { "Value": "true" } } },
+                      "rowPadding": { "expr": { "Literal": { "Value": "6D" } } }
+                    }
+                  }
+                ],
+                "columnHeaders": [
+                  {
+                    "properties": {
+                      "bold": { "expr": { "Literal": { "Value": "true" } } }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "filters": [],
+          "tabOrder": 2
+        }
+      ]
+    }
+  ],
+  "config": {
+    "version": "5.55",
+    "defaultDrillFilterOtherVisuals": true,
+    "slowDataSourceSettings": {
+      "isCrossHighlightingDisabled": true,
+      "isSlicerSelectionsButtonEnabled": true
+    },
+    "linguisticSchemaSyncVersion": 2
+  },
+  "filters": [],
+  "resourcePackages": []
+}

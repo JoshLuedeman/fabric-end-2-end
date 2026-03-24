@@ -1,0 +1,193 @@
+# ============================================================================
+# Deploy Streaming — Build & deploy the real-time event generator
+# ============================================================================
+# Builds a Node.js app, packages it as a Docker image, pushes to GHCR,
+# and deploys to Azure Container Instances.
+# ============================================================================
+
+name: "Deploy Streaming"
+
+on:
+  push:
+    branches: [main]
+    paths: ["streaming/**"]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target environment"
+        required: true
+        type: choice
+        options:
+          - dev
+          - prod
+        default: dev
+
+permissions:
+  id-token: write    # OIDC for Azure
+  contents: read     # Checkout repo
+  packages: write    # Push to GHCR
+
+concurrency:
+  group: deploy-streaming-${{ inputs.environment || 'dev' }}
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}/streaming-generator
+  NODE_VERSION: "22"
+  ENVIRONMENT: ${{ inputs.environment || 'dev' }}
+
+jobs:
+  # --------------------------------------------------------------------------
+  # Build — compile, test, build Docker image, and push to GHCR
+  # --------------------------------------------------------------------------
+  build:
+    name: "Build & Push Image"
+    runs-on: ubuntu-latest
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tags }}
+      image-digest: ${{ steps.push.outputs.digest }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: streaming/package-lock.json
+
+      - name: Install dependencies
+        working-directory: streaming
+        run: npm ci
+
+      - name: Build application
+        working-directory: streaming
+        run: npm run build
+
+      - name: Run tests
+        working-directory: streaming
+        run: npm test --if-present
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,prefix=
+            type=ref,event=branch
+            type=raw,value=${{ env.ENVIRONMENT }}-latest
+
+      - name: Build and push Docker image
+        id: push
+        uses: docker/build-push-action@v6
+        with:
+          context: streaming
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Build summary
+        run: |
+          echo "### Streaming Image Build" >> "$GITHUB_STEP_SUMMARY"
+          echo "✅ Image pushed to \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Property | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|----------|-------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Tags | \`${{ steps.meta.outputs.tags }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Digest | \`${{ steps.push.outputs.digest }}\` |" >> "$GITHUB_STEP_SUMMARY"
+
+  # --------------------------------------------------------------------------
+  # Deploy — run the container on Azure Container Instances
+  # --------------------------------------------------------------------------
+  deploy:
+    name: "Deploy to ACI (${{ inputs.environment || 'dev' }})"
+    needs: build
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment || 'dev' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy to Azure Container Instances
+        run: |
+          CONTAINER_NAME="fabric-streaming-${{ env.ENVIRONMENT }}"
+          RESOURCE_GROUP="${{ vars.AZURE_RESOURCE_GROUP }}"
+          IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.ENVIRONMENT }}-latest"
+
+          echo "🚀 Deploying $IMAGE to ACI..."
+
+          # Delete existing container if present (idempotent redeploy)
+          az container delete \
+            --name "$CONTAINER_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --yes 2>/dev/null || true
+
+          az container create \
+            --name "$CONTAINER_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --image "$IMAGE" \
+            --registry-login-server "${{ env.REGISTRY }}" \
+            --registry-username "${{ github.actor }}" \
+            --registry-password "${{ secrets.GITHUB_TOKEN }}" \
+            --environment-variables \
+              ENVIRONMENT="${{ env.ENVIRONMENT }}" \
+              EVENTHUB_CONNECTION_STRING="${{ secrets.EVENTHUB_CONNECTION_STRING }}" \
+            --cpu 1 \
+            --memory 1.5 \
+            --restart-policy Always \
+            --os-type Linux
+
+          echo "✅ Container deployed."
+
+      - name: Verify container is running
+        run: |
+          CONTAINER_NAME="fabric-streaming-${{ env.ENVIRONMENT }}"
+          RESOURCE_GROUP="${{ vars.AZURE_RESOURCE_GROUP }}"
+
+          echo "⏳ Waiting for container to start..."
+          sleep 15
+
+          STATE=$(az container show \
+            --name "$CONTAINER_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --query "instanceView.state" -o tsv)
+
+          echo "Container state: $STATE"
+          if [ "$STATE" != "Running" ]; then
+            echo "::warning::Container is in state '$STATE' — may still be starting"
+          fi
+
+      - name: Deploy summary
+        if: always()
+        run: |
+          echo "### Streaming Deployment — \`${{ env.ENVIRONMENT }}\`" >> "$GITHUB_STEP_SUMMARY"
+          if [ "${{ job.status }}" = "success" ]; then
+            echo "✅ Streaming generator deployed to Azure Container Instances." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "❌ Deployment failed — check ACI logs." >> "$GITHUB_STEP_SUMMARY"
+          fi
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Manual run command:**" >> "$GITHUB_STEP_SUMMARY"
+          echo "\`\`\`bash" >> "$GITHUB_STEP_SUMMARY"
+          echo "docker run --rm \\" >> "$GITHUB_STEP_SUMMARY"
+          echo "  -e ENVIRONMENT=${{ env.ENVIRONMENT }} \\" >> "$GITHUB_STEP_SUMMARY"
+          echo "  -e EVENTHUB_CONNECTION_STRING=\$EVENTHUB_CONNECTION_STRING \\" >> "$GITHUB_STEP_SUMMARY"
+          echo "  ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.ENVIRONMENT }}-latest" >> "$GITHUB_STEP_SUMMARY"
+          echo "\`\`\`" >> "$GITHUB_STEP_SUMMARY"

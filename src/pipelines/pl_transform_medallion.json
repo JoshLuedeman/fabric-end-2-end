@@ -1,0 +1,197 @@
+{
+    "name": "pl_transform_medallion",
+    "properties": {
+        "description": "Medallion transformation pipeline — runs silver layer notebooks in parallel, then gold dimension notebooks, then gold fact notebooks. Enforces dependency: dimensions before facts.",
+        "activities": [
+            {
+                "name": "Transform Sales (Silver)",
+                "type": "TridentNotebook",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "0.02:00:00",
+                    "retry": 1,
+                    "retryIntervalInSeconds": 60
+                },
+                "typeProperties": {
+                    "notebookId": "transform_sales",
+                    "workspaceId": {
+                        "value": "@pipeline().parameters.workspace_id",
+                        "type": "Expression"
+                    }
+                }
+            },
+            {
+                "name": "Transform Customers (Silver)",
+                "type": "TridentNotebook",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "0.02:00:00",
+                    "retry": 1,
+                    "retryIntervalInSeconds": 60
+                },
+                "typeProperties": {
+                    "notebookId": "transform_customers",
+                    "workspaceId": {
+                        "value": "@pipeline().parameters.workspace_id",
+                        "type": "Expression"
+                    }
+                }
+            },
+            {
+                "name": "Transform Supply Chain (Silver)",
+                "type": "TridentNotebook",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "0.02:00:00",
+                    "retry": 1,
+                    "retryIntervalInSeconds": 60
+                },
+                "typeProperties": {
+                    "notebookId": "transform_supply_chain",
+                    "workspaceId": {
+                        "value": "@pipeline().parameters.workspace_id",
+                        "type": "Expression"
+                    }
+                }
+            },
+            {
+                "name": "Build dim_customer (Gold)",
+                "type": "TridentNotebook",
+                "dependsOn": [
+                    {
+                        "activity": "Transform Customers (Silver)",
+                        "dependencyConditions": ["Succeeded"]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.01:00:00",
+                    "retry": 1,
+                    "retryIntervalInSeconds": 60
+                },
+                "typeProperties": {
+                    "notebookId": "gold_dim_customer",
+                    "workspaceId": {
+                        "value": "@pipeline().parameters.workspace_id",
+                        "type": "Expression"
+                    }
+                }
+            },
+            {
+                "name": "Build dim_product (Gold)",
+                "type": "TridentNotebook",
+                "dependsOn": [
+                    {
+                        "activity": "Transform Supply Chain (Silver)",
+                        "dependencyConditions": ["Succeeded"]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.01:00:00",
+                    "retry": 1,
+                    "retryIntervalInSeconds": 60
+                },
+                "typeProperties": {
+                    "notebookId": "gold_dim_product",
+                    "workspaceId": {
+                        "value": "@pipeline().parameters.workspace_id",
+                        "type": "Expression"
+                    }
+                }
+            },
+            {
+                "name": "Build dim_store (Gold)",
+                "type": "TridentNotebook",
+                "dependsOn": [
+                    {
+                        "activity": "Transform Supply Chain (Silver)",
+                        "dependencyConditions": ["Succeeded"]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.01:00:00",
+                    "retry": 1,
+                    "retryIntervalInSeconds": 60
+                },
+                "typeProperties": {
+                    "notebookId": "gold_dim_store",
+                    "workspaceId": {
+                        "value": "@pipeline().parameters.workspace_id",
+                        "type": "Expression"
+                    }
+                }
+            },
+            {
+                "name": "Build fact_sales (Gold)",
+                "type": "TridentNotebook",
+                "dependsOn": [
+                    {
+                        "activity": "Transform Sales (Silver)",
+                        "dependencyConditions": ["Succeeded"]
+                    },
+                    {
+                        "activity": "Build dim_customer (Gold)",
+                        "dependencyConditions": ["Succeeded"]
+                    },
+                    {
+                        "activity": "Build dim_product (Gold)",
+                        "dependencyConditions": ["Succeeded"]
+                    },
+                    {
+                        "activity": "Build dim_store (Gold)",
+                        "dependencyConditions": ["Succeeded"]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.02:00:00",
+                    "retry": 1,
+                    "retryIntervalInSeconds": 60
+                },
+                "typeProperties": {
+                    "notebookId": "gold_fact_sales",
+                    "workspaceId": {
+                        "value": "@pipeline().parameters.workspace_id",
+                        "type": "Expression"
+                    }
+                }
+            },
+            {
+                "name": "Build fact_inventory (Gold)",
+                "type": "TridentNotebook",
+                "dependsOn": [
+                    {
+                        "activity": "Build dim_product (Gold)",
+                        "dependencyConditions": ["Succeeded"]
+                    },
+                    {
+                        "activity": "Build dim_store (Gold)",
+                        "dependencyConditions": ["Succeeded"]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.02:00:00",
+                    "retry": 1,
+                    "retryIntervalInSeconds": 60
+                },
+                "typeProperties": {
+                    "notebookId": "gold_fact_inventory",
+                    "workspaceId": {
+                        "value": "@pipeline().parameters.workspace_id",
+                        "type": "Expression"
+                    }
+                }
+            }
+        ],
+        "parameters": {
+            "workspace_id": {
+                "type": "string",
+                "defaultValue": ""
+            }
+        },
+        "annotations": [
+            "silver",
+            "gold",
+            "medallion",
+            "transformation"
+        ]
+    }
+}

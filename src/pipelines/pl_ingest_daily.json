@@ -1,0 +1,92 @@
+{
+    "name": "pl_ingest_daily",
+    "properties": {
+        "description": "Daily ingestion pipeline — runs bronze layer notebooks in parallel to ingest raw data from source systems into the Lakehouse bronze layer.",
+        "activities": [
+            {
+                "name": "Ingest Dimensions",
+                "type": "TridentNotebook",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "0.02:00:00",
+                    "retry": 2,
+                    "retryIntervalInSeconds": 60
+                },
+                "typeProperties": {
+                    "notebookId": "ingest_dimensions",
+                    "workspaceId": {
+                        "value": "@pipeline().parameters.workspace_id",
+                        "type": "Expression"
+                    },
+                    "parameters": {
+                        "load_date": {
+                            "value": "@pipeline().parameters.load_date",
+                            "type": "Expression"
+                        }
+                    }
+                }
+            },
+            {
+                "name": "Ingest Sales",
+                "type": "TridentNotebook",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "0.02:00:00",
+                    "retry": 2,
+                    "retryIntervalInSeconds": 60
+                },
+                "typeProperties": {
+                    "notebookId": "ingest_sales_transactions",
+                    "workspaceId": {
+                        "value": "@pipeline().parameters.workspace_id",
+                        "type": "Expression"
+                    },
+                    "parameters": {
+                        "load_date": {
+                            "value": "@pipeline().parameters.load_date",
+                            "type": "Expression"
+                        }
+                    }
+                }
+            },
+            {
+                "name": "Ingest Inventory",
+                "type": "TridentNotebook",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "0.02:00:00",
+                    "retry": 2,
+                    "retryIntervalInSeconds": 60
+                },
+                "typeProperties": {
+                    "notebookId": "ingest_inventory_snapshots",
+                    "workspaceId": {
+                        "value": "@pipeline().parameters.workspace_id",
+                        "type": "Expression"
+                    },
+                    "parameters": {
+                        "load_date": {
+                            "value": "@pipeline().parameters.load_date",
+                            "type": "Expression"
+                        }
+                    }
+                }
+            }
+        ],
+        "parameters": {
+            "workspace_id": {
+                "type": "string",
+                "defaultValue": ""
+            },
+            "load_date": {
+                "type": "string",
+                "defaultValue": "@utcNow('yyyy-MM-dd')"
+            }
+        },
+        "annotations": [
+            "bronze",
+            "ingestion",
+            "daily"
+        ]
+    }
+}

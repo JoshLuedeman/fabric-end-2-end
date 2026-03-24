@@ -1,0 +1,135 @@
+// =====================================================
+// Customer Community Detection Queries
+// Contoso Global Retail - Microsoft Fabric Graph
+// =====================================================
+// Detects communities of customers who share purchasing
+// patterns — i.e. customers who shop at the same stores.
+//
+// Assumes additional node/edge types:
+//   Node: Customer (customer_id PK, name, city, segment)
+//   Edge: PURCHASED_AT (Customer → Store, visit_count,
+//         total_spend, last_visit_date)
+// =====================================================
+
+
+// ---------------------------------------------------------
+// Query 1: Co-Shopping Pairs
+//
+// Find pairs of customers who have both purchased at the
+// same store. The more stores they share, the stronger
+// the community signal.
+// ---------------------------------------------------------
+MATCH (c1:Customer)-[:PURCHASED_AT]->(store:Store)<-[:PURCHASED_AT]-(c2:Customer)
+WHERE c1.customer_id < c2.customer_id          // avoid duplicate pairs
+RETURN
+    c1.customer_id   AS customer_a_id,
+    c1.name          AS customer_a_name,
+    c2.customer_id   AS customer_b_id,
+    c2.name          AS customer_b_name,
+    COUNT(store)     AS shared_store_count
+ORDER BY shared_store_count DESC
+LIMIT 50;
+
+
+// ---------------------------------------------------------
+// Query 2: Top Co-Shopping Pairs by Spending Overlap
+//
+// Weight the relationship by the combined spend at shared
+// stores. Higher combined spend → stronger affinity.
+// ---------------------------------------------------------
+MATCH (c1:Customer)-[p1:PURCHASED_AT]->(store:Store)<-[p2:PURCHASED_AT]-(c2:Customer)
+WHERE c1.customer_id < c2.customer_id
+RETURN
+    c1.customer_id   AS customer_a_id,
+    c1.name          AS customer_a_name,
+    c2.customer_id   AS customer_b_id,
+    c2.name          AS customer_b_name,
+    COUNT(store)     AS shared_store_count,
+    SUM(p1.total_spend + p2.total_spend) AS combined_spend_at_shared_stores
+ORDER BY shared_store_count DESC, combined_spend_at_shared_stores DESC
+LIMIT 25;
+
+
+// ---------------------------------------------------------
+// Query 3: Store Affinity Clusters
+//
+// For each store, list the customers who shop there and
+// how many OTHER stores those customers also visit.
+// This reveals how "loyal" vs "cross-shopping" each
+// store's customer base is.
+// ---------------------------------------------------------
+MATCH (c:Customer)-[p:PURCHASED_AT]->(home_store:Store)
+WHERE home_store.store_id = $store_id
+WITH c, home_store, p
+OPTIONAL MATCH (c)-[other_p:PURCHASED_AT]->(other_store:Store)
+WHERE other_store.store_id <> home_store.store_id
+RETURN
+    home_store.store_id    AS store_id,
+    home_store.store_name  AS store_name,
+    c.customer_id          AS customer_id,
+    c.name                 AS customer_name,
+    c.segment              AS customer_segment,
+    p.total_spend          AS spend_at_this_store,
+    p.visit_count          AS visits_to_this_store,
+    COUNT(other_store)     AS other_stores_visited
+ORDER BY spend_at_this_store DESC;
+
+
+// ---------------------------------------------------------
+// Query 4: Community Detection via Common-Neighbor Density
+//
+// Group customers into implicit communities: two customers
+// are in the same community if they share at least
+// $min_shared_stores stores. Returns connected clusters.
+// ---------------------------------------------------------
+MATCH (c1:Customer)-[:PURCHASED_AT]->(s:Store)<-[:PURCHASED_AT]-(c2:Customer)
+WHERE c1.customer_id < c2.customer_id
+WITH c1, c2, COUNT(s) AS shared_stores
+WHERE shared_stores >= $min_shared_stores     // e.g. 3
+RETURN
+    c1.customer_id AS customer_a,
+    c1.name        AS name_a,
+    c1.segment     AS segment_a,
+    c2.customer_id AS customer_b,
+    c2.name        AS name_b,
+    c2.segment     AS segment_b,
+    shared_stores
+ORDER BY shared_stores DESC;
+
+
+// ---------------------------------------------------------
+// Query 5: Store-Centric Customer Overlap Matrix
+//
+// For every pair of stores, count how many customers they
+// share. High overlap means the stores serve similar
+// communities and may benefit from coordinated promotions.
+// ---------------------------------------------------------
+MATCH (s1:Store)<-[:PURCHASED_AT]-(c:Customer)-[:PURCHASED_AT]->(s2:Store)
+WHERE s1.store_id < s2.store_id               // avoid duplicate pairs
+RETURN
+    s1.store_id    AS store_a_id,
+    s1.store_name  AS store_a_name,
+    s1.region      AS store_a_region,
+    s2.store_id    AS store_b_id,
+    s2.store_name  AS store_b_name,
+    s2.region      AS store_b_region,
+    COUNT(DISTINCT c) AS shared_customers
+ORDER BY shared_customers DESC
+LIMIT 50;
+
+
+// ---------------------------------------------------------
+// Query 6: Customer Reach per Region
+//
+// How many distinct customers does each region serve, and
+// what is the average number of stores each customer
+// visits within that region?
+// ---------------------------------------------------------
+MATCH (c:Customer)-[:PURCHASED_AT]->(s:Store)
+WITH s.region AS region, c, COUNT(s) AS stores_visited
+RETURN
+    region,
+    COUNT(c)                    AS total_customers,
+    AVG(stores_visited)         AS avg_stores_per_customer,
+    MAX(stores_visited)         AS max_stores_per_customer
+ORDER BY total_customers DESC;

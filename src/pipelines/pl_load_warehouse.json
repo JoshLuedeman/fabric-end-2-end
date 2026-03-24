@@ -1,0 +1,98 @@
+{
+    "name": "pl_load_warehouse",
+    "properties": {
+        "description": "Warehouse loading pipeline — executes stored procedures to load dimension tables first, then fact tables into the Fabric SQL Analytics Endpoint / Warehouse.",
+        "activities": [
+            {
+                "name": "Load Dimensions",
+                "type": "SqlServerStoredProcedure",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "0.01:00:00",
+                    "retry": 2,
+                    "retryIntervalInSeconds": 60
+                },
+                "typeProperties": {
+                    "storedProcedureName": "dbo.sp_load_dimensions",
+                    "storedProcedureParameters": {
+                        "load_date": {
+                            "value": {
+                                "value": "@pipeline().parameters.load_date",
+                                "type": "Expression"
+                            },
+                            "type": "String"
+                        },
+                        "full_refresh": {
+                            "value": {
+                                "value": "@pipeline().parameters.full_refresh",
+                                "type": "Expression"
+                            },
+                            "type": "Boolean"
+                        }
+                    },
+                    "connectionId": {
+                        "value": "@pipeline().parameters.warehouse_connection_id",
+                        "type": "Expression"
+                    }
+                }
+            },
+            {
+                "name": "Load Facts",
+                "type": "SqlServerStoredProcedure",
+                "dependsOn": [
+                    {
+                        "activity": "Load Dimensions",
+                        "dependencyConditions": ["Succeeded"]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.02:00:00",
+                    "retry": 2,
+                    "retryIntervalInSeconds": 60
+                },
+                "typeProperties": {
+                    "storedProcedureName": "dbo.sp_load_facts",
+                    "storedProcedureParameters": {
+                        "load_date": {
+                            "value": {
+                                "value": "@pipeline().parameters.load_date",
+                                "type": "Expression"
+                            },
+                            "type": "String"
+                        },
+                        "full_refresh": {
+                            "value": {
+                                "value": "@pipeline().parameters.full_refresh",
+                                "type": "Expression"
+                            },
+                            "type": "Boolean"
+                        }
+                    },
+                    "connectionId": {
+                        "value": "@pipeline().parameters.warehouse_connection_id",
+                        "type": "Expression"
+                    }
+                }
+            }
+        ],
+        "parameters": {
+            "warehouse_connection_id": {
+                "type": "string",
+                "defaultValue": ""
+            },
+            "load_date": {
+                "type": "string",
+                "defaultValue": "@utcNow('yyyy-MM-dd')"
+            },
+            "full_refresh": {
+                "type": "bool",
+                "defaultValue": false
+            }
+        },
+        "annotations": [
+            "warehouse",
+            "loading",
+            "stored-procedures"
+        ]
+    }
+}

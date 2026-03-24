@@ -1,0 +1,131 @@
+// =====================================================
+// Inventory Alerts & Reorder Monitoring
+// Contoso Global Retail - Fabric Eventhouse
+// =====================================================
+// Identifies products below reorder point, calculates
+// days of stock remaining, and assigns alert priority.
+// =====================================================
+
+// ---------------------------------------------------------
+// 1. Inventory Alerts with Days-of-Stock Remaining
+// ---------------------------------------------------------
+// InventorySnapshot: external table or KQL table synced
+// from Lakehouse via shortcut or Data Pipeline.
+// Columns: ProductId, ProductName, StoreId, CurrentStock,
+//          ReorderPoint, SnapshotTimestamp
+// ---------------------------------------------------------
+let sales_lookback = 30d;  // window for average daily sales rate
+// Calculate average daily sales rate per product per store
+let daily_sales_rate =
+    RealtimeSales
+    | where Timestamp > ago(sales_lookback)
+    | summarize TotalQuantitySold = sum(Quantity) by ProductId, StoreId
+    | extend AvgDailySales = round(toreal(TotalQuantitySold) / toreal(sales_lookback / 1d), 2);
+// Join inventory snapshot with sales rate and compute alerts
+InventorySnapshot
+| summarize arg_max(SnapshotTimestamp, *) by ProductId, StoreId  // latest snapshot per product-store
+| join kind=leftouter daily_sales_rate on ProductId, StoreId
+| extend AvgDailySales = coalesce(AvgDailySales, 0.0)
+| extend DaysRemaining = iff(
+    AvgDailySales > 0,
+    round(toreal(CurrentStock) / AvgDailySales, 1),
+    iff(CurrentStock == 0, 0.0, real(999))  // no sales = infinite days unless stock is 0
+  )
+| extend AlertLevel = case(
+    CurrentStock == 0,                       "out_of_stock",
+    DaysRemaining < 3.0,                     "critical",
+    DaysRemaining < 7.0,                     "low",
+    DaysRemaining < 14.0,                    "warning",
+    CurrentStock <= ReorderPoint,            "below_reorder",
+    "healthy"
+  )
+| where AlertLevel != "healthy"
+| project
+    ProductId,
+    ProductName,
+    StoreId,
+    CurrentStock,
+    ReorderPoint,
+    AvgDailySales,
+    DaysRemaining,
+    AlertLevel
+| order by case(
+    AlertLevel == "out_of_stock", 1,
+    AlertLevel == "critical",     2,
+    AlertLevel == "low",          3,
+    AlertLevel == "warning",      4,
+    AlertLevel == "below_reorder",5,
+    6
+  ) asc, DaysRemaining asc
+
+// ---------------------------------------------------------
+// 2. Inventory Alerts Summary by Alert Level
+// ---------------------------------------------------------
+let sales_lookback = 30d;
+let daily_sales_rate =
+    RealtimeSales
+    | where Timestamp > ago(sales_lookback)
+    | summarize TotalQuantitySold = sum(Quantity) by ProductId, StoreId
+    | extend AvgDailySales = round(toreal(TotalQuantitySold) / toreal(sales_lookback / 1d), 2);
+InventorySnapshot
+| summarize arg_max(SnapshotTimestamp, *) by ProductId, StoreId
+| join kind=leftouter daily_sales_rate on ProductId, StoreId
+| extend AvgDailySales = coalesce(AvgDailySales, 0.0)
+| extend DaysRemaining = iff(
+    AvgDailySales > 0,
+    round(toreal(CurrentStock) / AvgDailySales, 1),
+    iff(CurrentStock == 0, 0.0, real(999))
+  )
+| extend AlertLevel = case(
+    CurrentStock == 0,                       "out_of_stock",
+    DaysRemaining < 3.0,                     "critical",
+    DaysRemaining < 7.0,                     "low",
+    DaysRemaining < 14.0,                    "warning",
+    CurrentStock <= ReorderPoint,            "below_reorder",
+    "healthy"
+  )
+| summarize
+    ProductCount = dcount(ProductId),
+    StoreCount  = dcount(StoreId),
+    TotalUnitsAtRisk = sum(CurrentStock)
+    by AlertLevel
+| order by case(
+    AlertLevel == "out_of_stock", 1,
+    AlertLevel == "critical",     2,
+    AlertLevel == "low",          3,
+    AlertLevel == "warning",      4,
+    AlertLevel == "below_reorder",5,
+    AlertLevel == "healthy",      6,
+    7
+  ) asc
+
+// ---------------------------------------------------------
+// 3. Top 20 Most Urgent Restocking Needs
+// ---------------------------------------------------------
+let sales_lookback = 30d;
+let daily_sales_rate =
+    RealtimeSales
+    | where Timestamp > ago(sales_lookback)
+    | summarize TotalQuantitySold = sum(Quantity) by ProductId, StoreId
+    | extend AvgDailySales = round(toreal(TotalQuantitySold) / toreal(sales_lookback / 1d), 2);
+InventorySnapshot
+| summarize arg_max(SnapshotTimestamp, *) by ProductId, StoreId
+| join kind=leftouter daily_sales_rate on ProductId, StoreId
+| extend AvgDailySales = coalesce(AvgDailySales, 0.0)
+| extend DaysRemaining = iff(
+    AvgDailySales > 0,
+    round(toreal(CurrentStock) / AvgDailySales, 1),
+    iff(CurrentStock == 0, 0.0, real(999))
+  )
+| extend UnitsNeeded = iff(CurrentStock < ReorderPoint, ReorderPoint - CurrentStock, 0)
+| where UnitsNeeded > 0
+| top 20 by AvgDailySales desc  // prioritize fast-moving items
+| project
+    ProductId,
+    ProductName,
+    StoreId,
+    CurrentStock,
+    ReorderPoint,
+    UnitsNeeded,
+    AvgDailySales,
+    DaysRemaining

@@ -1,0 +1,182 @@
+// =====================================================
+// Real-Time Operations Dashboard Queries
+// Contoso Global Retail - Fabric Eventhouse
+// =====================================================
+// Each section is a standalone query for a KQL dashboard
+// tile. Copy each block individually into a dashboard tile.
+// =====================================================
+
+
+// =========================================================
+// TILE 1: Sales Per Minute by Store (Last 1 Hour)
+// Chart type: Line chart / Time chart
+// =========================================================
+RealtimeSales
+| where Timestamp > ago(1h)
+| summarize
+    TransactionCount = count(),
+    Revenue = round(sum(TotalAmount), 2)
+    by StoreId, bin(Timestamp, 1m)
+| order by Timestamp asc, StoreId asc
+
+
+// =========================================================
+// TILE 2: Top 10 Products by Revenue (Last 24 Hours)
+// Chart type: Horizontal bar chart
+// =========================================================
+RealtimeSales
+| where Timestamp > ago(24h)
+| summarize
+    TotalRevenue   = round(sum(TotalAmount), 2),
+    TotalQuantity  = sum(Quantity),
+    TransactionCount = count()
+    by ProductId, ProductName, Category
+| top 10 by TotalRevenue desc
+| project ProductName, Category, TotalRevenue, TotalQuantity, TransactionCount
+
+
+// =========================================================
+// TILE 3: Active Sales Anomalies (Last 24 Hours)
+// Chart type: Table / Stat tile for count
+// =========================================================
+let lookback = 7d;
+let bin_size = 1h;
+let anomaly_threshold = 1.5;
+let recent_window = 24h;
+RealtimeSales
+| where Timestamp > ago(lookback)
+| summarize SalesCount = count() by StoreId, bin(Timestamp, bin_size)
+| make-series
+    SalesCountSeries = sum(SalesCount) default=0
+    on Timestamp
+    from ago(lookback) to now()
+    step bin_size
+    by StoreId
+| extend (AnomalyFlags, AnomalyScore, ExpectedSales) =
+    series_decompose_anomalies(SalesCountSeries, anomaly_threshold)
+| mv-expand
+    Timestamp to typeof(datetime),
+    SalesCountSeries to typeof(long),
+    AnomalyFlags to typeof(int),
+    AnomalyScore to typeof(real),
+    ExpectedSales to typeof(real)
+| where AnomalyFlags != 0 and Timestamp > ago(recent_window)
+| extend AnomalyType = iff(AnomalyFlags == 1, "spike", "dip")
+| project
+    StoreId,
+    Timestamp,
+    SalesCount = SalesCountSeries,
+    ExpectedSales = round(ExpectedSales, 1),
+    AnomalyScore = round(AnomalyScore, 2),
+    AnomalyType
+| order by abs(AnomalyScore) desc
+
+
+// =========================================================
+// TILE 4: IoT Device Status Overview (Pie Chart)
+// Chart type: Pie / Donut chart
+// =========================================================
+let silence_threshold = 15m;
+let battery_warning   = 20.0;
+let zscore_threshold  = 3.0;
+let sensor_stats =
+    RealtimeIoT
+    | where ReadingTimestamp > ago(24h)
+    | summarize
+        MeanValue   = avg(ReadingValue),
+        StdDevValue = stdev(ReadingValue)
+      by SensorType;
+RealtimeIoT
+| summarize arg_max(ReadingTimestamp, *) by DeviceId
+| join kind=leftouter sensor_stats on SensorType
+| extend ZScore = iff(
+    StdDevValue > 0,
+    abs(ReadingValue - MeanValue) / StdDevValue,
+    0.0
+  )
+| extend Status = case(
+    (now() - ReadingTimestamp) > silence_threshold,                   "offline",
+    BatteryLevel < battery_warning and ZScore > zscore_threshold,    "critical",
+    ZScore > zscore_threshold,                                        "critical",
+    BatteryLevel < battery_warning,                                   "warning",
+    IsAnomaly == true,                                                "warning",
+    "healthy"
+  )
+| summarize DeviceCount = dcount(DeviceId) by Status
+| order by case(
+    Status == "healthy",  1,
+    Status == "warning",  2,
+    Status == "critical", 3,
+    Status == "offline",  4,
+    5
+  ) asc
+
+
+// =========================================================
+// TILE 5: Inventory Alerts Summary by Alert Level
+// Chart type: Stacked bar / Stat tiles
+// =========================================================
+let sales_lookback = 30d;
+let daily_sales_rate =
+    RealtimeSales
+    | where Timestamp > ago(sales_lookback)
+    | summarize TotalQuantitySold = sum(Quantity) by ProductId, StoreId
+    | extend AvgDailySales = round(toreal(TotalQuantitySold) / toreal(sales_lookback / 1d), 2);
+InventorySnapshot
+| summarize arg_max(SnapshotTimestamp, *) by ProductId, StoreId
+| join kind=leftouter daily_sales_rate on ProductId, StoreId
+| extend AvgDailySales = coalesce(AvgDailySales, 0.0)
+| extend DaysRemaining = iff(
+    AvgDailySales > 0,
+    round(toreal(CurrentStock) / AvgDailySales, 1),
+    iff(CurrentStock == 0, 0.0, real(999))
+  )
+| extend AlertLevel = case(
+    CurrentStock == 0,            "out_of_stock",
+    DaysRemaining < 3.0,         "critical",
+    DaysRemaining < 7.0,         "low",
+    DaysRemaining < 14.0,        "warning",
+    CurrentStock <= ReorderPoint, "below_reorder",
+    "healthy"
+  )
+| where AlertLevel != "healthy"
+| summarize
+    ProductCount = dcount(ProductId),
+    StoreCount   = dcount(StoreId)
+    by AlertLevel
+| order by case(
+    AlertLevel == "out_of_stock",  1,
+    AlertLevel == "critical",      2,
+    AlertLevel == "low",           3,
+    AlertLevel == "warning",       4,
+    AlertLevel == "below_reorder", 5,
+    6
+  ) asc
+
+
+// =========================================================
+// TILE 6: Sales by Channel (Last 24 Hours - Donut Chart)
+// Chart type: Donut / Pie chart
+// =========================================================
+RealtimeSales
+| where Timestamp > ago(24h)
+| summarize
+    Revenue          = round(sum(TotalAmount), 2),
+    TransactionCount = count(),
+    AvgOrderValue    = round(avg(TotalAmount), 2)
+    by Channel
+| order by Revenue desc
+
+
+// =========================================================
+// TILE 7: Hourly Revenue Trend (Last 7 Days)
+// Chart type: Area chart / Line chart
+// =========================================================
+RealtimeSales
+| where Timestamp > ago(7d)
+| summarize
+    HourlyRevenue     = round(sum(TotalAmount), 2),
+    TransactionCount  = count(),
+    AvgTransactionVal = round(avg(TotalAmount), 2)
+    by bin(Timestamp, 1h)
+| order by Timestamp asc

@@ -1,0 +1,163 @@
+// =====================================================
+// IoT Device Health Monitoring
+// Contoso Global Retail - Fabric Eventhouse
+// =====================================================
+// Monitors sensor health: silent devices, low battery,
+// anomalous readings, and overall fleet status.
+// =====================================================
+
+// ---------------------------------------------------------
+// 1. Device-Level Health Detail
+// ---------------------------------------------------------
+// Compute per-device statistics from recent telemetry
+let silence_threshold = 15m;   // device is offline if no data in 15 min
+let battery_warning   = 20.0;  // battery % below this triggers warning
+let zscore_threshold  = 3.0;   // z-score above this flags anomalous readings
+// Latest reading per device
+let latest_readings =
+    RealtimeIoT
+    | summarize arg_max(ReadingTimestamp, *) by DeviceId;
+// Global statistics per sensor type for z-score calculation
+let sensor_stats =
+    RealtimeIoT
+    | where ReadingTimestamp > ago(24h)
+    | summarize
+        MeanValue   = avg(ReadingValue),
+        StdDevValue = stdev(ReadingValue)
+      by SensorType;
+// Join and compute health status
+latest_readings
+| join kind=leftouter sensor_stats on SensorType
+| extend
+    TimeSinceLastReading = now() - ReadingTimestamp,
+    ZScore = iff(
+        StdDevValue > 0,
+        round(abs(ReadingValue - MeanValue) / StdDevValue, 2),
+        0.0
+    )
+| extend Status = case(
+    TimeSinceLastReading > silence_threshold,             "offline",
+    BatteryLevel < battery_warning and ZScore > zscore_threshold, "critical",
+    ZScore > zscore_threshold,                            "critical",
+    BatteryLevel < battery_warning,                       "warning",
+    IsAnomaly == true,                                    "warning",
+    "healthy"
+  )
+| project
+    DeviceId,
+    StoreId,
+    SensorType,
+    LastReading    = ReadingValue,
+    LastTimestamp   = ReadingTimestamp,
+    BatteryLevel,
+    TimeSinceLastReading,
+    ZScore,
+    Status
+| order by case(
+    Status == "offline",  1,
+    Status == "critical", 2,
+    Status == "warning",  3,
+    4
+  ) asc, TimeSinceLastReading desc
+
+// ---------------------------------------------------------
+// 2. Silent Devices (no report in last 15 minutes)
+// ---------------------------------------------------------
+let silence_threshold = 15m;
+RealtimeIoT
+| summarize LastReport = max(ReadingTimestamp) by DeviceId, StoreId, SensorType
+| where (now() - LastReport) > silence_threshold
+| extend MinutesSilent = tolong((now() - LastReport) / 1m)
+| project DeviceId, StoreId, SensorType, LastReport, MinutesSilent
+| order by MinutesSilent desc
+
+// ---------------------------------------------------------
+// 3. Low Battery Devices (< 20%)
+// ---------------------------------------------------------
+let battery_warning = 20.0;
+RealtimeIoT
+| summarize arg_max(ReadingTimestamp, *) by DeviceId
+| where BatteryLevel < battery_warning
+| project
+    DeviceId,
+    StoreId,
+    SensorType,
+    BatteryLevel,
+    LastTimestamp = ReadingTimestamp
+| order by BatteryLevel asc
+
+// ---------------------------------------------------------
+// 4. Anomalous Reading Detection (Z-Score Method)
+// ---------------------------------------------------------
+let zscore_threshold = 3.0;
+let lookback = 24h;
+let sensor_stats =
+    RealtimeIoT
+    | where ReadingTimestamp > ago(lookback)
+    | summarize
+        MeanValue   = avg(ReadingValue),
+        StdDevValue = stdev(ReadingValue)
+      by SensorType;
+RealtimeIoT
+| where ReadingTimestamp > ago(1h)  // check recent readings only
+| join kind=inner sensor_stats on SensorType
+| extend ZScore = iff(
+    StdDevValue > 0,
+    round(abs(ReadingValue - MeanValue) / StdDevValue, 2),
+    0.0
+  )
+| where ZScore > zscore_threshold
+| project
+    ReadingId,
+    DeviceId,
+    StoreId,
+    SensorType,
+    ReadingValue,
+    ReadingTimestamp,
+    ZScore,
+    MeanValue   = round(MeanValue, 2),
+    StdDevValue = round(StdDevValue, 2)
+| order by ZScore desc
+
+// ---------------------------------------------------------
+// 5. Fleet Health Summary
+// ---------------------------------------------------------
+let silence_threshold = 15m;
+let battery_warning   = 20.0;
+let zscore_threshold  = 3.0;
+let sensor_stats =
+    RealtimeIoT
+    | where ReadingTimestamp > ago(24h)
+    | summarize
+        MeanValue   = avg(ReadingValue),
+        StdDevValue = stdev(ReadingValue)
+      by SensorType;
+let device_status =
+    RealtimeIoT
+    | summarize arg_max(ReadingTimestamp, *) by DeviceId
+    | join kind=leftouter sensor_stats on SensorType
+    | extend ZScore = iff(
+        StdDevValue > 0,
+        abs(ReadingValue - MeanValue) / StdDevValue,
+        0.0
+      )
+    | extend Status = case(
+        (now() - ReadingTimestamp) > silence_threshold,                   "offline",
+        BatteryLevel < battery_warning and ZScore > zscore_threshold,    "critical",
+        ZScore > zscore_threshold,                                        "critical",
+        BatteryLevel < battery_warning,                                   "warning",
+        IsAnomaly == true,                                                "warning",
+        "healthy"
+      );
+device_status
+| summarize
+    TotalDevices    = dcount(DeviceId),
+    HealthyDevices  = dcountif(DeviceId, Status == "healthy"),
+    WarningDevices  = dcountif(DeviceId, Status == "warning"),
+    CriticalDevices = dcountif(DeviceId, Status == "critical"),
+    OfflineDevices  = dcountif(DeviceId, Status == "offline")
+| extend
+    HealthyPct  = round(100.0 * HealthyDevices  / TotalDevices, 1),
+    WarningPct  = round(100.0 * WarningDevices  / TotalDevices, 1),
+    CriticalPct = round(100.0 * CriticalDevices / TotalDevices, 1),
+    OfflinePct  = round(100.0 * OfflineDevices  / TotalDevices, 1)

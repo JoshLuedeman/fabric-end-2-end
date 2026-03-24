@@ -1,0 +1,474 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/report/1.0.0/schema.json",
+  "themeCollection": {
+    "baseTheme": {
+      "name": "CY24SU06",
+      "reportVersionAtImport": "5.55",
+      "type": "SharedResources"
+    }
+  },
+  "datasetBinding": {
+    "datasetReference": {
+      "byPath": {
+        "path": "../../semantic-models/contoso_sales.bim"
+      }
+    }
+  },
+  "reportPages": [
+    {
+      "name": "ReportSection_Revenue",
+      "displayName": "Revenue Overview",
+      "displayOption": 1,
+      "width": 1280,
+      "height": 720,
+      "visualContainers": [
+        {
+          "x": 20,
+          "y": 20,
+          "z": 1,
+          "width": 200,
+          "height": 120,
+          "config": {
+            "name": "card_total_revenue",
+            "visualType": "card",
+            "singleVisual": {
+              "projections": {
+                "Values": [
+                  {
+                    "queryRef": "Measures.TotalRevenue",
+                    "active": true
+                  }
+                ]
+              },
+              "objects": {
+                "labels": [
+                  {
+                    "properties": {
+                      "fontSize": { "expr": { "Literal": { "Value": "28D" } } }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "filters": [],
+          "tabOrder": 0
+        },
+        {
+          "x": 240,
+          "y": 20,
+          "z": 2,
+          "width": 200,
+          "height": 120,
+          "config": {
+            "name": "card_yoy_growth",
+            "visualType": "card",
+            "singleVisual": {
+              "projections": {
+                "Values": [
+                  {
+                    "queryRef": "Measures.YoYGrowth",
+                    "active": true
+                  }
+                ]
+              }
+            }
+          },
+          "filters": [],
+          "tabOrder": 1
+        },
+        {
+          "x": 460,
+          "y": 20,
+          "z": 3,
+          "width": 200,
+          "height": 120,
+          "config": {
+            "name": "card_avg_order_value",
+            "visualType": "card",
+            "singleVisual": {
+              "projections": {
+                "Values": [
+                  {
+                    "queryRef": "Measures.AvgOrderValue",
+                    "active": true
+                  }
+                ]
+              }
+            }
+          },
+          "filters": [],
+          "tabOrder": 2
+        },
+        {
+          "x": 680,
+          "y": 20,
+          "z": 4,
+          "width": 200,
+          "height": 120,
+          "config": {
+            "name": "card_customer_count",
+            "visualType": "card",
+            "singleVisual": {
+              "projections": {
+                "Values": [
+                  {
+                    "queryRef": "Measures.CustomerCount",
+                    "active": true
+                  }
+                ]
+              }
+            }
+          },
+          "filters": [],
+          "tabOrder": 3
+        },
+        {
+          "x": 20,
+          "y": 160,
+          "z": 5,
+          "width": 860,
+          "height": 280,
+          "config": {
+            "name": "line_monthly_revenue_trend",
+            "visualType": "lineChart",
+            "singleVisual": {
+              "projections": {
+                "Category": [
+                  {
+                    "queryRef": "DimDate.MonthYear",
+                    "active": true
+                  }
+                ],
+                "Y": [
+                  {
+                    "queryRef": "Measures.TotalRevenue",
+                    "active": true
+                  }
+                ]
+              },
+              "objects": {
+                "legend": [
+                  {
+                    "properties": {
+                      "show": { "expr": { "Literal": { "Value": "true" } } }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "filters": [],
+          "tabOrder": 4
+        },
+        {
+          "x": 20,
+          "y": 460,
+          "z": 6,
+          "width": 860,
+          "height": 240,
+          "config": {
+            "name": "bar_revenue_by_region",
+            "visualType": "clusteredBarChart",
+            "singleVisual": {
+              "projections": {
+                "Category": [
+                  {
+                    "queryRef": "DimStore.Region",
+                    "active": true
+                  }
+                ],
+                "Y": [
+                  {
+                    "queryRef": "Measures.TotalRevenue",
+                    "active": true
+                  }
+                ]
+              },
+              "objects": {
+                "dataPoint": [
+                  {
+                    "properties": {
+                      "fill": { "solid": { "color": "#118DFF" } }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "filters": [],
+          "tabOrder": 5
+        }
+      ]
+    },
+    {
+      "name": "ReportSection_Regional",
+      "displayName": "Regional Performance",
+      "displayOption": 1,
+      "width": 1280,
+      "height": 720,
+      "visualContainers": [
+        {
+          "x": 20,
+          "y": 20,
+          "z": 1,
+          "width": 600,
+          "height": 400,
+          "config": {
+            "name": "map_store_locations",
+            "visualType": "map",
+            "singleVisual": {
+              "projections": {
+                "Category": [
+                  {
+                    "queryRef": "DimStore.StoreLocation",
+                    "active": true
+                  }
+                ],
+                "Size": [
+                  {
+                    "queryRef": "Measures.TotalRevenue",
+                    "active": true
+                  }
+                ],
+                "X": [
+                  {
+                    "queryRef": "DimStore.Longitude",
+                    "active": true
+                  }
+                ],
+                "Y": [
+                  {
+                    "queryRef": "DimStore.Latitude",
+                    "active": true
+                  }
+                ]
+              }
+            }
+          },
+          "filters": [],
+          "tabOrder": 0
+        },
+        {
+          "x": 640,
+          "y": 20,
+          "z": 2,
+          "width": 620,
+          "height": 400,
+          "config": {
+            "name": "matrix_region_month_revenue",
+            "visualType": "pivotTable",
+            "singleVisual": {
+              "projections": {
+                "Rows": [
+                  {
+                    "queryRef": "DimStore.Region",
+                    "active": true
+                  }
+                ],
+                "Columns": [
+                  {
+                    "queryRef": "DimDate.MonthName",
+                    "active": true
+                  }
+                ],
+                "Values": [
+                  {
+                    "queryRef": "Measures.TotalRevenue",
+                    "active": true
+                  }
+                ]
+              },
+              "objects": {
+                "grid": [
+                  {
+                    "properties": {
+                      "gridVertical": { "expr": { "Literal": { "Value": "true" } } }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "filters": [],
+          "tabOrder": 1
+        },
+        {
+          "x": 20,
+          "y": 440,
+          "z": 3,
+          "width": 1240,
+          "height": 260,
+          "config": {
+            "name": "bar_top_10_stores",
+            "visualType": "clusteredBarChart",
+            "singleVisual": {
+              "projections": {
+                "Category": [
+                  {
+                    "queryRef": "DimStore.StoreName",
+                    "active": true
+                  }
+                ],
+                "Y": [
+                  {
+                    "queryRef": "Measures.TotalRevenue",
+                    "active": true
+                  }
+                ]
+              },
+              "objects": {
+                "general": [
+                  {
+                    "properties": {
+                      "orientation": { "expr": { "Literal": { "Value": "'horizontal'" } } }
+                    }
+                  }
+                ]
+              },
+              "filters": [
+                {
+                  "type": "TopN",
+                  "operator": "Top",
+                  "itemCount": 10,
+                  "orderBy": "Measures.TotalRevenue"
+                }
+              ]
+            }
+          },
+          "filters": [],
+          "tabOrder": 2
+        }
+      ]
+    },
+    {
+      "name": "ReportSection_Product",
+      "displayName": "Product Mix",
+      "displayOption": 1,
+      "width": 1280,
+      "height": 720,
+      "visualContainers": [
+        {
+          "x": 20,
+          "y": 20,
+          "z": 1,
+          "width": 600,
+          "height": 400,
+          "config": {
+            "name": "treemap_revenue_by_category",
+            "visualType": "treemap",
+            "singleVisual": {
+              "projections": {
+                "Group": [
+                  {
+                    "queryRef": "DimProduct.CategoryName",
+                    "active": true
+                  },
+                  {
+                    "queryRef": "DimProduct.SubcategoryName",
+                    "active": true
+                  }
+                ],
+                "Values": [
+                  {
+                    "queryRef": "Measures.TotalRevenue",
+                    "active": true
+                  }
+                ]
+              }
+            }
+          },
+          "filters": [],
+          "tabOrder": 0
+        },
+        {
+          "x": 640,
+          "y": 20,
+          "z": 2,
+          "width": 620,
+          "height": 400,
+          "config": {
+            "name": "bar_top_20_products",
+            "visualType": "clusteredBarChart",
+            "singleVisual": {
+              "projections": {
+                "Category": [
+                  {
+                    "queryRef": "DimProduct.ProductName",
+                    "active": true
+                  }
+                ],
+                "Y": [
+                  {
+                    "queryRef": "Measures.TotalRevenue",
+                    "active": true
+                  }
+                ]
+              },
+              "filters": [
+                {
+                  "type": "TopN",
+                  "operator": "Top",
+                  "itemCount": 20,
+                  "orderBy": "Measures.TotalRevenue"
+                }
+              ]
+            }
+          },
+          "filters": [],
+          "tabOrder": 1
+        },
+        {
+          "x": 20,
+          "y": 440,
+          "z": 3,
+          "width": 600,
+          "height": 260,
+          "config": {
+            "name": "donut_channel_split",
+            "visualType": "donutChart",
+            "singleVisual": {
+              "projections": {
+                "Category": [
+                  {
+                    "queryRef": "FactSales.SalesChannel",
+                    "active": true
+                  }
+                ],
+                "Y": [
+                  {
+                    "queryRef": "Measures.TotalRevenue",
+                    "active": true
+                  }
+                ]
+              },
+              "objects": {
+                "legend": [
+                  {
+                    "properties": {
+                      "show": { "expr": { "Literal": { "Value": "true" } } },
+                      "position": { "expr": { "Literal": { "Value": "'Right'" } } }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "filters": [],
+          "tabOrder": 2
+        }
+      ]
+    }
+  ],
+  "config": {
+    "version": "5.55",
+    "defaultDrillFilterOtherVisuals": true,
+    "slowDataSourceSettings": {
+      "isCrossHighlightingDisabled": true,
+      "isSlicerSelectionsButtonEnabled": true
+    },
+    "linguisticSchemaSyncVersion": 2
+  },
+  "filters": [],
+  "resourcePackages": []
+}

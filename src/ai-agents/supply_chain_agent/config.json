@@ -1,0 +1,39 @@
+{
+  "name": "Contoso Supply Chain Advisor",
+  "description": "AI-powered supply chain advisor that analyzes supplier performance, shipment delays, inventory optimization, and logistics using natural language and graph relationships.",
+  "type": "data_agent",
+  "capabilities": [
+    "natural_language_query",
+    "graph_traversal",
+    "risk_assessment",
+    "optimization_suggestions"
+  ],
+  "data_sources": [
+    {
+      "type": "graph",
+      "name": "supply_chain_graph",
+      "description": "Graph model of supplier-warehouse-store relationships"
+    },
+    {
+      "type": "kql_database",
+      "name": "realtime_operations",
+      "description": "Real-time inventory and shipment data"
+    },
+    {
+      "type": "lakehouse",
+      "name": "gold_lakehouse",
+      "description": "Historical supply chain and inventory data"
+    }
+  ],
+  "sample_prompts": [
+    "Which suppliers have the highest on-time delivery rate?",
+    "Are there any shipments currently delayed?",
+    "What is the shortest supply path from Supplier SUP-042 to Store S-015?",
+    "Which products are at risk of stockout in the next 7 days?",
+    "Recommend alternative suppliers for products with delivery issues"
+  ],
+  "security": {
+    "respect_rls": true,
+    "respect_cls": true
+  }
+}

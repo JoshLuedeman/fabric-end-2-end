@@ -1,0 +1,139 @@
+# ============================================================================
+# ⚠️  DESTROY ENVIRONMENT — Irreversible teardown of all infrastructure  ⚠️
+# ============================================================================
+#
+#   THIS WORKFLOW WILL PERMANENTLY DELETE:
+#     • All Azure resources managed by Terraform
+#     • Fabric workspaces, lakehouses, and their data
+#     • Eventhouse, eventstream, and streaming infrastructure
+#     • ALL DATA IN THE ENVIRONMENT — this cannot be undone
+#
+#   You must type "DESTROY" in the confirmation field to proceed.
+#
+# ============================================================================
+
+name: "🔴 Destroy Environment"
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to destroy"
+        required: true
+        type: choice
+        options:
+          - dev
+          - prod
+      confirmation:
+        description: 'Type "DESTROY" to confirm (case-sensitive)'
+        required: true
+        type: string
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: destroy-${{ inputs.environment }}
+  cancel-in-progress: false
+
+env:
+  TF_VERSION: "1.9"
+  ARM_USE_OIDC: "true"
+  ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  WORKING_DIR: infra/environments/${{ inputs.environment }}
+
+jobs:
+  # --------------------------------------------------------------------------
+  # Destroy — validate confirmation, then terraform destroy
+  # --------------------------------------------------------------------------
+  destroy:
+    name: "🔴 Destroy ${{ inputs.environment }}"
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}   # Requires environment approval
+    steps:
+      - name: "🛑 Validate confirmation"
+        run: |
+          echo "============================================"
+          echo "  DESTROY ENVIRONMENT: ${{ inputs.environment }}"
+          echo "============================================"
+          echo ""
+          if [ "${{ inputs.confirmation }}" != "DESTROY" ]; then
+            echo "::error::Confirmation failed. You entered '${{ inputs.confirmation }}' but must type exactly 'DESTROY'."
+            echo ""
+            echo "❌ Aborting — confirmation text did not match."
+            exit 1
+          fi
+          echo "⚠️  Confirmation accepted. Proceeding with destruction of '${{ inputs.environment }}'..."
+
+      - name: "⚠️  Production safety check"
+        if: inputs.environment == 'prod'
+        run: |
+          echo "::warning::You are about to DESTROY the PRODUCTION environment."
+          echo "::warning::This will delete ALL production data and infrastructure."
+          echo ""
+          echo "=========================================================="
+          echo "  🔴  DESTROYING PRODUCTION — ALL DATA WILL BE LOST  🔴"
+          echo "=========================================================="
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Terraform Init
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          terraform init \
+            -backend-config="storage_account_name=sttfstate7524" \
+            -backend-config="container_name=tfstate" \
+            -backend-config="resource_group_name=rg-terraform-state-prod" \
+            -backend-config="subscription_id=78118340-da1a-4f38-a514-1afe4d4378c0" \
+            -backend-config="key=${{ inputs.environment }}.terraform.tfstate" \
+            -backend-config="use_oidc=true"
+
+      - name: Terraform Destroy Plan
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          echo "📋 Generating destroy plan..."
+          terraform plan -destroy -input=false -out=destroy.tfplan
+
+      - name: Terraform Destroy
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          echo "🔴 Executing terraform destroy..."
+          terraform apply -input=false destroy.tfplan
+          echo "✅ Terraform destroy completed."
+
+      - name: Destroy summary
+        if: always()
+        run: |
+          echo "### 🔴 Environment Destruction — \`${{ inputs.environment }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          if [ "${{ job.status }}" = "success" ]; then
+            echo "✅ Environment \`${{ inputs.environment }}\` has been destroyed." >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "> **All resources and data have been permanently deleted.**" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "❌ Destruction failed or was aborted." >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "> **Some resources may still exist.** Check the Azure portal and Terraform state." >> "$GITHUB_STEP_SUMMARY"
+          fi
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Detail | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|--------|-------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Environment | \`${{ inputs.environment }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Triggered by | \`${{ github.actor }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Run | [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) |" >> "$GITHUB_STEP_SUMMARY"

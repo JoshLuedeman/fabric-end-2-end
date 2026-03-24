@@ -1,0 +1,108 @@
+// =====================================================
+// Supply Chain Graph Schema
+// Contoso Global Retail - Microsoft Fabric Graph
+// =====================================================
+// Node types and their properties, plus edge types
+//
+// This schema defines the core supply chain network as a
+// property graph. Nodes represent business entities
+// (Suppliers, Warehouses, Stores, Products) and edges
+// represent the logistical relationships between them.
+// =====================================================
+
+// -- Node Type: Supplier --
+// Represents a vendor that provides products to the network.
+CREATE NODE TABLE Supplier (
+    supplier_id STRING PRIMARY KEY,
+    supplier_name STRING,
+    contact_name STRING,
+    contact_email STRING,
+    country STRING,
+    city STRING,
+    reliability_score DOUBLE,
+    lead_time_days INT32,
+    is_active BOOLEAN
+);
+
+// -- Node Type: Warehouse --
+// Represents a distribution center that receives goods from
+// suppliers and ships them to retail stores.
+CREATE NODE TABLE Warehouse (
+    warehouse_id STRING PRIMARY KEY,
+    warehouse_name STRING,
+    city STRING,
+    state STRING,
+    country STRING,
+    latitude DOUBLE,
+    longitude DOUBLE,
+    capacity_sqft INT32,
+    current_utilization_pct DOUBLE,
+    is_active BOOLEAN
+);
+
+// -- Node Type: Store --
+// Represents a retail location that sells products to customers.
+CREATE NODE TABLE Store (
+    store_id STRING PRIMARY KEY,
+    store_name STRING,
+    store_type STRING,
+    city STRING,
+    state STRING,
+    country STRING,
+    region STRING,
+    latitude DOUBLE,
+    longitude DOUBLE
+);
+
+// -- Node Type: Product --
+// Represents a sellable item that flows through the supply chain.
+CREATE NODE TABLE Product (
+    product_id STRING PRIMARY KEY,
+    product_name STRING,
+    category STRING,
+    subcategory STRING,
+    brand STRING,
+    unit_price DOUBLE,
+    is_active BOOLEAN
+);
+
+// =====================================================
+// Edge Types (Relationships)
+// =====================================================
+
+// -- Edge Type: SUPPLIES (Supplier → Product) --
+// A supplier provides a specific product to the network.
+CREATE RELATIONSHIP TABLE SUPPLIES (
+    FROM Supplier TO Product,
+    established_date DATE,
+    strength DOUBLE,
+    is_active BOOLEAN
+);
+
+// -- Edge Type: SHIPS_TO (Supplier → Warehouse) --
+// A supplier ships goods to a warehouse via a logistics route.
+CREATE RELATIONSHIP TABLE SHIPS_TO (
+    FROM Supplier TO Warehouse,
+    avg_lead_time_days INT32,
+    avg_cost DOUBLE,
+    preferred_transport STRING,
+    is_active BOOLEAN
+);
+
+// -- Edge Type: DISTRIBUTES (Warehouse → Store) --
+// A warehouse distributes inventory to a store.
+CREATE RELATIONSHIP TABLE DISTRIBUTES (
+    FROM Warehouse TO Store,
+    distance_km DOUBLE,
+    avg_delivery_days INT32,
+    is_active BOOLEAN
+);
+
+// -- Edge Type: STOCKS (Store → Product) --
+// A store holds inventory of a product.
+CREATE RELATIONSHIP TABLE STOCKS (
+    FROM Store TO Product,
+    current_quantity INT32,
+    reorder_point INT32,
+    is_active BOOLEAN
+);

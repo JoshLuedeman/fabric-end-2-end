@@ -1,0 +1,36 @@
+# Generated data
+data/generators/output/
+data-output/
+
+# Terraform
+infra/**/.terraform/
+infra/**/*.tfplan
+infra/**/*.tfstate
+infra/**/*.tfstate.backup
+infra/**/.terraform.lock.hcl
+*.tfplan
+
+# Node.js
+streaming/node_modules/
+streaming/dist/
+streaming/.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Teamwork metrics (gitignored per convention)
+.teamwork/metrics/

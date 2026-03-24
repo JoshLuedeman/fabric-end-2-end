@@ -1,0 +1,8 @@
+{
+  "version": "d807839",
+  "files": {
+    ".editorconfig": "0f480d7603199f524dea95c6cd4819db6820c5a8f6706185f1f261bde04cfeb5",
+    ".pre-commit-config.yaml": "6d707775e921ef8f571de392ca9e7b0b351a14db764e0469502e6377bb802ca4",
+    "Makefile": "433f5903604362c33afee7fb489062e94c9567256ab0a45bdd0addc5cf2df4d4"
+  }
+}

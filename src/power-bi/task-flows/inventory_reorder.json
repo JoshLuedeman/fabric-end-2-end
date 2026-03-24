@@ -1,0 +1,54 @@
+{
+  "name": "Inventory Reorder Task Flow",
+  "description": "Enables operations managers to trigger inventory reorders for products below reorder point directly from the Inventory Operations report",
+  "version": "1.0",
+  "trigger": {
+    "type": "button",
+    "label": "Reorder Stock",
+    "placement": "report_visual",
+    "visual_type": "table",
+    "condition": "is_below_reorder == true"
+  },
+  "parameters": [
+    {
+      "name": "product_id",
+      "type": "string",
+      "source": "selected_row",
+      "column": "product_id"
+    },
+    {
+      "name": "store_id",
+      "type": "string",
+      "source": "selected_row",
+      "column": "store_id"
+    },
+    {
+      "name": "reorder_quantity",
+      "type": "integer",
+      "source": "selected_row",
+      "column": "reorder_quantity",
+      "editable": true,
+      "label": "Quantity to Order"
+    },
+    {
+      "name": "priority",
+      "type": "enum",
+      "options": ["Normal", "Urgent", "Critical"],
+      "default": "Normal",
+      "label": "Priority"
+    }
+  ],
+  "action": {
+    "type": "user_data_function",
+    "function_name": "fn_reorder_inventory",
+    "workspace": "contoso-analytics",
+    "write_target": {
+      "type": "warehouse_table",
+      "schema": "operations",
+      "table": "reorder_requests"
+    }
+  },
+  "confirmation": {
+    "message": "Reorder request created: {{reorder_quantity}} units of {{product_id}} for store {{store_id}} with {{priority}} priority."
+  }
+}

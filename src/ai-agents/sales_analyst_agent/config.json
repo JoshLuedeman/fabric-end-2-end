@@ -1,0 +1,33 @@
+{
+  "name": "Contoso Sales Analyst",
+  "description": "AI-powered sales analyst that answers questions about sales performance, customer trends, and revenue metrics using natural language.",
+  "type": "data_agent",
+  "capabilities": [
+    "natural_language_query",
+    "trend_analysis",
+    "anomaly_explanation"
+  ],
+  "data_sources": [
+    {
+      "type": "semantic_model",
+      "name": "contoso_sales",
+      "description": "Sales performance semantic model covering transactions, customers, products, and stores"
+    },
+    {
+      "type": "lakehouse",
+      "name": "gold_lakehouse",
+      "description": "Gold-layer dimensional data for detailed analysis"
+    }
+  ],
+  "sample_prompts": [
+    "What were total sales last quarter by region?",
+    "Which products are trending up this month compared to last month?",
+    "Show me the top 10 customers by lifetime value",
+    "Why did sales drop in the South region last week?",
+    "What is the average order value by payment method?"
+  ],
+  "security": {
+    "respect_rls": true,
+    "respect_cls": true
+  }
+}

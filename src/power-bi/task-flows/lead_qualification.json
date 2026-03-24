@@ -1,0 +1,49 @@
+{
+  "name": "Lead Qualification Task Flow",
+  "description": "Enables sales reps to qualify leads, update status, and trigger follow-up actions directly from the Sales Analytics report",
+  "version": "1.0",
+  "trigger": {
+    "type": "button",
+    "label": "Qualify Lead",
+    "placement": "report_visual",
+    "visual_type": "table"
+  },
+  "parameters": [
+    {
+      "name": "customer_id",
+      "type": "string",
+      "source": "selected_row",
+      "column": "customer_id"
+    },
+    {
+      "name": "qualification_status",
+      "type": "enum",
+      "options": ["Hot", "Warm", "Cold", "Disqualified"],
+      "label": "Lead Status"
+    },
+    {
+      "name": "notes",
+      "type": "string",
+      "label": "Notes",
+      "multiline": true
+    },
+    {
+      "name": "follow_up_date",
+      "type": "date",
+      "label": "Follow-up Date"
+    }
+  ],
+  "action": {
+    "type": "user_data_function",
+    "function_name": "fn_qualify_lead",
+    "workspace": "contoso-analytics",
+    "write_target": {
+      "type": "warehouse_table",
+      "schema": "operations",
+      "table": "lead_qualifications"
+    }
+  },
+  "confirmation": {
+    "message": "Lead {{customer_id}} has been marked as {{qualification_status}}. Follow-up scheduled for {{follow_up_date}}."
+  }
+}
